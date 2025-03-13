@@ -1,5 +1,5 @@
 ## Meeting 1 ##
-Soft deadlines:
+General Planning:
 1. Days 1-4 (through March 20)
   - Complete the literature review (look for baseline models, or ideas for OEQ)
   - Formulate a clear, novel research question.
