@@ -18,6 +18,18 @@
 - **Pixel Accuracy**: Measures the percentage of correctly classified pixels, though it offers less detailed insights than mIoU.  
 - **Per-Class IoU** (Optional): Useful for identifying which classes are segmented most or least accurately, but may not be necessary for a baseline evaluation.
 
+## Ablation
+- CAM Threshold Sensitivity
+    - Vary the threshold used to convert CAM scores to binary masks (e.g., 20%, 30%, 50% of the max activation).
+    Observe how it affects the final mIoU.
+    Helps show if the sweet spot is around a certain threshold or if the approach is robust.
+- Backbone Choice (Optional)
+    - If resources allow, test a second backbone (e.g., VGG-16 vs. ResNet-50).
+    Show how the choice of classifier backbone affects the quality of pseudo-labels and final segmentation.
+- Post-Processing or No Post-Processing (Optional)
+    - Compare running a CRF (or a simple morphological operation) vs. no post-processing on the thresholded CAMs.
+    - This ablation is straightforward: does smoothing the pseudo-labels help or not?
+
 
 ## Paper
 - Token Contrast (ToCo) with Vision Transformers (CVPR)
