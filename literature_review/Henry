@@ -1,5 +1,0 @@
-### Novel
-
-1. Does refining the CAM-generated pseudo-labels improve segmentation performance?
-2. How much can a small amount of strong annotation (e.g. one pixel or scribble per object) boost weakly-supervised segmentation?
-3. How does the type of weak supervision signal (image-level labels vs. bounding boxes vs. scribbles vs. point clicks) influence segmentation results and annotation effort? 
