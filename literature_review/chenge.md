@@ -27,6 +27,7 @@ Principle: The GAP layer compresses spatial information from feature maps into c
    - MICCAI 2019: AffinityNet: Semi-Supervised Few-Shot Learning for Disease Type Prediction
 2. Transformer-driven weakly supervised segmentation
    - conformer: NeurIPS 2023: TransCAM: Transformer-based Class Activation Maps for Weakly Supervised Segmentation(https://github.com/liruiwen/TransCAM)
+   ![image](chenge_transcam.png)
    - vit: ICCV 2021: TS-CAM: Token Semantic Coupled Attention Map for Weakly Supervised Object Localization(https://github.com/vasgaowei/TS-CAM)
    - CVPR 2022: Multi-class Token Transformer for Weakly Supervised Semantic Segmentation
    - CVPR 2022:  Learning Affinity From Attention: End-to-End Weakly-Supervised Semantic Segmentation With Transformers(framework is a bit complex)
@@ -40,6 +41,7 @@ training transformer is expensive. are we allowed to finetune pre-trained vit?
 Utilizes bounding box annotations to generate pixel-level pseudo labels (such as foreground inside the box, background outside the box).
 
 - CVPR2021: BoxInst: High-Performance Instance Segmentation with Box Annotations
+   - add two loss on the fully-supervised solution: Projection and Pairwise Affinity(might be easy to compare)
 - ICCV2023: SimpleClick: Interactive Image Segmentation with Simple Vision Transformers(https://github.com/uncbiag/SimpleClick)
 
 Oxford-IIIT Pet has bounding box annotation
