@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from torchvision import models
-from itertools import chain
 from math import ceil
 
 import copy
@@ -29,7 +28,7 @@ class BaseModel(nn.Module):
 
 
 # Code adopted from https://github.com/yassouali/pytorch-segmentation/blob/master/models/segnet.py
-# Segnet uses the 13 first layers from VGG16 and left out the fully connected layer
+# SegNet uses the 13 first layers from VGG16 and left out the fully connected layer
 class SegNet(BaseModel):
     def __init__(self, in_channels=3, freeze_batchnormal=False, **_):
         super(SegNet, self).__init__()

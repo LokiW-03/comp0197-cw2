@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from baseline_segnet import SegNet
 from metrics import compute_metrics
+from efficient_unet import EfficientUNet
 from enum import IntEnum
 from PIL import Image
 
@@ -172,7 +173,8 @@ def main():
     print(X_train_batch.shape)
 
     # initialise model
-    model = SegNet()
+    #model = SegNet()
+    model = EfficientUNet()
 
     # test model giving correct shape
     model.eval()
