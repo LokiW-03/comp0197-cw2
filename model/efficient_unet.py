@@ -5,9 +5,9 @@ import numpy as np
 from torchvision import models
 
 
-class UNetDecoder(nn.Module):
+class UpSampleDecoder(nn.Module):
     def __init__(self, in_channels, out_channels, skip_out_channels):
-        super(UNetDecoder, self).__init__()
+        super(UpSampleDecoder, self).__init__()
         # Define upsampling layers (ConvTranspose2d)
         self.upconv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2, padding=0)
         self.conv = nn.Conv2d(skip_out_channels + out_channels, out_channels, kernel_size=3, padding=1)
@@ -34,10 +34,10 @@ class EfficientUNet(nn.Module):
         self.encoder_blocks = self.encoder.features[1:8]
 
         # Decode layer
-        self.upconv1 = UNetDecoder(320, 192, 112)
-        self.upconv2 = UNetDecoder(192, 112, 40)
-        self.upconv3 = UNetDecoder(112, 80, 24)
-        self.upconv4 = UNetDecoder(80, 40, 16)
+        self.upconv1 = UpSampleDecoder(320, 192, 112)
+        self.upconv2 = UpSampleDecoder(192, 112, 40)
+        self.upconv3 = UpSampleDecoder(112, 80, 24)
+        self.upconv4 = UpSampleDecoder(80, 40, 16)
         self.upconv5 = nn.ConvTranspose2d(40, 24, kernel_size=2, stride=2, padding=0)
 
         # Final convolution to match the number of output classes

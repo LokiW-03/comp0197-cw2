@@ -6,6 +6,7 @@ from torchvision import datasets, transforms
 from baseline_segnet import SegNet
 from metrics import compute_metrics
 from efficient_unet import EfficientUNet
+from baseline_unet import UNet
 from enum import IntEnum
 from PIL import Image
 
@@ -174,7 +175,8 @@ def main():
 
     # initialise model
     #model = SegNet()
-    model = EfficientUNet()
+    #model = EfficientUNet()
+    model = UNet(3, 3)
 
     # test model giving correct shape
     model.eval()
