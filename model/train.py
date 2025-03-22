@@ -3,6 +3,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from baseline_segnet import SegNet
+from efficient_unet import EfficientUNet
 from enum import IntEnum
 from PIL import Image
 
@@ -19,7 +20,6 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-
 
 mask_transform = transforms.Compose([
     transforms.Resize((128, 128)),
@@ -55,11 +55,13 @@ class TrimapClasses(IntEnum):
 def trimap2f(trimap):
     return (img2t(trimap) * 255.0 - 1) / 2
 
+
+
 def train_model(model, trainloader, loss_class, optimizer, epochs):
     for epoch in range(epochs):
         running_loss = 0.0
         for id, (X_train, y_train) in enumerate(trainloader, 0):
-            print(f'Training batch {id}')
+            print(f'Training sample {id}')
             optimizer.zero_grad()
 
             y_hat = model(X_train)
@@ -82,18 +84,20 @@ def main():
 
 
     # prepare data
-    trainset = OxfordPetsSegmentationDataset(root='./data', split='trainval', target_types= 'segmentation',download=True, transform=transform, mask_transform=mask_transform)
+    trainset = OxfordPetsSegmentationDataset(root='./data', split='trainval', target_types='segmentation', download=True, transform=transform, mask_transform=mask_transform)
     #testset = datasets.OxfordIIITPet(root='./data', split='test', target_types= 'segmentation', download=True, transform=transform)
 
     # Create DataLoaders for batch processing
-    trainset = DataLoader(trainset, batch_size=16, shuffle=True) # Using small batch-size as running out of memory
+    trainloader = DataLoader(trainset, batch_size=16, shuffle=True) # Using small batch-size as running out of memory
     #val_loader = DataLoader(testset, batch_size=16, shuffle=False)
 
-    X_train_batch, _ = next(iter(trainset))
+    # check input X shape
+    X_train_batch, _ = next(iter(trainloader))
     print(X_train_batch.shape)
 
     # initialise model
-    model = SegNet()
+    #model = SegNet()
+    model = EfficientUNet()
 
     # test model giving correct shape
     model.eval()
@@ -105,7 +109,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     # train model
-    train_model(model, trainset, loss_fn, optimizer, 2)
+    train_model(model, trainloader, loss_fn, optimizer, 2)
 
 
 if __name__ == "__main__":
