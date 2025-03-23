@@ -18,7 +18,7 @@ that do not contain a pet are disregarded - we do not evaluate these cases.
 Inputs containing more than 1 pet (2-3) may be evaluated as a side measurement,
 but not as part of the main evaluation.
 
-## Limitations
+## (Acceptable) Limitations
 
 The dataset consists of single pet images (dogs and cats), hence when the model
 is evaluated on "real world data", it may be susceptible to:
