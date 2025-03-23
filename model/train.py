@@ -7,6 +7,7 @@ from baseline_segnet import SegNet
 from metrics import compute_metrics
 from efficient_unet import EfficientUNet
 from baseline_unet import UNet
+from metrics import compute_metrics
 from enum import IntEnum
 from PIL import Image
 
