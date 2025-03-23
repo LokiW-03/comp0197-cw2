@@ -1,13 +1,17 @@
+# Import files 
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from baseline_segnet import SegNet
+from metrics import compute_metrics
 from efficient_unet import EfficientUNet
 from baseline_unet import UNet
+from metrics import compute_metrics
 from enum import IntEnum
 from PIL import Image
 
+# Transform input
 img2t = transforms.ToTensor()
 
 def tensor_trimap(t):
@@ -28,54 +32,128 @@ mask_transform = transforms.Compose([
     transforms.Lambda(tensor_trimap)
 ])
 
-class OxfordPetsSegmentationDataset(datasets.OxfordIIITPet):
-    def __init__(self, mask_transform=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.mask_transform = mask_transform
-
-    def __len__(self):
-        return super().__len__()
-
-    def __getitem__(self, idx):
-        # Get image and target from the dataset
-        (image, target) = super().__getitem__(idx)
-
-        # Apply the mask transformation (resize and convert to tensor)
-        if self.mask_transform:
-            target = self.mask_transform(target)
-
-        return image, target
-
-
 class TrimapClasses(IntEnum):
     PET = 0
     BACKGROUND = 1
     BORDER = 2
 
-
 def trimap2f(trimap):
     return (img2t(trimap) * 255.0 - 1) / 2
 
+def compute_test_metrics_fn(model, testloader, loss_fn, num_classes = 3, num_eval_batches = None):
+    """
+    Evaluate metrics on test set, option to specify number of batches
+    
+    Args:
+        model (torch.nn.Module): The segmentation model.
+        testloader (torch.utils.data.DataLoader): DataLoader for test data.
+        loss_fn (torch.nn.Module): Loss function.
+        num_classes (int): Number of segmentation classes
+        num_eval_batches (int): Number of test set batches to use for computing metrics.
+            If not specified, this is run on the entire test set.
+
+    Return: 
+        test_metrics (dict)
+    """
+    model.eval()
+    with torch.no_grad():
+        test_loss, test_accuracy, test_precision, test_recall, test_iou, test_dice, test_samples = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        
+        
+        for j, (X_test, y_test) in enumerate(testloader):
+            if j == num_eval_batches:
+                break
+
+            y_test_hat = model(X_test)
+            y_test = y_test.squeeze(dim=1)
+            batch_metrics = compute_metrics(y_test_hat, y_test, loss_fn, num_classes)
+            batch_size = X_test.size(0)
+
+            test_loss += batch_metrics["loss"] * batch_size
+            test_accuracy += batch_metrics["accuracy"] * batch_size
+            test_precision += batch_metrics["precision"] * batch_size
+            test_recall += batch_metrics["recall"] * batch_size
+            test_iou += batch_metrics["iou"] * batch_size
+            test_dice += batch_metrics["dice"] * batch_size
+            test_samples += batch_size
+
+        test_metrics = {
+            "loss": test_loss / test_samples,
+            "accuracy": test_accuracy / test_samples,
+            "precision": test_precision / test_samples,
+            "recall": test_recall / test_samples,
+            "iou": test_iou / test_samples,
+            "dice": test_dice / test_samples
+        }
+
+        return test_metrics
 
 
-def train_model(model, trainloader, loss_class, optimizer, epochs):
+
+# Evaluating training and testing metrics simultaneously to save time 
+def train_model(model, trainloader, trainvalloader, loss_fn, optimizer, epochs, num_classes=3, compute_test_metrics = False):
+    """
+    Trains a segmentation model and computes metrics: loss, accuracy, precision, recall, IoU, and Dice coefficient at each epoch.
+
+    Args:
+        model (torch.nn.Module): The segmentation model.
+        trainloader (torch.utils.data.DataLoader): DataLoader for training data.
+        trainvalloader (torch.utils.data.DataLoader): DataLoader for eval data.
+        loss_fn (torch.nn.Module): Loss function.
+        optimizer (torch.optim.Optimizer): Optimizer.
+        epochs (int): Number of training epochs.
+        num_classes (int): Number of segmentation classes
+        compute_test_metrics (bool): option to compute test metrics while training
+    """
+
     for epoch in range(epochs):
-        running_loss = 0.0
-        for id, (X_train, y_train) in enumerate(trainloader, 0):
-            print(f'Training sample {id}')
-            optimizer.zero_grad()
+        model.train()
+        running_loss, total_accuracy, total_precision, total_recall, total_iou, total_dice, num_samples = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
+        for id, (X_train, y_train) in enumerate(trainloader, 0):
+            print(f'Training batch {id}')
+
+            optimizer.zero_grad()
             y_hat = model(X_train)
+
             y_train = y_train.squeeze(dim=1)
-            loss = loss_class(y_hat, y_train)
+            loss = loss_fn(y_hat, y_train)
 
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()*X_train.size(0)
+            # Compute batch metrics
+            batch_metrics = compute_metrics(y_hat, y_train, loss_fn, num_classes)
+            batch_size = X_train.size(0)
 
-            #if epoch % 10 == 9:
-        print(f"Epoch {epoch+1} of {epochs}, Loss: {running_loss/len(trainloader.dataset)}")
+            # Accumulate metrics
+            running_loss += batch_metrics["loss"] * batch_size
+            total_accuracy += batch_metrics["accuracy"] * batch_size
+            total_precision += batch_metrics["precision"] * batch_size
+            total_recall += batch_metrics["recall"] * batch_size
+            total_iou += batch_metrics["iou"] * batch_size
+            total_dice += batch_metrics["dice"] * batch_size
+            num_samples += batch_size
+            
+
+        # Compute average metrics for training
+        train_metrics = {
+            "loss": running_loss / num_samples,
+            "accuracy": total_accuracy / num_samples,
+            "precision": total_precision / num_samples,
+            "recall": total_recall / num_samples,
+            "iou": total_iou / num_samples,
+            "dice": total_dice / num_samples
+        }
+
+        # Print metrics for the current epoch
+        print(f"Epoch {epoch+1}/{epochs}")
+        print(f"Train -> {train_metrics}")
+        if compute_test_metrics == True:
+            test_metrics = compute_test_metrics_fn(model, trainvalloader, loss_fn, num_classes = 3, num_eval_batches=1) 
+            print(f"Test   -> {test_metrics}")
+        print("-" * 50)
+
 
 
 def main():
@@ -85,15 +163,15 @@ def main():
 
 
     # prepare data
-    trainset = OxfordPetsSegmentationDataset(root='./data', split='trainval', target_types='segmentation', download=True, transform=transform, mask_transform=mask_transform)
-    #testset = datasets.OxfordIIITPet(root='./data', split='test', target_types= 'segmentation', download=True, transform=transform)
+    trainset = datasets.OxfordIIITPet(root='./data', split='trainval', target_types= 'segmentation',download=True, transform=transform, target_transform=mask_transform)
+    testset = datasets.OxfordIIITPet(root='./data', split='test', target_types= 'segmentation', download=True, transform=transform, target_transform=mask_transform)
 
     # Create DataLoaders for batch processing
-    trainloader = DataLoader(trainset, batch_size=16, shuffle=True) # Using small batch-size as running out of memory
-    #val_loader = DataLoader(testset, batch_size=16, shuffle=False)
+    train_loader = DataLoader(trainset, batch_size=16, shuffle=True) # Using small batch-size as running out of memory
+    trainval_loader = DataLoader(testset, batch_size=16, shuffle=True)
+    test_loader = DataLoader(testset, batch_size=64, shuffle=True)
 
-    # check input X shape
-    X_train_batch, _ = next(iter(trainloader))
+    X_train_batch, _ = next(iter(train_loader))
     print(X_train_batch.shape)
 
     # initialise model
@@ -106,12 +184,18 @@ def main():
     output = model(X_train_batch)
     print(output.shape)
 
-    # initialise optimiser & loss class
+    # # initialise optimiser & loss class
     loss_fn = nn.CrossEntropyLoss(reduction='mean')
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     # train model
-    train_model(model, trainloader, loss_fn, optimizer, 2)
+    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, 2, compute_test_metrics = True)
+
+    # compute metrics on entire test set (may take a while)
+    test_metrics = compute_test_metrics_fn(
+        model, test_loader, loss_fn, num_classes = 3,
+        num_eval_batches=None) 
+    print(f"Final test metrics:   -> {test_metrics}")
 
 
 if __name__ == "__main__":
