@@ -32,4 +32,4 @@ is evaluated on "real world data", it may be susceptible to:
 
 # Task 2: OEQ (open ended question)
 
-TBD based on model architecture performance.
+TBD based on model architecture and performance.
