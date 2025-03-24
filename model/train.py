@@ -11,6 +11,8 @@ from metrics import compute_metrics
 from enum import IntEnum
 from PIL import Image
 
+SAVE_WEIGHTS_FREQUENCY = 1 # save weights to a file every {num} epochs
+
 # Transform input
 img2t = transforms.ToTensor()
 
@@ -91,7 +93,7 @@ def compute_test_metrics_fn(model, testloader, loss_fn, num_classes = 3, num_eva
 
 
 # Evaluating training and testing metrics simultaneously to save time 
-def train_model(model, trainloader, trainvalloader, loss_fn, optimizer, epochs, num_classes=3, compute_test_metrics = False):
+def train_model(model, trainloader, trainvalloader, loss_fn, optimizer, epochs, num_classes=3, compute_test_metrics=False, model_name: str='example'):
     """
     Trains a segmentation model and computes metrics: loss, accuracy, precision, recall, IoU, and Dice coefficient at each epoch.
 
@@ -105,8 +107,10 @@ def train_model(model, trainloader, trainvalloader, loss_fn, optimizer, epochs, 
         num_classes (int): Number of segmentation classes
         compute_test_metrics (bool): option to compute test metrics while training
     """
+    print("Number of train batches:", len(trainloader))
 
-    for epoch in range(epochs):
+    for epoch in range(1, epochs + 1):
+        print("Start epoch", epoch)
         model.train()
         running_loss, total_accuracy, total_precision, total_recall, total_iou, total_dice, num_samples = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
@@ -147,13 +151,19 @@ def train_model(model, trainloader, trainvalloader, loss_fn, optimizer, epochs, 
         }
 
         # Print metrics for the current epoch
-        print(f"Epoch {epoch+1}/{epochs}")
+        print(f"Epoch {epoch}/{epochs}")
         print(f"Train -> {train_metrics}")
-        if compute_test_metrics == True:
-            test_metrics = compute_test_metrics_fn(model, trainvalloader, loss_fn, num_classes = 3, num_eval_batches=1) 
+        if compute_test_metrics:
+            test_metrics = compute_test_metrics_fn(
+                model, trainvalloader, loss_fn, num_classes=3, num_eval_batches=1
+            )
             print(f"Test   -> {test_metrics}")
         print("-" * 50)
 
+        # Save model weights every 5 epochs
+        if epoch % SAVE_WEIGHTS_FREQUENCY == 0:
+            torch.save(model.state_dict(), f"{model_name}_epoch_{epoch}.pth")
+            print(f"Model weights saved for model {model_name} at epoch {epoch}")
 
 
 def main():
