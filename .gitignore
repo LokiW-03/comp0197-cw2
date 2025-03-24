@@ -1,1 +1,2 @@
-model/data/*
+**/data/
+**/__pycache__/
