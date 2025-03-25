@@ -11,6 +11,7 @@ from PIL import Image
 from data import trainset, testset
 
 SAVE_WEIGHTS_FREQUENCY = 1 # save weights to a file every {num} epochs
+EPOCHS = 10
 
 def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3, num_eval_batches = None):
     """
@@ -189,7 +190,7 @@ def main():
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
 
     # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, 2, device, compute_test_metrics = True, model_name = 'SegNet', scheduler=scheduler)
+    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'SegNet', scheduler=scheduler)
 
     # compute metrics on entire test set (may take a while)
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
