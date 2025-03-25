@@ -37,19 +37,36 @@ class GradCAMpp:
         self.resize_transform = Resize((IMAGE_SIZE, IMAGE_SIZE), interpolation=InterpolationMode.BILINEAR)
     
     def generate_cam(self, input_tensor, target_class=None):
-        # forward propagation
+        """
+        Generate Grad-CAM++ visualization for input tensor(s)
+        
+        Args:
+            input_tensor: Input tensor of shape (B, C, H, W) or (C, H, W)
+            target_class: Target class index. If None, uses predicted class
+            
+        Returns:
+            cam: numpy array of shape (B, H, W) or (H, W) containing CAM values
+        """
+        # Handle single image input
+        if input_tensor.dim() == 3:
+            input_tensor = input_tensor.unsqueeze(0)
+        
+        batch_size = input_tensor.size(0)
+        device = input_tensor.device
+        
+        # Forward propagation
         output = self.model(input_tensor)
         
         if target_class is None:
-            target_class = torch.argmax(output, dim=1).item()
+            target_class = torch.argmax(output, dim=1)
         
-        # backward propagation to calculate gradients
+        # Backward propagation to calculate gradients
         self.model.zero_grad()
         one_hot = torch.zeros_like(output)
-        one_hot[0][target_class] = 1
+        one_hot[torch.arange(batch_size, device=device), target_class] = 1
         output.backward(gradient=one_hot)
         
-        # get activations and gradients
+        # Get activations and gradients
         activations = self.model.activations.detach().cpu()
         gradients = self.model.gradients.detach().cpu()
         
@@ -57,17 +74,22 @@ class GradCAMpp:
         alpha = torch.sum(gradients, dim=(2, 3), keepdim=True)
         weights = torch.mean(alpha * torch.relu(gradients), dim=(2, 3), keepdim=True)
         
-        # sum up the weighted activations
-        cam = torch.sum(weights * activations, dim=1).squeeze()
-        cam = torch.relu(cam)  # ReLU去除负响应
+        # Sum up the weighted activations
+        cam = torch.sum(weights * activations, dim=1)  # (B, H, W)
+        cam = torch.relu(cam)  # Remove negative responses
         
-        # normalize the cam
-        cam -= cam.min()
-        cam /= cam.max()
-        cam = cam.numpy()
+        # Normalize the cam
+        cam -= cam.min(dim=1, keepdim=True)[0].min(dim=2, keepdim=True)[0]
+        cam /= cam.max(dim=1, keepdim=True)[0].max(dim=2, keepdim=True)[0]
         
-        # resize the cam to the input size
-        cam_tensor = torch.from_numpy(cam).unsqueeze(0) 
-        cam_resized = self.resize_transform(cam_tensor)
-        cam = cam_resized.squeeze().numpy()
+        # Resize the cam to the input size
+        cam_resized = self.resize_transform(cam.unsqueeze(1)).squeeze(1)  # (B, H, W)
+        
+        # Convert to numpy (only at the end)
+        cam = cam_resized.cpu().numpy()
+        
+        # Return single image if input was single image
+        if batch_size == 1:
+            cam = cam.squeeze(0)
+            
         return cam

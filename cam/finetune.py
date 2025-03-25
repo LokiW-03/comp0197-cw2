@@ -10,7 +10,7 @@ from __init__ import *
 # -------------------- Fine-tuning Function --------------------
 def fine_tune_model():
     # Check device
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     
     # Load data
     train_loader, test_loader = download_pet_dataset()

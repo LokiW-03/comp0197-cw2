@@ -2,7 +2,7 @@ import torch
 from PIL import Image
 import numpy as np
 from resnetcam import ResNet50_CAM, GradCAMpp
-from __init__ import NUM_CLASSES, TMP_OUTPUT_PATH
+from __init__ import NUM_CLASSES, TMP_OUTPUT_PATH, MODEL_SAVE_PATH
 from preprocessing import unnormalize
 from torch.utils.data import DataLoader
 
@@ -24,9 +24,9 @@ def test_gradcampp(
         nrow (int): Number of rows in grid (default 4)
     """
     # Load model
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     model = ResNet50_CAM(NUM_CLASSES)
-    model.load_state_dict(torch.load(model_path, weights_only=True))
+    model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     model = model.to(device).eval()
     
     # Store results
@@ -40,24 +40,21 @@ def test_gradcampp(
         else:
             inputs = batch.to(device)
         
-        # Iterate through each sample in batch
+        # Generate CAM (batch processing)
+        gradcam = GradCAMpp(model)
+        cams = gradcam.generate_cam(inputs)  # (B, H, W)
+        
+        # Process each sample in the batch
         for i in range(inputs.size(0)):
             if processed >= num_samples:
                 break
             
-            # Get single sample
-            input_tensor = inputs[i].unsqueeze(0)  # (1, C, H, W)
-            
-            # Generate CAM
-            gradcam = GradCAMpp(model)
-            cam = gradcam.generate_cam(input_tensor)
-            
             # Denormalize and convert to uint8
-            img_np = unnormalize(input_tensor.cpu())  # (H, W, 3) [0,1]
+            img_np = unnormalize(inputs[i].cpu())  # (H, W, 3) [0,1]
             img_uint8 = (img_np * 255).astype(np.uint8)
             
             # Generate heatmap
-            heatmap = jet_colormap(cam)  # (H, W, 3) uint8
+            heatmap = jet_colormap(cams[i])  # (H, W, 3) uint8
             
             # Generate superimposed image
             superimposed = (heatmap * 0.4 + img_uint8 * 0.6).clip(0, 255).astype(np.uint8)
@@ -76,7 +73,7 @@ def test_gradcampp(
     
     # Generate final grid
     if len(all_combined) > 0:
-        batch = torch.cat(all_combined, dim=0)  # (N, 3, H, 3W)
+        batch = torch.cat(all_combined[:num_samples], dim=0)  # (N, 3, H, 3W)
         ncol = int(np.ceil(len(all_combined) / nrow))
         visualize_grid(batch, save_path, nrow=nrow, ncol=ncol)
         print(f"Saved visualization grid with {len(all_combined)} samples")
@@ -151,7 +148,7 @@ if __name__ == "__main__":
     train_loader, test_loader = download_pet_dataset()
     test_gradcampp(
         dataloader=test_loader,
-        model_path="resnet50_pet_cam.pth",
+        model_path=MODEL_SAVE_PATH,
         save_path=f"{TMP_OUTPUT_PATH}/cam_grid.jpg",
         num_samples=16,
         nrow=4
