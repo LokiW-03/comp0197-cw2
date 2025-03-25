@@ -2,19 +2,32 @@ from torchvision.datasets import OxfordIIITPet
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch
+from dataset.oxfordpet_paths import OxfordIIITPetWithPaths
 
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
 
-def download_pet_dataset():
-    """Returns data loaders with properly processed tensors"""
+def download_pet_dataset(with_paths=False):
+    """
+    Download and prepare the Oxford Pet dataset
+    
+    Args:
+        with_paths (bool): Whether to return loaders with image paths
+        
+    Returns:
+        train_loader, test_loader: Data loaders
+    """
+    # Select dataset class
+    dataset_class = OxfordIIITPetWithPaths if with_paths else OxfordIIITPet
+
+    # Define preprocessing pipeline
     train_transform = transforms.Compose([
         transforms.Resize(256),
         transforms.RandomResizedCrop(IMAGE_SIZE),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                             std=[0.229, 0.224, 0.225])
+                           std=[0.229, 0.224, 0.225])
     ])
     
     test_transform = transforms.Compose([
@@ -22,34 +35,40 @@ def download_pet_dataset():
         transforms.CenterCrop(IMAGE_SIZE),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                             std=[0.229, 0.224, 0.225])
+                           std=[0.229, 0.224, 0.225])
     ])
-    
-    # Ensure only category labels are returned
-    train_dataset = OxfordIIITPet(
+
+    # Create datasets
+    train_dataset = dataset_class(
         root="./data",
         split="trainval",
         target_types="category",
         download=True,
-        transform=train_transform,
-        target_transform=None  # Explicitly don't return segmentation masks
+        transform=train_transform
     )
     
-    test_dataset = OxfordIIITPet(
+    test_dataset = dataset_class(
         root="./data",
         split="test",
         target_types="category",
         download=True,
-        transform=test_transform,
-        target_transform=None
+        transform=test_transform
     )
-    
-    # Custom collate function to handle possible tuples
+
+    # Dynamic collate function
     def collate_fn(batch):
-        images = torch.stack([item[0] for item in batch])
-        labels = torch.tensor([item[1] for item in batch])
-        return images, labels
-    
+        """Automatically handle different return formats"""
+        if with_paths:  # (image, label, path)
+            images = torch.stack([item[0] for item in batch])
+            labels = torch.tensor([item[1] for item in batch])
+            paths = [item[2] for item in batch]
+            return images, labels, paths
+        else:  # (image, label)
+            images = torch.stack([item[0] for item in batch])
+            labels = torch.tensor([item[1] for item in batch])
+            return images, labels
+
+    # Create data loaders
     train_loader = DataLoader(
         train_dataset, 
         batch_size=BATCH_SIZE, 
@@ -65,9 +84,3 @@ def download_pet_dataset():
     )
     
     return train_loader, test_loader
-
-# Usage example
-if __name__ == "__main__":
-    train_loader, test_loader = download_pet_dataset()
-    print(f"Number of training samples: {len(train_loader.dataset)}")
-    print(f"Number of test samples: {len(test_loader.dataset)}")

@@ -86,7 +86,7 @@ class GradCAMpp:
         cam_resized = self.resize_transform(cam.unsqueeze(1)).squeeze(1)  # (B, H, W)
         
         # Convert to numpy (only at the end)
-        cam = cam_resized.cpu().numpy()
+        cam = cam_resized
         
         # Return single image if input was single image
         if batch_size == 1:
