@@ -10,7 +10,7 @@ from segnext import SegNeXt
 from PIL import Image
 from data import trainset, testset
 
-SAVE_WEIGHTS_FREQUENCY = 1 # save weights to a file every {num} epochs
+SAVE_WEIGHTS_FREQUENCY = 2 # save weights to a file every {num} epochs
 EPOCHS = 10
 
 def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3, num_eval_batches = None):
@@ -153,9 +153,15 @@ def train_model(
             print(f"Test   -> {test_metrics}")
         print("-" * 50)
 
-        # Save model weights every 5 epochs
+        # Save model weights every 2 epochs
         if epoch % SAVE_WEIGHTS_FREQUENCY == 0:
-            torch.save(model.state_dict(), f"{model_name}_epoch_{epoch}.pth")
+            checkpoint = { 
+                    'epoch': epoch,
+                    'model': model.state_dict(),
+                    'optimizer': optimizer.state_dict()} 
+            if scheduler is not None: 
+                checkpoint['lr_scheduler']= scheduler.load_state_dict
+            torch.save(checkpoint, f"{model_name}_epoch_{epoch}.pth")
             print(f"Model weights saved for model {model_name} at epoch {epoch}")
 
 
@@ -176,8 +182,8 @@ def main():
     # initialise model
     #model = SegNet().to(device)
     #model = EfficientUNet().to(device)
-    #model = UNet(3, 3).to(device)
-    model = SegNeXt(num_classes=3).to(device)
+    model = UNet(3, 3).to(device)
+    # model = SegNeXt(num_classes=3).to(device)
 
     # test model giving correct shape
     model.eval()
@@ -190,7 +196,7 @@ def main():
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
 
     # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'SegNet', scheduler=scheduler)
+    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'UNet1', scheduler=scheduler)
 
     # compute metrics on entire test set (may take a while)
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
