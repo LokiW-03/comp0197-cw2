@@ -14,7 +14,7 @@ def visualize_cam(images: torch.Tensor, cams: np.ndarray, save_path: str, nrow: 
     """
     all_combined = []
     images = images[:nrow*ncol]
-    cams = cams[:nrow*ncol].cpu().numpy()
+    cams = cams[:nrow*ncol].detach().cpu().numpy()
     for image, cam in zip(images, cams):
         # Denormalize and convert to uint8
         img_np = unnormalize(image.cpu()).numpy()  # (H, W, 3) [0,1]

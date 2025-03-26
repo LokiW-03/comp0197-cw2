@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights
 from torchvision.transforms import Resize, InterpolationMode
-from __init__ import IMAGE_SIZE  # Make sure IMAGE_SIZE is defined
+from __init__ import IMAGE_SIZE  # Ensure IMAGE_SIZE is defined
 
 ##########################################
 # EfficientNet-B4 with CAM Hooks
@@ -23,19 +23,19 @@ class EfficientNetB4_CAM(nn.Module):
         in_features = self.effnet.classifier[1].in_features
         self.effnet.classifier[1] = nn.Linear(in_features, num_classes)
         
-        # Choose a target layer for CAM – we select the last convolution of the last feature block.
+        # Target layer for CAM (last conv of the last feature block)
         self.target_layer = self.effnet.features[-1][-1]
         
-        # Placeholders for hooks
+        # Hook placeholders
         self.activations = None
         self.gradients = None
         
-        # Register hooks to capture forward activations and backward gradients.
+        # Register hooks
         self.target_layer.register_forward_hook(self.save_activations)
         self.target_layer.register_full_backward_hook(self.save_gradients)
     
     def _disable_inplace(self, model):
-        """Disable in-place operations for all SiLU activations to avoid hook conflicts."""
+        """Disable in-place operations in SiLU"""
         for module in model.modules():
             if isinstance(module, nn.SiLU):
                 module.inplace = False
@@ -50,18 +50,91 @@ class EfficientNetB4_CAM(nn.Module):
         return self.effnet(x)
 
 ##########################################
-# Score-CAM Implementation
+# Modified Score-CAM for All Classes
 ##########################################
 class ScoreCAM:
     def __init__(self, model):
-        """
-        Initialize ScoreCAM with a model that must have hooks set up to record
-        activations (e.g. an instance of EfficientNetB4_CAM).
-        """
         self.model = model
         self.model.eval()
     
-    def generate_cam(self, input_tensor, target_class=None):
+    def generate_cam(self, input_tensor, all_classes=True):
+        """
+        Generate CAM for all classes.
+        
+        Args:
+            input_tensor: (B, C, H, W)
+            
+        Returns:
+            (B, num_classes, H, W): CAM for every class, if all_classes is False, (B, H, W) otherwise
+            (B, num_classes): logits for all classes, if all_classes is False, (B,) otherwise
+        """
+        if not all_classes:
+            # previous implementation
+            # TODO: merge with the all_classes implementation
+            return self._generate_single_cam(input_tensor)
+        
+        B, C, H, W = input_tensor.shape
+    
+        # Forward pass to get logits
+        logits = self.model(input_tensor)  # (B, num_classes)
+        num_classes = logits.size(1)
+        
+        # Get activation maps
+        activations = self.model.activations  # (B, k, h, w)
+        if activations is None:
+            raise RuntimeError("Activations not captured")
+        k = activations.size(1)
+        
+        # Upsample activations
+        upsampled = F.interpolate(activations, (H, W), mode='bilinear', align_corners=False)  # (B, k, H, W)
+        
+        # Normalize activation maps
+        flat_activations = upsampled.view(B, k, -1)
+        min_vals = flat_activations.min(dim=2, keepdim=True)[0].unsqueeze(-1)
+        max_vals = flat_activations.max(dim=2, keepdim=True)[0].unsqueeze(-1)
+        norm_maps = (upsampled - min_vals) / (max_vals - min_vals + 1e-8)  # (B, k, H, W)
+        
+        # Initialize score_maps tensor
+        score_maps = torch.zeros(B, k, num_classes, device=input_tensor.device)
+        
+        # Process activation maps in batches
+        # TODO: Optimize this part when using GPU
+        batch_size = 8  # Adjust this value based on GPU memory
+        num_batches = (k + batch_size - 1) // batch_size
+        
+        for batch_idx in range(num_batches):
+            start = batch_idx * batch_size
+            end = min((batch_idx + 1) * batch_size, k)
+            
+            # Current batch of activation maps
+            current_norm_maps = norm_maps[:, start:end, :, :]  # (B, m, H, W)
+            m = current_norm_maps.size(1)
+            
+            # Generate masked inputs
+            masked_inputs = input_tensor.unsqueeze(1) * current_norm_maps.unsqueeze(2)  # (B, m, C, H, W)
+            masked_inputs = masked_inputs.view(B * m, C, H, W)
+            
+            # Forward pass
+            with torch.no_grad():
+                masked_logits = self.model(masked_inputs)  # (B*m, num_classes)
+                masked_scores = F.softmax(masked_logits, dim=1)  # (B*m, num_classes)
+            
+            # Save results
+            score_maps[:, start:end, :] = masked_scores.view(B, m, num_classes)
+        
+        # Calculate final CAM
+        cam = torch.einsum("bkhw,bkc->bchw", norm_maps, score_maps)  # (B, C, H, W)
+        cam = F.relu(cam)
+        
+        # Normalize
+        flat_cam = cam.view(B, num_classes, -1)
+        cam_min = flat_cam.min(dim=2, keepdim=True)[0].unsqueeze(-1)
+        cam_max = flat_cam.max(dim=2, keepdim=True)[0].unsqueeze(-1)
+        norm_cam = (cam - cam_min) / (cam_max - cam_min + 1e-8)
+        
+        return norm_cam, logits
+    
+    def _generate_single_cam(self, input_tensor, target_class=None):
         """
         Generate Score-CAM visualization.
         
@@ -126,4 +199,4 @@ class ScoreCAM:
             cam_out.append(cam_i)
         cam_out = torch.stack(cam_out)
         
-        return cam_out
+        return cam_out, output

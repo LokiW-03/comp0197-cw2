@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from resnetcam import ResNet50_CAM
+from resnet_gradcampp import ResNet50_CAM
 from dataset.oxfordpet import download_pet_dataset
 from __init__ import *
 
