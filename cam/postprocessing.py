@@ -1,3 +1,4 @@
+#postprocessing.py
 import torch
 from PIL import Image
 import os
@@ -105,24 +106,43 @@ def generate_pseudo_masks(
 if __name__ == "__main__":
     # ---------- User-defined section ----------
     from resnetcam import ResNet50_CAM, GradCAMpp
-    
+    from efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
+
+    num_classes=37
     # 1. Model initialization
-    model = ResNet50_CAM(num_classes=37)
+    #RESNET
+    # model = ResNet50_CAM(num_classes)
+    #EFFICIENTNET
+    model = EfficientNetB4_CAM(num_classes)
+
     device = torch.device(
         "cuda" if torch.cuda.is_available()
         else "mps" if torch.backends.mps.is_available()
         else "cpu"
     )
-    model.load_state_dict(torch.load(f"{MODEL_SAVE_PATH}/resnet50_pet_cam.pth", map_location=device, weights_only=True))
+    #RESNET
+    # model.load_state_dict(torch.load(f"{MODEL_SAVE_PATH}/resnet50_pet_cam.pth", map_location=device, weights_only=True))
+    #EFFICIENTNET
+    model.load_state_dict(torch.load(f"{MODEL_SAVE_PATH}/efficientnet_pet_scorecam.pth", map_location=device, weights_only=True))
+
     
     # 2. Data initialization
     _, test_loader = download_pet_dataset(with_paths=True)
     
     # 3. Call function
+    #RESNET
+    # generate_pseudo_masks(
+    #     dataloader=test_loader,
+    #     model=model,
+    #     cam_generator=lambda model: GradCAMpp(model),  # Instance factory
+    #     save_path=f'{MODEL_SAVE_PATH}/resnet50_pet_cam_pseudo.pt',
+    #     device=device
+    # )
+    #EFFICIENTNET
     generate_pseudo_masks(
         dataloader=test_loader,
         model=model,
-        cam_generator=lambda model: GradCAMpp(model),  # Instance factory
-        save_path=f'{MODEL_SAVE_PATH}/resnet50_pet_cam_pseudo.pt',
+        cam_generator=lambda model: ScoreCAM(model),
+        save_path=f'{MODEL_SAVE_PATH}/efficientnet_pet_scorecam_pseudo.pt',
         device=device
     )
