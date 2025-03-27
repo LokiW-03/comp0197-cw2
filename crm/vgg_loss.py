@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
 from torchvision import models
+from torchvision.models import VGG19_Weights
 
 
 class VGGLoss(nn.Module):
-    def __init__(self, gpu_id=0):
-        super(VGGLoss, self).__init__()        
-        self.vgg = Vgg19().cuda(gpu_id)
+    def __init__(self, device):
+        super(VGGLoss, self).__init__()
+        self.vgg = Vgg19().to(device)
         self.criterion = nn.L1Loss()
         self.downsample = nn.AvgPool2d(2, stride=2, count_include_pad=False)
 
@@ -24,7 +25,7 @@ class VGGLoss(nn.Module):
 class Vgg19(nn.Module):
     def __init__(self, requires_grad=False):
         super(Vgg19, self).__init__()
-        vgg_pretrained_features = models.vgg19(pretrained=True).features
+        vgg_pretrained_features = models.vgg19(weights=VGG19_Weights.IMAGENET1K_V1).features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()
