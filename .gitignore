@@ -1,5 +1,10 @@
+
 __pycache__
 cam/saved_models
 cam/data
 cam/output/masks
 cam/output/grid.jpg
+
+**/data/
+**/__pycache__/
+
