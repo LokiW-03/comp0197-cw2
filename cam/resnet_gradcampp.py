@@ -83,12 +83,13 @@ class GradCAMpp:
         self.resize = Resize((IMAGE_SIZE, IMAGE_SIZE), 
                             interpolation=InterpolationMode.BILINEAR)
     
-    def generate_cam(self, x, all_classes=True):
+    def generate_cam(self, x, all_classes=True, resize=True):
         """
         Generate class activation maps for input images
         Args:
             x: Input tensor of shape (B, 3, H, W)
             all_classes: Whether to generate CAMs for all classes
+            resize: Whether to resize back to image shape
         Returns:
             tuple: (upsampled_cams, logits)
                 - upsampled_cams: Tensor of shape (B, num_classes, H, W), if all_classes is False, (B, H, W) otherwise
@@ -135,9 +136,12 @@ class GradCAMpp:
             
             # Store CAM for current class
             cams[:, class_idx] = cam
+
+        if resize:
+            cams = self.resize(cams)
         
         # Upsample CAMs to match input image size
-        return self.resize(cams), logits  # ((B, num_classes, H, W), (B, num_classes))
+        return cams, logits  # ((B, num_classes, H, W), (B, num_classes))
     
     @staticmethod
     def normalize(cam):
