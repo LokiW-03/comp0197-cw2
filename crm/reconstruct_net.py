@@ -86,11 +86,11 @@ class ReconstructNet(nn.Module):
     """
     Reconstructs RGB image from CAM-like input tensor.
     Args:
-        input_channel (int): Number of input channels in CAM (default: 20)
+        input_channel (int): Number of input channels in CAM (default: 37)
     Input: [B, input_channel, H, W]
     Output: [B, 3, H_out, W_out] in range [-1, 1]
     """
-    def __init__(self, input_channel=20):
+    def __init__(self, input_channel=37):
         super(ReconstructNet, self).__init__()
 
         # Conv Block x1
