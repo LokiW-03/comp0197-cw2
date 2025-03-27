@@ -1,4 +1,5 @@
 import torch
+import random
 from torchvision import datasets, transforms
 
 # Set random seed for reproducibility
@@ -18,6 +19,7 @@ def tensor_trimap(t):
     return x
 
 
+
 class ImageTransform:
     common_image_transform = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
@@ -26,9 +28,19 @@ class ImageTransform:
     ])
 
     common_mask_transform = transforms.Compose([
-    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-    transforms.ToTensor(),
-    transforms.Lambda(tensor_trimap)
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.ToTensor(),
+        transforms.Lambda(tensor_trimap)
+    ])
+
+    image_rotation_transform = transforms.Compose([
+        common_image_transform,
+        transforms.RandomRotation(degrees=(45, 45))
+    ])
+
+    mask_rotation_transform = transforms.Compose([
+        common_mask_transform,
+        transforms.RandomRotation(degrees=(45, 45))
     ])
 
 
@@ -40,6 +52,16 @@ trainset = datasets.OxfordIIITPet(
     transform=ImageTransform.common_image_transform,
     target_transform=ImageTransform.common_mask_transform
 )
+
+trainset_rotate = datasets.OxfordIIITPet(
+    root='./data',
+    split='trainval',
+    target_types= 'segmentation',
+    download=True,
+    transform=ImageTransform.image_rotation_transform,
+    target_transform=ImageTransform.mask_rotation_transform
+)
+
 testset = datasets.OxfordIIITPet(
     root='./data',
     split='test',

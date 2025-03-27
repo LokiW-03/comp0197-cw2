@@ -38,8 +38,7 @@ def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3,
             if j == num_eval_batches:
                 break
 
-            X_test.to(device)
-            y_test.to(device)
+            X_test, y_test = X_test.to(device), y_test.to(device)
 
             y_test_hat = model(X_test)
             y_test = y_test.squeeze(dim=1)
@@ -106,8 +105,7 @@ def train_model(
         for id, (X_train, y_train) in enumerate(trainloader, 0):
             print(f'Training batch {id}')
 
-            X_train.to(device)
-            y_train.to(device)
+            X_train, y_train = X_train.to(device), y_train.to(device)
 
             optimizer.zero_grad()
             y_hat = model(X_train)
@@ -155,14 +153,14 @@ def train_model(
 
         # Save model weights every 2 epochs
         if epoch % SAVE_WEIGHTS_FREQUENCY == 0:
-            checkpoint = { 
+            checkpoint = {
                     'epoch': epoch,
                     'model': model.state_dict(),
-                    'optimizer': optimizer.state_dict()} 
-            if scheduler is not None: 
+                    'optimizer': optimizer.state_dict()}
+            if scheduler is not None:
                 checkpoint['lr_scheduler']= scheduler.load_state_dict
             torch.save(checkpoint, f"{model_name}_epoch_{epoch}.pth")
-            print(f"Model weights saved for model {model_name} at epoch {epoch}")
+            print(f"Model weights, optimiser, scheduler order saved for model {model_name} at epoch {epoch}")
 
 
 def main():
@@ -177,13 +175,14 @@ def main():
 
     # Check training input shape
     X_train_batch, y_train_batch = next(iter(train_loader))
+    X_train_batch, y_train_batch = X_train_batch.to(device), y_train_batch.to(device)
     print(X_train_batch.shape, y_train_batch.shape)
 
     # initialise model
-    #model = SegNet().to(device)
+    model = SegNet().to(device)
     #model = EfficientUNet().to(device)
-    model = UNet(3, 3).to(device)
-    # model = SegNeXt(num_classes=3).to(device)
+    #model = UNet(3, 3).to(device)
+    #model = SegNeXt(num_classes=3).to(device)
 
     # test model giving correct shape
     model.eval()
@@ -193,10 +192,11 @@ def main():
     # initialise optimiser & loss class
     loss_fn = nn.CrossEntropyLoss(reduction='mean')
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+    #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
 
     # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'UNet1', scheduler=scheduler)
+    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'SegNet_CA', scheduler=scheduler)
 
     # compute metrics on entire test set (may take a while)
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
