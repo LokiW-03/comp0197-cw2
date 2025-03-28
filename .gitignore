@@ -8,3 +8,5 @@ cam/output/grid.jpg
 **/data/
 **/__pycache__/
 
+data/
+crm_models/
