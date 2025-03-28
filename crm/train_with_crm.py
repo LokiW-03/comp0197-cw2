@@ -8,7 +8,7 @@ from torchvision import datasets, transforms
 import torch.nn.functional as F
 
 from .reconstruct_net import ReconstructNet
-from .vgg_loss import VGGLoss
+from .vgg_loss import VGGLoss, MaskedVGGLoss
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 
@@ -53,7 +53,7 @@ def train(model_name: str = 'resnet'):
     )
 
     cls_loss_fn = nn.CrossEntropyLoss()
-    rec_loss_fn = VGGLoss(device)
+    rec_loss_fn = MaskedVGGLoss(device)
     scaler = GradScaler(enabled=(device_type == 'cuda'))
 
     for epoch in range(NUM_EPOCHS):
@@ -72,7 +72,9 @@ def train(model_name: str = 'resnet'):
                 cls_loss = cls_loss_fn(logits, labels)
                 recon = recon_net(cams)
                 recon = F.interpolate(recon, size=images.shape[-2:], mode='bilinear', align_corners=False)
-                rec_loss = rec_loss_fn(recon, images)
+                # Create a binary mask from the CAMs (using the max activation across classes)
+                mask = (cams.max(dim=1, keepdim=True)[0] > 0.5).float()
+                rec_loss = rec_loss_fn(recon, images, mask)
                 loss = cls_loss + rec_loss
 
             scaler.scale(loss).backward()
