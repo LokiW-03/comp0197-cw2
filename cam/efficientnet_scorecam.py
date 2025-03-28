@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights
 from torchvision.transforms import Resize, InterpolationMode
-from __init__ import IMAGE_SIZE  # Ensure IMAGE_SIZE is defined
+from cam import IMAGE_SIZE  # Ensure IMAGE_SIZE is defined
 
 ##########################################
 # EfficientNet-B4 with CAM Hooks
