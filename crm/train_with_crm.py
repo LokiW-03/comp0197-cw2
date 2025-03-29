@@ -69,12 +69,13 @@ def train(model_name: str = 'resnet'):
 
             with autocast(device_type=device_type, enabled=(device_type == 'cuda')):
                 cams, logits = cam_generator.generate_cam(images, all_classes=True, resize=False)
-                cls_loss = cls_loss_fn(logits, labels)
+                _, preds = torch.max(logits, 1)
+                cls_loss = cls_loss_fn(preds, labels)
                 recon = recon_net(cams)
                 recon = F.interpolate(recon, size=images.shape[-2:], mode='bilinear', align_corners=False)
                 # Create a binary mask from the CAMs (using the max activation across classes)
-                mask = (cams.max(dim=1, keepdim=True)[0] > 0.5).float()
-                rec_loss = rec_loss_fn(recon, images, mask)
+                # mask = (cams.max(dim=1, keepdim=True)[0] > 0.5).float()
+                rec_loss = rec_loss_fn(recon, images)
                 loss = cls_loss + rec_loss
 
             scaler.scale(loss).backward()
