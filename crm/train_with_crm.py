@@ -52,18 +52,18 @@ def train(model_name: str = 'resnet'):
 
     cls_loss_fn = nn.CrossEntropyLoss()
     scaler = GradScaler(enabled=(device_type == 'cuda'))
-
+    model.train()
+    recon_net.train()
+    
     for epoch in range(NUM_EPOCHS):
         # Freeze classifier after epoch 10
-        if epoch == 15:
+        if epoch == 10:
             print("Freezing classifier parameters from epoch 10 onward...")
             for param in model.parameters():
-                param.requires_grad = False
-            # Rebuild optimizer to only update recon_net
+                param.requires_grad = True  # Leave this ON for CAM/GradCAM to work
+            model.eval()  # Stops dropout/batchnorm updates
             optimizer = optim.Adam(recon_net.parameters(), lr=LR)
 
-        model.train()
-        recon_net.train()
         total_cls_loss, total_rec_loss = 0.0, 0.0
         correct_preds, total_preds = 0, 0
 
