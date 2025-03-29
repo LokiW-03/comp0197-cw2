@@ -133,10 +133,17 @@ class ReconstructNet(nn.Module):
             Conv2dBlock(64, 32, 3, 1, 1, norm='ln', activation='relu')
         )
 
+        self.upsample_5 = nn.Sequential(
+            nn.ConvTranspose2d(32, 32, 4, 2, 1, bias=False),
+            nn.InstanceNorm2d(32),
+            nn.ReLU(inplace=True),
+            Conv2dBlock(32, 16, 3, 1, 1, norm='ln', activation='relu')
+        )
+
         # Last Conv Block
         # 3×3 Conv,Tanh
         self.conv_block_2 = nn.Sequential(
-            nn.Conv2d(32, 3, 3, 1, 1),
+            nn.Conv2d(16, 3, 3, 1, 1),
             nn.Tanh()
         )
 
@@ -149,6 +156,7 @@ class ReconstructNet(nn.Module):
         x = self.upsample_2(x)
         x = self.upsample_3(x)
         x = self.upsample_4(x)
+        x = self.upsample_5(x)
 
         x = self.conv_block_2(x)
         return x
