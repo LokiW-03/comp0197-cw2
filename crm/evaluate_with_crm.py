@@ -1,14 +1,18 @@
 import os
+import argparse
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
+from cam.visualize import visualize_cam
 from crm.reconstruct_net import ReconstructNet
 from crm.vgg_loss import VGGLoss
 from crm.visualize import visualize_recon_grid
 from crm import IMG_SIZE, CRM_MODEL_SAVE_PATH, NUM_CLASSES
+
+NUM_SAMPLES = 16
 
 def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     os.makedirs(save_dir, exist_ok=True)
@@ -57,16 +61,18 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     for images, labels in test_loader:
         images = images.to(device)
         labels = labels.to(device)
-
+        cams, logits = cam_generator.generate_cam(images, all_classes=True, resize=False)
+        # pred_classes = torch.argmax(logits, dim=1)
+        # single_cam = cam_generator.resize(cams[torch.arange(cams.size(0)), pred_classes])  # (B, H, W)
+        # visualize_cam(images[:NUM_SAMPLES], single_cam[:NUM_SAMPLES], f'/cam_grid.jpg')
+        
         with torch.no_grad():
             logits = cam_model(images)
             preds = torch.argmax(logits, dim=1)
             correct += (preds == labels).sum().item()
             total += labels.size(0)
-
-            cams, _ = cam_generator.generate_cam(images, all_classes=True, resize=False)
+            
             recon = recon_model(cams)
-            recon = F.interpolate(recon, size=images.shape[-2:], mode='bilinear', align_corners=False)
 
             # VGG loss over full batch
             vgg_loss = vgg_loss_fn(images, recon).item()
@@ -77,6 +83,8 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
                 needed = 5 - len(sample_images)
                 sample_images.extend(images[:needed])
                 sample_recons.extend(recon[:needed])
+
+        
 
     # Final metrics
     avg_vgg_loss = total_vgg / total
@@ -94,7 +102,6 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
         visualize_recon_grid(stacked_input, stacked_recon, save_path, nrow=1, ncol=5)
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'efficientnet'])
     args = parser.parse_args()

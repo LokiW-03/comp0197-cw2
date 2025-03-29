@@ -10,36 +10,14 @@ import torch.nn.functional as F
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from crm.reconstruct_net import ReconstructNet
-from crm.vgg_loss import VGGLoss, MaskedVGGLoss
 from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, LR, RESNET_PATH, EFFNET_PATH, IMG_SIZE
 
+
 def train(model_name: str = 'resnet'):
-    """
-    Train a CAM classifier with a reconstruction network using CRM regularization.
-
-    Args:
-        model_name (str): Which model architecture to use for CAM generation.
-                          Options are 'resnet' (ResNet50 + GradCAM++) or 'efficientnet' (EfficientNet-B4 + ScoreCAM).
-                          Default is 'resnet'.
-
-    Training Details:
-        - CAM classifers with pretrained weights loaded from RESNET_PATH or EFFNET_PATH
-        - Losses: CrossEntropy for classification + Masked VGG perceptual loss for reconstruction
-        - Optimizer: Adam
-        - Trained models are saved to the path specified by CRM_MODEL_SAVE_PATH
-
-    Saved Outputs:
-        - CAM model weights
-        - ReconstructNet weights
-    """
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-    # Create the model save directory if it doesn't exist
     os.makedirs(CRM_MODEL_SAVE_PATH, exist_ok=True)
 
-    # Set up transforms
     transform = transforms.Compose([
         transforms.Resize((IMG_SIZE, IMG_SIZE)),
         transforms.ToTensor(),
@@ -51,7 +29,6 @@ def train(model_name: str = 'resnet'):
         root='./data', split='trainval', target_types='category',
         download=True, transform=transform
     )
-
     train_loader = DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
     if model_name == 'resnet':
@@ -59,24 +36,32 @@ def train(model_name: str = 'resnet'):
         state_dict = torch.load(RESNET_PATH, map_location=device)
         model.load_state_dict(state_dict, strict=True)
         cam_generator = GradCAMpp(model)
-      
-    elif model_name == 'efficientnet':
+    else:
         model = EfficientNetB4_CAM(NUM_CLASSES).to(device)
         state_dict = torch.load(EFFNET_PATH, map_location=device)
         model.load_state_dict(state_dict, strict=True)
         cam_generator = ScoreCAM(model)
+
     recon_net = ReconstructNet(input_channel=NUM_CLASSES).to(device)
 
+    # Combined optimizer for both CAM model + ReconstructNet initially
     optimizer = optim.Adam(
         list(model.parameters()) + list(recon_net.parameters()),
         lr=LR
     )
 
     cls_loss_fn = nn.CrossEntropyLoss()
-    rec_loss_fn = VGGLoss(device)
     scaler = GradScaler(enabled=(device_type == 'cuda'))
 
     for epoch in range(NUM_EPOCHS):
+        # Freeze classifier after epoch 10
+        if epoch == 15:
+            print("Freezing classifier parameters from epoch 10 onward...")
+            for param in model.parameters():
+                param.requires_grad = False
+            # Rebuild optimizer to only update recon_net
+            optimizer = optim.Adam(recon_net.parameters(), lr=LR)
+
         model.train()
         recon_net.train()
         total_cls_loss, total_rec_loss = 0.0, 0.0
@@ -85,17 +70,14 @@ def train(model_name: str = 'resnet'):
         for images, labels in train_loader:
             images = images.to(device)
             labels = labels.to(device)
-            
+
             optimizer.zero_grad()
 
             with autocast(device_type=device_type, enabled=(device_type == 'cuda')):
                 cams, logits = cam_generator.generate_cam(images, all_classes=True, resize=False)
                 cls_loss = cls_loss_fn(logits, labels)
                 recon = recon_net(cams)
-                recon = F.interpolate(recon, size=images.shape[-2:], mode='bilinear', align_corners=False)
-                # Create a binary mask from the CAMs (using the max activation across classes)
-                # mask = (cams.max(dim=1, keepdim=True)[0] > 0.5).float()
-                rec_loss = rec_loss_fn(recon, images)
+                rec_loss = F.l1_loss(recon, images)
                 loss = cls_loss + rec_loss
 
             scaler.scale(loss).backward()
@@ -117,13 +99,15 @@ def train(model_name: str = 'resnet'):
               f"CLS Loss: {avg_cls_loss:.4f} | "
               f"REC Loss: {avg_rec_loss:.4f} | "
               f"Train Acc: {train_acc:.2f}%")
-    
+
+    # Save weights
     if model_name == 'resnet':
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet.pth")
-    elif model_name == 'efficientnet':
+    else:
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_eff.pth")
+
     print("Training complete. Models saved.")
 
 
