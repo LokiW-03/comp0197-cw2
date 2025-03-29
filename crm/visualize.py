@@ -1,21 +1,18 @@
-from PIL import Image
-import torch
+from torchvision.utils import make_grid
 import torchvision.transforms.functional as TF
-import os
+import torch
 
-def visualize_reconstruction(output_tensor, output_path="reconstructed.png", title="Reconstructed Image"):
-    """
-    Save a reconstructed image tensor (assumed in [-1, 1] range) as a PNG using PIL.
+def visualize_recon_grid(originals: torch.Tensor, reconstructions: torch.Tensor, path: str, nrow=1, ncol=5):
 
-    Args:
-        output_tensor (torch.Tensor): Tensor of shape [B, 3, H, W]
-        output_path (str): Path to save the image.
-        title (str): Optional title for logging purposes.
-    """
-    img = output_tensor.detach().cpu().squeeze(0)  # [3, H, W]
-    img = (img + 1) / 2  # [0, 1]
-    img = (img * 255).clamp(0, 255).byte()  # [0, 255]
+    recon = (reconstructions + 1) / 2.0  # [-1,1] → [0,1]
+    orig = originals.clone()
+    mean = torch.tensor([0.485, 0.456, 0.406], device=orig.device).view(1, 3, 1, 1)
+    std = torch.tensor([0.229, 0.224, 0.225], device=orig.device).view(1, 3, 1, 1)
+    orig = torch.clamp(orig * std + mean, 0, 1)
 
-    pil_img = TF.to_pil_image(img)
-    pil_img.save(output_path)
-    print(f"{title} saved to {output_path}")
+    pairs = [img for pair in zip(orig, recon) for img in pair]
+    interleaved = torch.stack(pairs)  # Shape: (2N, 3, H, W)
+
+    grid = make_grid(interleaved, nrow=nrow*2, padding=4)
+    TF.to_pil_image(grid).save(path)
+    print(f"Saved recon grid: {path}")
