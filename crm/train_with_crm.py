@@ -7,8 +7,8 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import torch.nn.functional as F
 
-from .reconstruct_net import ReconstructNet
-from .vgg_loss import VGGLoss, MaskedVGGLoss
+from crm.reconstruct_net import ReconstructNet
+from crm.vgg_loss import VGGLoss, MaskedVGGLoss
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 
@@ -53,7 +53,7 @@ def train(model_name: str = 'resnet'):
     )
 
     cls_loss_fn = nn.CrossEntropyLoss()
-    rec_loss_fn = MaskedVGGLoss(device)
+    rec_loss_fn = VGGLoss(device)
     scaler = GradScaler(enabled=(device_type == 'cuda'))
 
     for epoch in range(NUM_EPOCHS):
