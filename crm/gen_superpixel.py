@@ -13,7 +13,7 @@ def generate_superpixels(image_dir, save_dir, n_segments=100, compactness=10):
     os.makedirs(save_dir, exist_ok=True)
     image_paths = glob(os.path.join(image_dir, "*.jpg"))
 
-    for path in enumerate(image_paths):
+    for path in image_paths:
         filename = os.path.basename(path).replace(".jpg", ".pt")
         save_path = os.path.join(save_dir, filename)
 
