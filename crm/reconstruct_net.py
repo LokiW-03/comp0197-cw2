@@ -27,8 +27,8 @@ class LayerNorm(nn.Module):
 
     def forward(self, x):
         shape = [-1] + [1] * (x.dim() - 1)
-        mean = x.view(x.size(0), -1).mean(1).view(*shape)
-        std = x.view(x.size(0), -1).std(1).view(*shape)
+        mean = x.contiguous().view(x.size(0), -1).mean(1).view(*shape)
+        std = x.contiguous().view(x.size(0), -1).std(1).view(*shape)
         x = (x - mean) / (std + self.eps)
 
         if self.affine:
