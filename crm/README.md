@@ -27,10 +27,12 @@ Use a weighted combined loss:
 - L1 Loss for low-level pixel-wise similarity
 - VGG Loss based on pretrained VGG-19 for high-level perceptual features
 - Alignment Loss based on SLIC superpixels to enforce local consistency
-  - Note: pip install required
+  - Note: pip install required:
   ``` bash
   pip install scikit-image
   ```
+
+  - Or simply download the [superpixels](https://1drv.ms/u/c/2ef0e412637ecc3c/EQy9SXX7x4tGnqJWRpIJa7EBYK9I7c2ipQB07oCzcjAfKQ?e=ksvFWp) from OneDrive and unzip in directory `comp0197-cw2/`
 
 
 ### Justification:
