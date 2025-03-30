@@ -10,20 +10,49 @@ Use a lightweight CNN-based decoder that reconstructs the original RGB image fro
 ### Justification:
 - Acts as a regularization mechanism for CAMs
 - Encourages CAMs to preserve spatial and semantic information
-- Compatible with both CNN and transformer-based CAM backbones
+- Compatible with both CNN (ResNet and EfficientNet) CAM backbones
+- Architecture:
+  - 1 Conv + LayerNorm Block
+  - 1 ResBlock
+  - 5 Upsamping Blocks
+  - Conv + Tanh 
 
 ---
 
-## Perception Loss Network (`VGGLoss`)
+## Loss 
 
 ### Decision:
-Use a perceptual loss based on pretrained VGG-19 features.
+Use a weighted combined loss:
+- Classification Loss Cross Entropy  
+- L1 Loss for low-level pixel-wise similarity
+- VGG Loss based on pretrained VGG-19 for high-level perceptual features
+- Alignment Loss based on SLIC superpixels to enforce local consistency
+  - Note: pip install required
+  ``` bash
+  pip install scikit-image
+  ```
+
 
 ### Justification:
 - Measures similarity in feature space, capturing:
   - Texture
   - Structure
   - Object-level semantics
-- Encourages reconstructions to match visual content, not just pixels
+- Encourages reconstructions to match visual, spatial, and pixel-level contents
+
+---
+
+## Training
+
+- CAM backbone: ResNet50 + GradCAM++ or EfficientNet + ScoreCAM
+- Freeze all classifier layers except last two
+- Train backbone and Reconstruction Network together and use Reconstruction loss as regularization term
+- Optimizers:
+  - Classifier: Adam (LR=1e-3)
+  - Reconstruction Network: Adam (LR=1e-2)
+
+- [ResNet50](https://1drv.ms/u/c/2ef0e412637ecc3c/EawGxav3g3BPke8uXA7C5W0Bdf2oIHQSoV6smZgRWXR1NA?e=zlKiYk) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EdhrCbIkW6dEpXfImbAcRsoBBb_3ceJHz16NxfTiqLPmhg?e=DWot9e) can be downloaded on OneDrive (classifier test accuracy: 84%)
+    - Path: crm_models/...
+
 
 
