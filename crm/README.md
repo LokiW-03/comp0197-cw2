@@ -52,7 +52,16 @@ Use a weighted combined loss:
   - Reconstruction Network: Adam (LR=1e-2)
 
 - [ResNet50](https://1drv.ms/u/c/2ef0e412637ecc3c/EawGxav3g3BPke8uXA7C5W0Bdf2oIHQSoV6smZgRWXR1NA?e=zlKiYk) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EdhrCbIkW6dEpXfImbAcRsoBBb_3ceJHz16NxfTiqLPmhg?e=DWot9e) can be downloaded on OneDrive (classifier test accuracy: 84%)
-    - Path: crm_models/...
+    - Path: `comp0197-cw2/crm_models/...`
 
+---
 
+**Note**: Please run `gen_superpixel.py` before running train script.
+Pipeline:
+```bash
+python -m crm.gen_superpixel
+python -m crm.train_cam
+python -m crm.evaluate_with_crm.py
+```
 
+To generate the CAM and pseudomask, please refer to `cam.postprocessing`
