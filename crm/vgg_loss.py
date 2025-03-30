@@ -75,3 +75,30 @@ class Vgg19(nn.Module):
         h_relu5 = self.slice5(h_relu4)                
         out = [h_relu1, h_relu2, h_relu3, h_relu4, h_relu5]
         return out
+    
+    
+def alignment_loss(pred, sp, label, criterion):
+    superpixel = sp.float()
+    superpixel = F.interpolate(superpixel.unsqueeze(1), scale_factor=0.5, mode='nearest').squeeze(1)
+    _, h2, w2 = superpixel.shape
+
+    n, c, _, _ = pred.shape
+
+    sp_num = int(superpixel.max().item()) + 1
+    superpixel = superpixel.to(torch.int64)
+    sp_flat = F.one_hot(superpixel, num_classes=sp_num)
+    sp_flat = sp_flat.permute(0, 3, 1, 2)
+    pred = F.interpolate(pred, size=(h2, w2), mode='bilinear')
+
+    sp_flat = sp_flat.reshape(n, sp_num, -1)
+    score_flat = pred.reshape(n, c, -1) * label.reshape(n, c, 1)
+    sp_flat_avg = sp_flat / (sp_flat.sum(dim=2, keepdim=True) + 1e-5)
+    sp_flat_avg = sp_flat_avg.float()
+    score_sum = torch.matmul(score_flat, sp_flat.transpose(1, 2).float())
+    score_sum = score_sum.reshape(n, c, sp_num, 1)
+    sp_flat_avg = sp_flat_avg.unsqueeze(1).repeat(1, c, 1, 1)
+    final_averaged_value = (sp_flat_avg * score_sum).sum(2)
+    final_averaged_value = final_averaged_value * label.reshape(n, c, 1)
+    original_value = score_flat / (score_flat.max(dim=2, keepdim=True)[0] + 1e-5)
+    final_averaged_value = final_averaged_value / (final_averaged_value.max(dim=2, keepdim=True)[0] + 1e-5)
+    return criterion(original_value[label == 1], final_averaged_value[label == 1])

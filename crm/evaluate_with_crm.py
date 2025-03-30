@@ -10,7 +10,7 @@ from cam.visualize import visualize_cam
 from crm.reconstruct_net import ReconstructNet
 from crm.vgg_loss import VGGLoss
 from crm.visualize import visualize_recon_grid
-from crm import IMG_SIZE, CRM_MODEL_SAVE_PATH, NUM_CLASSES
+from crm import IMG_SIZE, CRM_MODEL_SAVE_PATH, NUM_CLASSES, RESNET_PATH
 
 NUM_SAMPLES = 16
 
@@ -32,10 +32,12 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     )
     test_loader = DataLoader(testset, batch_size=8, shuffle=False)
 
+  
     # Load models
     if model_name == 'resnet':
         cam_model = ResNet50_CAM(NUM_CLASSES).to(device)
         cam_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm.pth", map_location=device, weights_only=True))
+        # cam_model.load_state_dict(torch.load(RESNET_PATH, map_location=device, weights_only=True))
         cam_generator = GradCAMpp(cam_model)
         recon_model = ReconstructNet(NUM_CLASSES).to(device)
         recon_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet.pth", map_location=device, weights_only=True))
@@ -62,9 +64,6 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
         images = images.to(device)
         labels = labels.to(device)
         cams, logits = cam_generator.generate_cam(images, all_classes=True, resize=False)
-        # pred_classes = torch.argmax(logits, dim=1)
-        # single_cam = cam_generator.resize(cams[torch.arange(cams.size(0)), pred_classes])  # (B, H, W)
-        # visualize_cam(images[:NUM_SAMPLES], single_cam[:NUM_SAMPLES], f'/cam_grid.jpg')
         
         with torch.no_grad():
             logits = cam_model(images)
