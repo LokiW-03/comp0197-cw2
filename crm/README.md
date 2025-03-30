@@ -56,12 +56,14 @@ Use a weighted combined loss:
 
 ---
 
-**Note**: Please run `gen_superpixel.py` before running train script.
-Pipeline:
-```bash
-python -m crm.gen_superpixel
-python -m crm.train_cam
-python -m crm.evaluate_with_crm.py
-```
+**Note**: 
+- `train_cam.py` will generate superpixel, store them and then load them for calculating alignment loss
+- `evaluate_with_crm.py` will evaluate the model on the test set, and generate 5 sample reconstructed images
+- Pipeline:
+
+  ```bash
+  python -m crm.train_cam
+  python -m crm.evaluate_with_crm
+  ```
 
 To generate the CAM and pseudomask, please refer to `cam.postprocessing`
