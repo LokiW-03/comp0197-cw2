@@ -46,16 +46,24 @@ def train(model_name: str = 'resnet'):
     if model_name == 'resnet':
         model = ResNet50_CAM(NUM_CLASSES).to(device)
         cam_generator = GradCAMpp(model)
+        # Freeze bottom layer parameters, only train last two layers
+        for name, param in model.named_parameters():
+            if "layer4" not in name and "fc" not in name:
+                param.requires_grad = False
+
     else:
         model = EfficientNetB4_CAM(NUM_CLASSES).to(device)
         cam_generator = ScoreCAM(model)
+        # Freeze all feature blocks except the last one
+        # Assuming model.effnet.features is a nn.Sequential, freeze all blocks except the last
+        for i, block in enumerate(model.effnet.features):
+            if i < len(model.effnet.features) - 1:
+                for param in block.parameters():
+                    param.requires_grad = False
 
     recon_net = ReconstructNet(input_channel=NUM_CLASSES).to(device)
 
-    # Freeze bottom layer parameters, only train last two layers
-    for name, param in model.named_parameters():
-        if "layer4" not in name and "fc" not in name:
-            param.requires_grad = False
+
 
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LR)
 
