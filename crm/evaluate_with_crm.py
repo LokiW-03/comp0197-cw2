@@ -6,13 +6,10 @@ from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
-from cam.visualize import visualize_cam
 from crm.reconstruct_net import ReconstructNet
-from crm.vgg_loss import VGGLoss
 from crm.visualize import visualize_recon_grid
-from crm import IMG_SIZE, CRM_MODEL_SAVE_PATH, NUM_CLASSES, RESNET_PATH
+from crm import IMG_SIZE, CRM_MODEL_SAVE_PATH, NUM_CLASSES
 
-NUM_SAMPLES = 16
 
 def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     os.makedirs(save_dir, exist_ok=True)
@@ -51,9 +48,6 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     cam_model.eval()
     recon_model.eval()
 
-    vgg_loss_fn = VGGLoss(device)
-
-    total_vgg = 0.0
     correct = 0
     total = 0
 
@@ -73,10 +67,6 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
             
             recon = recon_model(cams)
 
-            # VGG loss over full batch
-            vgg_loss = vgg_loss_fn(images, recon).item()
-            total_vgg += vgg_loss * images.size(0)
-
             # Save 5 samples for visualization
             if len(sample_images) < 5:
                 needed = 5 - len(sample_images)
@@ -85,13 +75,10 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
 
         
 
-    # Final metrics
-    avg_vgg_loss = total_vgg / total
     acc = correct / total
 
     print("=== Evaluation Results ===")
     print(f"Classification Accuracy (full test set): {acc:.4f}")
-    print(f"Average VGG Loss (full test set): {avg_vgg_loss:.4f}")
 
     # Visualization
     if sample_images:
