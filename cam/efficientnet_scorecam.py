@@ -88,7 +88,7 @@ class ScoreCAM:
         activations = self.model.activations  # (B, k, h, w)
         if activations is None:
             raise RuntimeError("Activations not captured")
-        k = activations.size(1)
+        B, k, H, W = activations.shape
         
         # Normalize activation maps at their native resolution.
         flat_activations = activations.view(B, k, -1)
