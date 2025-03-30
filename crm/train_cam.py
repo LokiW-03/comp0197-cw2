@@ -12,8 +12,9 @@ from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from crm.reconstruct_net import ReconstructNet
 from crm.vgg_loss import VGGLoss, alignment_loss
-from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, LR, RESNET_PATH, EFFNET_PATH, IMG_SIZE
+from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, LR, IMG_SIZE
 from crm.oxfordpet_superpixel import OxfordPetSuperpixels
+from crm.gen_superpixel import generate_superpixels
 
 NUM_EPOCHS = 10
 REC_LR = 1e-2
@@ -34,6 +35,15 @@ def train(model_name: str = 'resnet'):
         root='./data', split='trainval', target_types='category',
         download=True, transform=None
     )
+
+    superpixel_dir = "./superpixels"
+    image_dir = "./data/oxford-iiit-pet/images"
+    expected_num_superpixels = 3680  # Approximate
+
+    # generate superpixel if not already
+    if not os.path.exists(superpixel_dir):
+        print(f"Generating superpixels...")
+        generate_superpixels(image_dir=image_dir, save_dir=superpixel_dir)
 
     trainset = OxfordPetSuperpixels(
         base_dataset=base_dataset,
