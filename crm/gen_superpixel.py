@@ -5,7 +5,6 @@ from skimage.color import rgb2lab
 from glob import glob
 import numpy as np
 from PIL import Image
-from torchvision.datasets import OxfordIIITPet
 
 def generate_superpixels(image_dir, save_dir, n_segments=100, compactness=10):
     if not os.path.exists(image_dir):
@@ -29,13 +28,3 @@ def generate_superpixels(image_dir, save_dir, n_segments=100, compactness=10):
 
     print("Superpixel generation complete.")
 
-# if __name__ == "__main__":
-#     # Ensure dataset is downloaded
-#     OxfordIIITPet(root="./data", split="trainval", download=True)
-
-#     generate_superpixels(
-#         image_dir="./data/oxford-iiit-pet/images",
-#         save_dir="./superpixels",
-#         n_segments=100,
-#         compactness=10
-#     )
