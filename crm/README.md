@@ -34,14 +34,6 @@ Use a weighted combined loss:
 
   - Or simply download the [superpixels](https://1drv.ms/u/c/2ef0e412637ecc3c/EQy9SXX7x4tGnqJWRpIJa7EBYK9I7c2ipQB07oCzcjAfKQ?e=ksvFWp) from OneDrive and unzip in directory `comp0197-cw2/`
 
-
-### Justification:
-- Measures similarity in feature space, capturing:
-  - Texture
-  - Structure
-  - Object-level semantics
-- Encourages reconstructions to match visual, spatial, and pixel-level contents
-
 ---
 
 ## Training
@@ -59,7 +51,7 @@ Use a weighted combined loss:
 ---
 
 **Note**: 
-- `train_cam_with_crm.py` will generate superpixel, store them and then load them for calculating alignment loss
+- `train_cam_with_crm.py` will generate superpixel (if not downloaded), store them and then load them for calculating alignment loss
 - `evaluate_with_crm.py` will evaluate the model on the test set, and generate 5 sample reconstructed images
 - Pipeline:
 
