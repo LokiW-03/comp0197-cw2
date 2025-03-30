@@ -59,12 +59,12 @@ Use a weighted combined loss:
 ---
 
 **Note**: 
-- `train_cam.py` will generate superpixel, store them and then load them for calculating alignment loss
+- `train_cam_with_crm.py` will generate superpixel, store them and then load them for calculating alignment loss
 - `evaluate_with_crm.py` will evaluate the model on the test set, and generate 5 sample reconstructed images
 - Pipeline:
 
   ```bash
-  python -m crm.train_cam
+  python -m crm.train_cam_with_crm
   python -m crm.evaluate_with_crm
   ```
 
