@@ -15,6 +15,7 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     os.makedirs(save_dir, exist_ok=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
     transform = transforms.Compose([
         transforms.Resize((IMG_SIZE, IMG_SIZE)),
@@ -41,6 +42,7 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     else:
         cam_model = EfficientNetB4_CAM(NUM_CLASSES).to(device)
         cam_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth", map_location=device, weights_only=True))
+        # cam_model.load_state_dict(torch.load(EFFNET_PATH, map_location=device, weights_only=True))
         cam_generator = ScoreCAM(cam_model)
         recon_model = ReconstructNet(NUM_CLASSES).to(device)
         recon_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_eff.pth", map_location=device, weights_only=True))
@@ -54,7 +56,13 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     sample_images = []
     sample_recons = []
 
+    counter = 0
     for images, labels in test_loader:
+        if (counter + 1) % (len(test_loader) // 10) == 0 or (counter + 1) == len(test_loader):
+            percentage = int((counter + 1) / len(test_loader) * 100)
+            print(f'Processing: {percentage}%')
+        counter += 1
+
         images = images.to(device)
         labels = labels.to(device)
         cams, logits = cam_generator.generate_cam(images, all_classes=True, resize=False)
