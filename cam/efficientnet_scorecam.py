@@ -56,17 +56,22 @@ class ScoreCAM:
     def __init__(self, model):
         self.model = model
         self.model.eval()
+        # Initialize a resize transform for the final CAM output.
+        self.resize = Resize((IMAGE_SIZE, IMAGE_SIZE), interpolation=InterpolationMode.BILINEAR)
     
-    def generate_cam(self, input_tensor, all_classes=True):
+    def generate_cam(self, input_tensor, all_classes=True, resize=True):
         """
         Generate CAM for all classes.
         
         Args:
             input_tensor: (B, C, H, W)
+            all_classes: Whether to generate CAMs for all classes.
+            resize: If True, the output CAMs are resized to (IMAGE_SIZE, IMAGE_SIZE).
             
         Returns:
-            (B, num_classes, H, W): CAM for every class, if all_classes is False, (B, H, W) otherwise
-            (B, num_classes): logits for all classes, if all_classes is False, (B,) otherwise
+            Tuple: (cams, logits)
+                - cams: Tensor of shape (B, num_classes, H_final, W_final) 
+                - logits: Tensor of shape (B, num_classes)
         """
         if not all_classes:
             # previous implementation
@@ -74,7 +79,7 @@ class ScoreCAM:
             return self._generate_single_cam(input_tensor)
         
         B, C, H, W = input_tensor.shape
-    
+        
         # Forward pass to get logits
         logits = self.model(input_tensor)  # (B, num_classes)
         num_classes = logits.size(1)
@@ -85,14 +90,14 @@ class ScoreCAM:
             raise RuntimeError("Activations not captured")
         k = activations.size(1)
         
-        # Upsample activations
-        upsampled = F.interpolate(activations, (H, W), mode='bilinear', align_corners=False)  # (B, k, H, W)
+        # Normalize activation maps at their native resolution.
+        flat_activations = activations.view(B, k, -1)
+        min_vals = flat_activations.min(dim=2, keepdim=True)[0].view(B, k, 1, 1)
+        max_vals = flat_activations.max(dim=2, keepdim=True)[0].view(B, k, 1, 1)
+        norm_maps = (activations - min_vals) / (max_vals - min_vals + 1e-8)  # (B, k, H, W)
         
-        # Normalize activation maps
-        flat_activations = upsampled.view(B, k, -1)
-        min_vals = flat_activations.min(dim=2, keepdim=True)[0].unsqueeze(-1)
-        max_vals = flat_activations.max(dim=2, keepdim=True)[0].unsqueeze(-1)
-        norm_maps = (upsampled - min_vals) / (max_vals - min_vals + 1e-8)  # (B, k, H, W)
+        # Downsample the input to the activation map resolution.
+        input_down = F.interpolate(input_tensor, size=(H, W), mode='bilinear', align_corners=False)
         
         # Initialize score_maps tensor
         score_maps = torch.zeros(B, k, num_classes, device=input_tensor.device)
@@ -105,16 +110,13 @@ class ScoreCAM:
         for batch_idx in range(num_batches):
             start = batch_idx * batch_size
             end = min((batch_idx + 1) * batch_size, k)
-            
-            # Current batch of activation maps
             current_norm_maps = norm_maps[:, start:end, :, :]  # (B, m, H, W)
             m = current_norm_maps.size(1)
             
             # Generate masked inputs
-            masked_inputs = input_tensor.unsqueeze(1) * current_norm_maps.unsqueeze(2)  # (B, m, C, H, W)
+            masked_inputs = input_down.unsqueeze(1) * current_norm_maps.unsqueeze(2)
             masked_inputs = masked_inputs.view(B * m, C, H, W)
             
-            # Forward pass
             with torch.no_grad():
                 masked_logits = self.model(masked_inputs)  # (B*m, num_classes)
                 masked_scores = F.softmax(masked_logits, dim=1)  # (B*m, num_classes)
@@ -132,8 +134,10 @@ class ScoreCAM:
         cam_max = flat_cam.max(dim=2, keepdim=True)[0].unsqueeze(-1)
         norm_cam = (cam - cam_min) / (cam_max - cam_min + 1e-8)
         
+        if resize:
+            norm_cam = self.resize(norm_cam)
         return norm_cam, logits
-    
+        
     def _generate_single_cam(self, input_tensor, target_class=None):
         """
         Generate Score-CAM visualization.
