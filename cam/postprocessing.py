@@ -9,7 +9,9 @@ from cam import *
 from cam.preprocessing import unnormalize
 from cam.dataset.oxfordpet import download_pet_dataset
 from cam.visualize import visualize_cam
+from cam.resnet_drs import ResNet50_CAM_DRS
 from crm import CRM_MODEL_SAVE_PATH
+
 
 
 def generate_pseudo_masks(
@@ -114,7 +116,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='efficientnet', choices=['resnet', 'efficientnet', 'resnet_crm', 'efficientnet_crm'])
+    parser.add_argument('--model', type=str, default='efficientnet', 
+                        choices=['resnet', 'efficientnet', 'resnet_crm', 'efficientnet_crm', 'resnet_drs'])
     args = parser.parse_args()
 
     num_classes=37
@@ -142,6 +145,12 @@ if __name__ == "__main__":
         model_save_path = f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth"
         cam_generator = lambda model: ScoreCAM(model)
         pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm_pseudo.pt" 
+
+    elif args.model == 'resnet_drs':
+        model = ResNet50_CAM_DRS(num_classes)
+        model_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth"
+        cam_generator = lambda model: GradCAMpp(model)
+        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm_pseudo.pt" 
 
     else:
         raise ValueError(f"Invalid model: {args.model}")

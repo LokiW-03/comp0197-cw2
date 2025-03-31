@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
+from cam.resnet_drs import ResNet50_CAM_DRS
 from crm.reconstruct_net import ReconstructNet
 from crm.visualize import visualize_recon_grid
 from crm import IMG_SIZE, CRM_MODEL_SAVE_PATH, NUM_CLASSES
@@ -39,6 +40,15 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
         cam_generator = GradCAMpp(cam_model)
         recon_model = ReconstructNet(NUM_CLASSES).to(device)
         recon_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet.pth", map_location=device, weights_only=True))
+    
+    elif model_name == 'resnet_drs':
+        cam_model = ResNet50_CAM_DRS(NUM_CLASSES).to(device)
+        cam_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth", map_location=device, weights_only=True))
+        # cam_model.load_state_dict(torch.load(RESNET_PATH, map_location=device, weights_only=True))
+        cam_generator = GradCAMpp(cam_model)
+        recon_model = ReconstructNet(NUM_CLASSES).to(device)
+        recon_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet_drs.pth", map_location=device, weights_only=True))
+       
     else:
         cam_model = EfficientNetB4_CAM(NUM_CLASSES).to(device)
         cam_model.load_state_dict(torch.load(f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth", map_location=device, weights_only=True))
@@ -97,7 +107,7 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'efficientnet'])
+    parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'efficientnet', 'resnet_drs'])
     args = parser.parse_args()
 
     evaluate_crm(args.model)
