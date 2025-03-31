@@ -79,6 +79,7 @@ Use a weighted combined loss:
 - [EfficientNet + ScoreCAM](https://1drv.ms/u/c/2ef0e412637ecc3c/ET5xMqyXSEZFtgBoxctczOoBlHe9TeUCs9bs2dtkeds0mg?e=qcX8fS) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EVLqrBIaSYdKv65GvgDGuxMB8kMmELodniKSPzy7-fBbKg?e=9XuhVo)
   - Classifier test accuracy: 2%, CAM: wider spread (but noisier)
 
+- See sample CAM heatmap and reconstruction image in `crm/img`
 
 ---
 
