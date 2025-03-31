@@ -138,7 +138,7 @@ def train(model_name: str = 'resnet',
         avg_align_loss = total_align_loss / len(train_loader.dataset)
         train_acc = correct_preds / total_preds * 100.00
 
-        print(f"[Epoch {epoch+1:02}/{NUM_EPOCHS}] "
+        print(f"[Epoch {epoch+1:02}/{num_epochs}] "
               f"CLS Loss: {avg_cls_loss:.4f} | "
               f"REC Loss: {avg_rec_loss:.4f} | "
               f"ALIGN Loss: {avg_align_loss:.4f} | "
