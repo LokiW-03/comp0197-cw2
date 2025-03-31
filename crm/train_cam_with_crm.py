@@ -12,14 +12,20 @@ from cam.dataset.oxfordpet_paths import OxfordIIITPetWithPaths
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 
-from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, LR, REC_LR ,IMG_SIZE
+from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR ,IMG_SIZE
 from crm.reconstruct_net import ReconstructNet
 from crm.crm_loss import VGGLoss, alignment_loss
 from crm.oxfordpet_superpixel import OxfordPetSuperpixels
 from crm.gen_superpixel import generate_superpixels
 
 
-def train(model_name: str = 'resnet'):
+def train(model_name: str = 'resnet', 
+          cls_lr: float = CLS_LR,
+          rec_lr: float = REC_LR,
+          vgg_weight: float = 0.3,
+          align_weight: float = 0.3,
+          num_epochs: int = NUM_EPOCHS):
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
     os.makedirs(CRM_MODEL_SAVE_PATH, exist_ok=True)
@@ -74,9 +80,9 @@ def train(model_name: str = 'resnet'):
 
 
 
-    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LR)
+    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=cls_lr)
 
-    rec_optimizer = optim.Adam(list(recon_net.parameters()), lr=REC_LR)
+    rec_optimizer = optim.Adam(list(recon_net.parameters()), lr=rec_lr)
 
     cls_loss_fn = nn.CrossEntropyLoss()
     rec_loss_fn = VGGLoss(device)
@@ -86,7 +92,7 @@ def train(model_name: str = 'resnet'):
     model.train()
     recon_net.train()
 
-    for epoch in range(NUM_EPOCHS):
+    for epoch in range(num_epochs):
         total_cls_loss, total_rec_loss, total_align_loss = 0.0, 0.0, 0.0
         correct_preds, total_preds = 0, 0
 
@@ -99,10 +105,10 @@ def train(model_name: str = 'resnet'):
                 cams, logits = cam_generator.generate_cam(images, all_classes=True, resize=False)
                 cls_loss = cls_loss_fn(logits, labels)
                 recon = recon_net(cams)
-                rec_loss = F.l1_loss(recon, images) + 0.3 * rec_loss_fn(recon, images) 
+                rec_loss = F.l1_loss(recon, images) + vgg_weight * rec_loss_fn(recon, images) 
                 labels_onehot = F.one_hot(labels, num_classes=NUM_CLASSES).float()
                 align_loss_val = alignment_loss(cams, sp, labels_onehot, align_loss_fn)
-                loss = cls_loss + rec_loss + 0.3 * align_loss_val
+                loss = cls_loss + rec_loss + align_weight * align_loss_val
                 # loss = cls_loss + rec_loss
 
             scaler.scale(loss).backward()
@@ -142,6 +148,16 @@ def train(model_name: str = 'resnet'):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'efficientnet'])
+    parser.add_argument('--cls_lr', type=float, default=CLS_LR, help="Classifier learning rate")
+    parser.add_argument('--rec_lr', type=float, default=REC_LR, help="Reconstruction network learning rate")
+    parser.add_argument('--vgg_weight', type=float, default=0.3, help="Weight for VGG loss")
+    parser.add_argument('--align_weight', type=float, default=0.3, help="Weight for alignment loss")
+    parser.add_argument('--epochs', type=int, default=NUM_EPOCHS, help="Number of training epochs")
     args = parser.parse_args()
 
-    train(args.model)
+    train(model_name=args.model, 
+        lr=args.lr, 
+        rec_lr=args.rec_lr, 
+        vgg_weight=args.vgg_weight,
+        align_weight=args.align_weight,
+        num_epochs=args.epochs)
