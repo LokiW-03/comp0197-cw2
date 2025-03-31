@@ -11,6 +11,7 @@ import torch.nn.functional as F
 from cam.dataset.oxfordpet_paths import OxfordIIITPetWithPaths
 from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+from cam.resnet_drs import ResNet50_CAM_DRS
 
 from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR ,IMG_SIZE
 from crm.reconstruct_net import ReconstructNet
@@ -65,6 +66,14 @@ def train(model_name: str = 'resnet',
         for name, param in model.named_parameters():
             if "layer4" not in name and "fc" not in name:
                 param.requires_grad = False
+
+    elif model_name == 'resnet_drs':
+        model = ResNet50_CAM_DRS(NUM_CLASSES).to(device)
+        cam_generator = GradCAMpp(model)
+        # Freeze bottom layer parameters, only train last two layers
+        for name, param in model.named_parameters():
+            if "resnet.layer4" not in name and "resnet.fc" not in name:
+                param.requires_grad = False  
 
     else:
         model = EfficientNetB4_CAM(NUM_CLASSES).to(device)
@@ -138,6 +147,11 @@ def train(model_name: str = 'resnet',
     if model_name == 'resnet':
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet.pth")
+    
+    elif model_name == 'resnet_drs':
+        torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth")
+        torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet_drs.pth")
+
     else:
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_eff.pth")
@@ -147,7 +161,7 @@ def train(model_name: str = 'resnet',
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'efficientnet'])
+    parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'efficientnet', 'resnet_drs'])
     parser.add_argument('--cls_lr', type=float, default=CLS_LR, help="Classifier learning rate")
     parser.add_argument('--rec_lr', type=float, default=REC_LR, help="Reconstruction network learning rate")
     parser.add_argument('--vgg_weight', type=float, default=0.3, help="Weight for VGG loss")
