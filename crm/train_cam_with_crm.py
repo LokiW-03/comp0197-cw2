@@ -156,7 +156,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train(model_name=args.model, 
-        lr=args.lr, 
+        cls_lr=args.cls_lr, 
         rec_lr=args.rec_lr, 
         vgg_weight=args.vgg_weight,
         align_weight=args.align_weight,
