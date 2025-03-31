@@ -138,7 +138,7 @@ if __name__ == "__main__":
         pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm_pseudo.pt"
 
     elif args.model == 'efficientnet_crm':
-        model = ResNet50_CAM(num_classes)
+        model = EfficientNetB4_CAM(num_classes)
         model_save_path = f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth"
         cam_generator = lambda model: ScoreCAM(model)
         pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm_pseudo.pt" 
