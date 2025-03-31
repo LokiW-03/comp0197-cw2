@@ -36,28 +36,63 @@ Use a weighted combined loss:
 
 ---
 
+## Discriminative Region Suppression (DRS)
+
+### Decision:
+- Suppresses these highly activated regions by capping their values which forces the network to look at less discriminative parts.
+
+### Justification:
+- Expand CAM concentration
+
+**Note**: See implementation in `cam/resnet_drs.py`
+
+---
+
 ## Training
 
-- CAM backbone: ResNet50 + GradCAM++ or EfficientNet + ScoreCAM
+- CAM backbone: 
+  - ResNet50 + GradCAM++ 
+  - EfficientNet + ScoreCAM
+  - ResNet50 + DRS + (ScoreCAM | GradCAM++)
+
 - Freeze all classifier layers except last two
 - Train backbone and Reconstruction Network together and use Reconstruction loss as regularization term
 - Optimizers:
   - Classifier: Adam (LR=1e-3)
   - Reconstruction Network: Adam (LR=1e-2)
 
-- [ResNet50](https://1drv.ms/u/c/2ef0e412637ecc3c/EawGxav3g3BPke8uXA7C5W0Bdf2oIHQSoV6smZgRWXR1NA?e=zlKiYk) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EdhrCbIkW6dEpXfImbAcRsoBBb_3ceJHz16NxfTiqLPmhg?e=DWot9e) can be downloaded on OneDrive (classifier test accuracy: 84%)
-    - Path: `comp0197-cw2/crm_models/...`
+### Trained Models
+- Path: `comp0197-cw2/crm_models/...`
+
+- [ResNet50](https://1drv.ms/u/c/2ef0e412637ecc3c/EawGxav3g3BPke8uXA7C5W0Bdf2oIHQSoV6smZgRWXR1NA?e=zlKiYk) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EdhrCbIkW6dEpXfImbAcRsoBBb_3ceJHz16NxfTiqLPmhg?e=DWot9e) 
+  - Classifier test accuracy: 84%, CAM concentrated on face
+    
+
+- [ResNet50 + DRS + GradCAM++](https://1drv.ms/u/c/2ef0e412637ecc3c/EdRX3IbLhbRBk-yiK6z_oSwBGfEgHdBX2N6gMBnTe29ULQ?e=UjyhwN) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/Eazk46cxIBxLtiljWMgFtj0BJPlyJ8GLiCdMDM12MMTZ4A?e=MtlaVK) 
+  - Classifier test accuracy: 83%, CAM concentrated on face
+
+
+- [ResNet50 + DRS + ScoreCAM](https://1drv.ms/u/c/2ef0e412637ecc3c/ETNymtaAwt5JixWupsbx3DEBCsdYh314NkdB9sgR0VAoLA?e=eegB8H) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/Eazk46cxIBxLtiljWMgFtj0BJPlyJ8GLiCdMDM12MMTZ4A?e=MtlaVK) 
+  - Classifier test accuracy: 2%, CAM: wider spread
+
+
+- [EfficientNet + ScoreCAM](https://1drv.ms/u/c/2ef0e412637ecc3c/ET5xMqyXSEZFtgBoxctczOoBlHe9TeUCs9bs2dtkeds0mg?e=qcX8fS) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EVLqrBIaSYdKv65GvgDGuxMB8kMmELodniKSPzy7-fBbKg?e=9XuhVo)
+  - Classifier test accuracy: 2%, CAM: wider spread (but noisier)
+
 
 ---
 
 **Note**: 
 - `train_cam_with_crm.py` will generate superpixel (if not downloaded), store them and then load them for calculating alignment loss
 - `evaluate_with_crm.py` will evaluate the model on the test set, and generate 5 sample reconstructed images
+
 - Pipeline:
 
   ```bash
-  python -m crm.train_cam_with_crm
-  python -m crm.evaluate_with_crm
+  python -m crm.train_cam_with_crm --model resnet_drs
+  python -m crm.evaluate_with_crm --model resnet_drs
+  python -m cam.postprocessing --model resnet_drs
   ```
 
-To generate the CAM and pseudomask, please refer to `cam.postprocessing`
+  - model can be `[resnet_drs, resnet, efficientnet]`
+
