@@ -98,19 +98,20 @@ def validate_one_epoch(model, loader, loss_fn, device, mode):
 
             # Calculate loss based on mode (using same loss as training for consistency)
             try:
-                 if mode == 'hybrid_tags_points':
-                      loss = loss_fn(outputs, targets_device)
-                 elif mode == 'tags':
-                      loss = loss_fn(outputs, targets_device.float())
-                 elif mode in ['points', 'scribbles', 'boxes', 'full']:
-                      loss = loss_fn(outputs, targets_device.long())
-                 else:
-                      raise ValueError(f"Unknown mode {mode} for loss calculation")
+                if mode == 'hybrid_tags_points':
+                    loss = loss_fn(outputs, targets_device)
+                elif mode == 'tags':
+                    loss = loss_fn(outputs, targets_device.float())
+                elif mode in ['points', 'scribbles', 'boxes', 'full']:
+                    loss = loss_fn(outputs, targets_device.long())
+                else:
+                    raise ValueError(f"Unknown mode {mode} for loss calculation")
 
-                 if not (torch.isnan(loss) or torch.isinf(loss)):
-                     total_loss += loss.item()
-                 else:
-                      print(f"Warning: NaN/Inf validation loss in batch {i}")
+
+                if not (torch.isnan(loss) or torch.isinf(loss)):
+                    total_loss += loss.item()
+                else:
+                    print(f"Warning: NaN/Inf validation loss in batch {i}")
 
 
             except Exception as e:
@@ -126,7 +127,12 @@ def main():
     parser = setup_arg_parser()
     args = parser.parse_args()
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available(): # Check for MPS availability
+        device = torch.device('mps')
+    else:
+        device = torch.device('cpu')
     print(f"Using device: {device}")
 
     # --- Create Datasets and Dataloaders ---
@@ -206,7 +212,6 @@ def main():
             # Optional: Save latest checkpoint every N epochs
             if (epoch + 1) % 10 == 0:
                 latest_save_path = f"{checkpoint_path_base}_latest.pth"
-                # --- CORRECTED LINE BELOW ---
                 model.cpu() # Move to CPU for saving
                 torch.save({
                     'epoch': epoch + 1,
@@ -217,7 +222,6 @@ def main():
                     'args': args
                 }, latest_save_path)
                 model.to(device) # Move back to device
-                # --- END CORRECTION ---
                 print(f"Latest checkpoint saved to {latest_save_path}")
                 
         except KeyboardInterrupt:
@@ -226,9 +230,6 @@ def main():
         
         except Exception as e:
             print(f"\nAn error occurred during epoch {epoch+1}: {e}")
-            # Depending on the error, you might want to break or try to continue
-            # For robustness, let's log and continue if possible, but break on critical errors
-            # This simple version will break here. Add more specific error handling if needed.
             break
 
 
