@@ -79,4 +79,7 @@ def fine_tune_model():
 
 # -------------------- Execute Training --------------------
 if __name__ == "__main__":
+    import os
+    if not os.path.exists(MODEL_SAVE_PATH):
+        os.makedirs(MODEL_SAVE_PATH)
     fine_tune_model()
