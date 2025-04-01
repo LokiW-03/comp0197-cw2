@@ -67,7 +67,7 @@ def generate_pseudo_masks(
         # cams, logits = gradcam.generate_cam(inputs, all_classes=True)  # (B, C, H, W)
         # target_class = torch.argmax(logits, dim=1)
         # cams = cams[torch.arange(cams.size(0)), target_class]  # (B, H, W)
-        cams, _ = gradcam.generate_cam(inputs, all_classes=False)  # (B, H, W)
+        cams, _ = gradcam.generate_cam(inputs, all_classes=False, resize=True)  # (B, H, W)
         
         # Generate pseudo masks
         for cam, img_path in zip(cams, paths):
