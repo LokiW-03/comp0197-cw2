@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights
 from torchvision.transforms import Resize, InterpolationMode
-from cam import IMAGE_SIZE  # Ensure IMAGE_SIZE is defined
+from __init__ import IMAGE_SIZE  # Ensure IMAGE_SIZE is defined
 
 ##########################################
 # EfficientNet-B4 with CAM Hooks
@@ -56,22 +56,17 @@ class ScoreCAM:
     def __init__(self, model):
         self.model = model
         self.model.eval()
-        # Initialize a resize transform for the final CAM output.
-        self.resize = Resize((IMAGE_SIZE, IMAGE_SIZE), interpolation=InterpolationMode.BILINEAR)
     
-    def generate_cam(self, input_tensor, all_classes=True, resize=True):
+    def generate_cam(self, input_tensor, all_classes=True):
         """
         Generate CAM for all classes.
         
         Args:
             input_tensor: (B, C, H, W)
-            all_classes: Whether to generate CAMs for all classes.
-            resize: If True, the output CAMs are resized to (IMAGE_SIZE, IMAGE_SIZE).
             
         Returns:
-            Tuple: (cams, logits)
-                - cams: Tensor of shape (B, num_classes, H_final, W_final) 
-                - logits: Tensor of shape (B, num_classes)
+            (B, num_classes, H, W): CAM for every class, if all_classes is False, (B, H, W) otherwise
+            (B, num_classes): logits for all classes, if all_classes is False, (B,) otherwise
         """
         if not all_classes:
             # previous implementation
@@ -79,7 +74,7 @@ class ScoreCAM:
             return self._generate_single_cam(input_tensor)
         
         B, C, H, W = input_tensor.shape
-        
+    
         # Forward pass to get logits
         logits = self.model(input_tensor)  # (B, num_classes)
         num_classes = logits.size(1)
@@ -88,16 +83,16 @@ class ScoreCAM:
         activations = self.model.activations  # (B, k, h, w)
         if activations is None:
             raise RuntimeError("Activations not captured")
-        B, k, H, W = activations.shape
+        k = activations.size(1)
         
-        # Normalize activation maps at their native resolution.
-        flat_activations = activations.view(B, k, -1)
-        min_vals = flat_activations.min(dim=2, keepdim=True)[0].view(B, k, 1, 1)
-        max_vals = flat_activations.max(dim=2, keepdim=True)[0].view(B, k, 1, 1)
-        norm_maps = (activations - min_vals) / (max_vals - min_vals + 1e-8)  # (B, k, H, W)
+        # Upsample activations
+        upsampled = F.interpolate(activations, (H, W), mode='bilinear', align_corners=False)  # (B, k, H, W)
         
-        # Downsample the input to the activation map resolution.
-        input_down = F.interpolate(input_tensor, size=(H, W), mode='bilinear', align_corners=False)
+        # Normalize activation maps
+        flat_activations = upsampled.view(B, k, -1)
+        min_vals = flat_activations.min(dim=2, keepdim=True)[0].unsqueeze(-1)
+        max_vals = flat_activations.max(dim=2, keepdim=True)[0].unsqueeze(-1)
+        norm_maps = (upsampled - min_vals) / (max_vals - min_vals + 1e-8)  # (B, k, H, W)
         
         # Initialize score_maps tensor
         score_maps = torch.zeros(B, k, num_classes, device=input_tensor.device)
@@ -110,13 +105,16 @@ class ScoreCAM:
         for batch_idx in range(num_batches):
             start = batch_idx * batch_size
             end = min((batch_idx + 1) * batch_size, k)
+            
+            # Current batch of activation maps
             current_norm_maps = norm_maps[:, start:end, :, :]  # (B, m, H, W)
             m = current_norm_maps.size(1)
             
             # Generate masked inputs
-            masked_inputs = input_down.unsqueeze(1) * current_norm_maps.unsqueeze(2)
+            masked_inputs = input_tensor.unsqueeze(1) * current_norm_maps.unsqueeze(2)  # (B, m, C, H, W)
             masked_inputs = masked_inputs.view(B * m, C, H, W)
             
+            # Forward pass
             with torch.no_grad():
                 masked_logits = self.model(masked_inputs)  # (B*m, num_classes)
                 masked_scores = F.softmax(masked_logits, dim=1)  # (B*m, num_classes)
@@ -134,25 +132,19 @@ class ScoreCAM:
         cam_max = flat_cam.max(dim=2, keepdim=True)[0].unsqueeze(-1)
         norm_cam = (cam - cam_min) / (cam_max - cam_min + 1e-8)
         
-        if resize:
-            norm_cam = self.resize(norm_cam)
         return norm_cam, logits
-        
-    def _generate_single_cam(self, input_tensor, target_class=None, resize=True):
+    
+    def _generate_single_cam(self, input_tensor, target_class=None):
         """
-        Generate Score-CAM visualization for a single target class,
-        delaying the upscaling until the final CAM is computed.
+        Generate Score-CAM visualization.
         
         Args:
             input_tensor: Tensor of shape (B, C, H, W).
             target_class: Tensor of shape (B,) containing class indices.
-                        If None, uses predicted class.
-            resize: If True, upscales the final CAM to (IMAGE_SIZE, IMAGE_SIZE).
+                          If None, the predicted class is used.
         
         Returns:
-            Tuple: (norm_cam, logits)
-                - norm_cam: Tensor of shape (B, H_final, W_final) with values in [0,1]
-                - logits: Tensor of shape (B, num_classes)
+            Tensor of shape (B, H, W) containing the normalized CAM.
         """
         B, C, H, W = input_tensor.shape
         
@@ -165,20 +157,20 @@ class ScoreCAM:
         activations = self.model.activations  # (B, k, h, w)
         if activations is None:
             raise RuntimeError("Activations not captured; ensure hook registration is correct.")
-        B, k, H, W = activations.shape
-
-        # Downsample the input to the native activation resolution.
-        input_down = F.interpolate(input_tensor, size=(H, W), mode='bilinear', align_corners=False)
+        k = activations.shape[1]
+        
+        # Upsample activation maps to match the input image size
+        upsampled_maps = F.interpolate(activations, size=(H, W), mode='bilinear', align_corners=False)
         
         # Normalize each activation map to [0, 1]
         eps = 1e-8
-        flat_maps = activations.view(B, k, -1)
-        maps_min = flat_maps.min(dim=2, keepdim=True)[0].view(B, k, 1, 1)
-        maps_max = flat_maps.max(dim=2, keepdim=True)[0].view(B, k, 1, 1)
-        norm_maps = (activations - maps_min) / (maps_max - maps_min + eps)  # (B, k, H, W)
+        upsampled_maps_flat = upsampled_maps.view(B, k, -1)
+        maps_min = upsampled_maps_flat.min(dim=2, keepdim=True)[0].view(B, k, 1, 1)
+        maps_max = upsampled_maps_flat.max(dim=2, keepdim=True)[0].view(B, k, 1, 1)
+        norm_maps = (upsampled_maps - maps_min) / (maps_max - maps_min + eps)
         
         # Create masked inputs by elementwise multiplication of the input with each normalized map.
-        masked_inputs = input_down.unsqueeze(1) * norm_maps.unsqueeze(2)  # (B, k, C, H, W)
+        masked_inputs = input_tensor.unsqueeze(1) * norm_maps.unsqueeze(2)
         masked_inputs = masked_inputs.view(B * k, C, H, W)
         
         # Forward pass for masked images (with no gradient computation)
@@ -189,22 +181,22 @@ class ScoreCAM:
         # Retrieve scores for the target class for each masked input.
         scores = []
         for i in range(B):
-            sample_scores = masked_output[i * k: (i + 1) * k, target_class[i]]  # (k,)
+            sample_scores = masked_output[i * k: (i + 1) * k, target_class[i]]
             scores.append(sample_scores.unsqueeze(0))
-        scores = torch.cat(scores, dim=0).view(B, k, 1, 1)  # (B, k, 1, 1)
-
+        scores = torch.cat(scores, dim=0).view(B, k, 1, 1)
+        
         # Compute the weighted sum of the normalized maps.
         cam = torch.sum(norm_maps * scores, dim=1)  # (B, H, W)
         cam = F.relu(cam)
         
         # Normalize the CAM for each image
-        cam_flat = cam.view(B, -1)
-        cam_min = cam_flat.min(dim=1, keepdim=True)[0].view(B, 1, 1)
-        cam_max = cam_flat.max(dim=1, keepdim=True)[0].view(B, 1, 1)
-        norm_cam = (cam - cam_min) / (cam_max - cam_min + eps)  # (B, H, W)
-
-        # Delay the upsampling until now, if requested.
-        if resize:
-            norm_cam = self.resize(norm_cam)  # Upsamples to (B, IMAGE_SIZE, IMAGE_SIZE)
-
-        return norm_cam, output
+        cam_out = []
+        for i in range(B):
+            cam_i = cam[i]
+            cam_min = cam_i.min()
+            cam_max = cam_i.max()
+            cam_i = (cam_i - cam_min) / (cam_max - cam_min + eps)
+            cam_out.append(cam_i)
+        cam_out = torch.stack(cam_out)
+        
+        return cam_out, output

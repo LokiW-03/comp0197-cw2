@@ -2,7 +2,7 @@ from torchvision.datasets import OxfordIIITPet
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch
-from cam.dataset.oxfordpet_paths import OxfordIIITPetWithPaths
+from dataset.oxfordpet_paths import OxfordIIITPetWithPaths
 
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
