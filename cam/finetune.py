@@ -6,7 +6,7 @@ import torch.optim as optim
 
 from resnet_gradcampp import ResNet50_CAM
 from dataset.oxfordpet import download_pet_dataset
-from cam import *
+from common import *
 
 
 # -------------------- Fine-tuning Function --------------------

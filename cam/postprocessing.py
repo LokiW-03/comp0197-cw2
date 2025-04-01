@@ -5,11 +5,11 @@ import os
 from typing import Callable
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from cam import *
-from cam.preprocessing import unnormalize
-from cam.dataset.oxfordpet import download_pet_dataset
-from cam.visualize import visualize_cam
-from cam.resnet_drs import ResNet50_CAM_DRS
+from common import *
+from preprocessing import unnormalize
+from dataset.oxfordpet import download_pet_dataset
+from visualize import visualize_cam
+from resnet_drs import ResNet50_CAM_DRS
 from crm import CRM_MODEL_SAVE_PATH
 
 

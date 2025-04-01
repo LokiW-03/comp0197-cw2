@@ -6,7 +6,7 @@ import torch.optim as optim
 
 from efficientnet_scorecam import EfficientNetB4_CAM
 from dataset.oxfordpet import download_pet_dataset
-from cam import *
+from common import *
 
 def fine_tune_model():
     # Check device
