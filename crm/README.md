@@ -68,8 +68,9 @@ Use a weighted combined loss:
   - Classifier test accuracy: 84%, CAM concentrated on face
     
 
-- [ResNet50 + DRS + GradCAM++](https://1drv.ms/u/c/2ef0e412637ecc3c/EdRX3IbLhbRBk-yiK6z_oSwBGfEgHdBX2N6gMBnTe29ULQ?e=UjyhwN) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/Eazk46cxIBxLtiljWMgFtj0BJPlyJ8GLiCdMDM12MMTZ4A?e=MtlaVK) 
-  - Classifier test accuracy: 83%, CAM concentrated on face
+- [ResNet50 + DRS + GradCAM++](https://1drv.ms/u/c/2ef0e412637ecc3c/EQU-6ec3hklKhi9hTXwXxDEBWx5czmOywqLiH3gsT0qhAQ?e=SBTBau) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EesRuHMqxgZAvj6Qc710poYBfyskimMUQtJAFrfC9wmOCw?e=h5RG8g) 
+  - Classifier test accuracy: 91%
+  - Best results so far using **`ScoreCAM`** for postprocessing
 
 
 - [ResNet50 + DRS + ScoreCAM](https://1drv.ms/u/c/2ef0e412637ecc3c/ETNymtaAwt5JixWupsbx3DEBCsdYh314NkdB9sgR0VAoLA?e=eegB8H) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/Eazk46cxIBxLtiljWMgFtj0BJPlyJ8GLiCdMDM12MMTZ4A?e=MtlaVK) 
