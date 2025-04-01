@@ -2,8 +2,7 @@
 import torch
 from torch.utils.data import DataLoader
 from dataset.oxfordpet_pseudo import OxfordPetWithPseudo
-from __init__ import MODEL_SAVE_PATH
-
+from cam import MODEL_SAVE_PATH
 
 def load_pseudo(save_path, batch_size=32, shuffle=False, device=torch.device('cpu')):
     """
@@ -49,6 +48,7 @@ if __name__ == "__main__":
     )
     
     # Verify format compatibility
+    print(len(pseudo_loader.dataset))  # Should output number of samples in pseudo dataset
     for images, masks in pseudo_loader:
         print(f"Image shape: {images.shape}")  # Should output torch.Size([16, 3, 224, 224])
         print(f"Mask shape: {masks.shape}")    # Should output torch.Size([16, 1, 224, 224])

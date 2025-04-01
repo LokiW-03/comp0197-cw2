@@ -13,7 +13,6 @@ from cam.resnet_drs import ResNet50_CAM_DRS
 from crm import CRM_MODEL_SAVE_PATH
 
 
-
 def generate_pseudo_masks(
     dataloader: DataLoader,
     model: torch.nn.Module,
@@ -54,12 +53,14 @@ def generate_pseudo_masks(
     ])
     
     all_pseudo_masks = []
+    all_images = []
     image_paths = []
     sample_mask_images = []
     
     for batch in dataloader:
         # Parse batch data (assumes dataloader returns (img, _, paths))
         inputs = batch[0].to(device)
+        all_images.append(inputs)
         paths = batch[2]  # Third element is image path
         
         # Generate CAM heatmap
@@ -83,6 +84,9 @@ def generate_pseudo_masks(
             all_pseudo_masks.append(processed_mask)
             image_paths.append(img_path)
     
+    print(f"Generated {len(all_pseudo_masks)} pseudo masks")
+    all_images = torch.cat(all_images, dim=0)
+    print(f"Input images: {len(all_images)}")
     # Save in compressed format
     torch.save({
         'pairs': [
@@ -91,7 +95,7 @@ def generate_pseudo_masks(
                 'mask': processed_mask,
                 'path': img_path
             }
-            for img, processed_mask, img_path in zip(inputs, all_pseudo_masks, image_paths)
+            for img, processed_mask, img_path in zip(all_images, all_pseudo_masks, image_paths)
         ]
     }, save_path)
     
@@ -164,6 +168,6 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(model_save_path, map_location=device, weights_only=True))
     
     # 2. Data initialization
-    _, test_loader = download_pet_dataset(with_paths=True)
+    train_loader, test_loader = download_pet_dataset(with_paths=True)
     
-    generate_pseudo_masks(test_loader, model, cam_generator, pseudo_save_path, device=device)
+    generate_pseudo_masks(train_loader, model, cam_generator, pseudo_save_path, device=device)

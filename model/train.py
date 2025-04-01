@@ -164,8 +164,15 @@ def train_model(
 
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, default='effunet', choices=['segnet', 'segnext', 'effunet', 'unet'], help='Segmentation model')
+    parser.add_argument('--pseudo', action="store_true", help='Use pseudo masks')
+    parser.add_argument('--pseudo_path', type=str, default='cam/saved_models/resnet50_pet_cam_pseudo.pt', help='Path to pseudo masks')
+    args = parser.parse_args()
     # check cuda availability
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
     print('Using device:', device)
 
     # Create DataLoaders for batch processing
@@ -179,10 +186,26 @@ def main():
     print(X_train_batch.shape, y_train_batch.shape)
 
     # initialise model
-    model = SegNet().to(device)
-    #model = EfficientUNet().to(device)
-    #model = UNet(3, 3).to(device)
-    # model = SegNeXt(num_classes=3).to(device)
+    model = EfficientUNet().to(device)
+    if args.model == 'segnext':
+        model = SegNeXt(num_classes=3).to(device)
+        print('Using SegNeXt model')
+    elif args.model == 'segnet':
+        model = SegNet().to(device)
+        print('Using SegNet model')
+    elif args.model == 'unet':
+        print('Using UNet model')
+        model = UNet(3, 3).to(device)
+    else:
+        print('Using EfficientUNet model')
+
+    if args.pseudo:
+        from cam.load_pseudo import load_pseudo
+        pseudo_loader = load_pseudo(args.pseudo_path, batch_size=16, shuffle=True, device=device)
+        X_train_batch, y_train_batch = next(iter(pseudo_loader))
+        train_loader = pseudo_loader
+        print("Pseudo mask data loaded from", args.pseudo_path)
+        print(X_train_batch.shape, y_train_batch.shape)
 
     # test model giving correct shape
     model.eval()
@@ -198,7 +221,7 @@ def main():
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
 
     # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'SegNet_CA', scheduler=scheduler)
+    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = args.model, scheduler=scheduler)
 
     # compute metrics on entire test set (may take a while)
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)

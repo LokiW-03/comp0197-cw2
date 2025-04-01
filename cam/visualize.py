@@ -17,7 +17,7 @@ def visualize_cam(images: torch.Tensor, cams: np.ndarray, save_path: str, nrow: 
     cams = cams[:nrow*ncol].detach().cpu().numpy()
     for image, cam in zip(images, cams):
         # Denormalize and convert to uint8
-        img_np = unnormalize(image.cpu()).numpy()  # (H, W, 3) [0,1]
+        img_np = unnormalize(image.cpu()).permute(1,2,0).numpy()  # (H, W, 3) [0,1]
         img_uint8 = (img_np * 255).astype(np.uint8)
         
         # Generate heatmap
@@ -105,4 +105,5 @@ def jet_colormap(cam: np.ndarray) -> np.ndarray:
     
     # Convert to 0-255 range and adjust channel order to RGB
     heatmap = (interpolated * 255).astype(np.uint8)
+    # Convert to RGB (BGR to RGB)
     return heatmap[..., ::-1]
