@@ -8,3 +8,5 @@ cam/output/grid.jpg
 **/data/
 **/__pycache__/
 
+cam/.DS_Store
+.DS_Store
