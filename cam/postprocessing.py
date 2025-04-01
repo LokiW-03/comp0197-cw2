@@ -5,13 +5,10 @@ import os
 from typing import Callable
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from cam import *
-from cam.preprocessing import unnormalize
-from cam.dataset.oxfordpet import download_pet_dataset
-from cam.visualize import visualize_cam
-from cam.resnet_drs import ResNet50_CAM_DRS
-from crm import CRM_MODEL_SAVE_PATH
-
+from __init__ import *
+from preprocessing import unnormalize
+from dataset.oxfordpet import download_pet_dataset
+from visualize import visualize_cam
 
 
 def generate_pseudo_masks(
@@ -111,13 +108,12 @@ def generate_pseudo_masks(
 # Usage example
 if __name__ == "__main__":
     # ---------- User-defined section ----------
-    from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
-    from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
+    from resnet_gradcampp import ResNet50_CAM, GradCAMpp
+    from efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='efficientnet', 
-                        choices=['resnet', 'efficientnet', 'resnet_crm', 'efficientnet_crm', 'resnet_drs'])
+    parser.add_argument('--model', type=str, default='efficientnet', choices=['resnet', 'efficientnet'])
     args = parser.parse_args()
 
     num_classes=37
@@ -127,31 +123,11 @@ if __name__ == "__main__":
         model_save_path = f"{MODEL_SAVE_PATH}/resnet50_pet_cam.pth"
         cam_generator = lambda model: GradCAMpp(model)
         pseudo_save_path = f"{MODEL_SAVE_PATH}/resnet50_pet_cam_pseudo.pt"
-
     elif args.model == 'efficientnet':
         model = EfficientNetB4_CAM(num_classes)
         model_save_path = f"{MODEL_SAVE_PATH}/efficientnet_pet_scorecam.pth"
         cam_generator = lambda model: ScoreCAM(model)
         pseudo_save_path = f"{MODEL_SAVE_PATH}/efficientnet_pet_scorecam_pseudo.pt"
-
-    elif args.model == 'resnet_crm':
-        model = ResNet50_CAM(num_classes)
-        model_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm.pth"
-        cam_generator = lambda model: GradCAMpp(model)
-        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm_pseudo.pt"
-
-    elif args.model == 'efficientnet_crm':
-        model = EfficientNetB4_CAM(num_classes)
-        model_save_path = f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth"
-        cam_generator = lambda model: ScoreCAM(model)
-        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm_pseudo.pt" 
-
-    elif args.model == 'resnet_drs':
-        model = ResNet50_CAM_DRS(num_classes)
-        model_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth"
-        cam_generator = lambda model: GradCAMpp(model)
-        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm_pseudo.pt" 
-
     else:
         raise ValueError(f"Invalid model: {args.model}")
 

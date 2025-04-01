@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.models as models
 import torch.nn.functional as F
 from torchvision.transforms import Resize, InterpolationMode
-from cam import IMAGE_SIZE
+from __init__ import IMAGE_SIZE
 
 class ResNet50_CAM(nn.Module):
     """
@@ -83,13 +83,12 @@ class GradCAMpp:
         self.resize = Resize((IMAGE_SIZE, IMAGE_SIZE), 
                             interpolation=InterpolationMode.BILINEAR)
     
-    def generate_cam(self, x, all_classes=True, resize=True):
+    def generate_cam(self, x, all_classes=True):
         """
         Generate class activation maps for input images
         Args:
             x: Input tensor of shape (B, 3, H, W)
             all_classes: Whether to generate CAMs for all classes
-            resize: Whether to resize back to image shape
         Returns:
             tuple: (upsampled_cams, logits)
                 - upsampled_cams: Tensor of shape (B, num_classes, H, W), if all_classes is False, (B, H, W) otherwise
@@ -136,12 +135,9 @@ class GradCAMpp:
             
             # Store CAM for current class
             cams[:, class_idx] = cam
-
-        if resize:
-            cams = self.resize(cams)
         
         # Upsample CAMs to match input image size
-        return cams, logits  # ((B, num_classes, H, W), (B, num_classes))
+        return self.resize(cams), logits  # ((B, num_classes, H, W), (B, num_classes))
     
     @staticmethod
     def normalize(cam):

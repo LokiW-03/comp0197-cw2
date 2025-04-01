@@ -2,7 +2,7 @@
 import torch
 from PIL import Image
 import numpy as np
-from cam.preprocessing import unnormalize
+from preprocessing import unnormalize
 
 def visualize_cam(images: torch.Tensor, cams: np.ndarray, save_path: str, nrow: int=4, ncol: int=4):
     """
