@@ -182,7 +182,7 @@ def main():
     model = SegNet().to(device)
     #model = EfficientUNet().to(device)
     #model = UNet(3, 3).to(device)
-    #model = SegNeXt(num_classes=3).to(device)
+    # model = SegNeXt(num_classes=3).to(device)
 
     # test model giving correct shape
     model.eval()
@@ -191,9 +191,11 @@ def main():
 
     # initialise optimiser & loss class
     loss_fn = nn.CrossEntropyLoss(reduction='mean')
+    # loss_fn = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
 
     # train model
     train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'SegNet_CA', scheduler=scheduler)
