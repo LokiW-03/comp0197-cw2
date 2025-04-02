@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch
 from dataset.oxfordpet_paths import OxfordIIITPetWithPaths
+from model.data import ImageTransform
 
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
@@ -20,31 +21,13 @@ def download_pet_dataset(with_paths=False):
     # Select dataset class
     dataset_class = OxfordIIITPetWithPaths if with_paths else OxfordIIITPet
 
-    # Define preprocessing pipeline
-    train_transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.RandomResizedCrop(IMAGE_SIZE),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
-    ])
-    
-    test_transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(IMAGE_SIZE),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
-    ])
-
     # Create datasets
     train_dataset = dataset_class(
         root="./data",
         split="trainval",
         target_types="category",
         download=True,
-        transform=train_transform
+        transform=ImageTransform.common_image_transform
     )
     
     test_dataset = dataset_class(
@@ -52,7 +35,7 @@ def download_pet_dataset(with_paths=False):
         split="test",
         target_types="category",
         download=True,
-        transform=test_transform
+        transform=ImageTransform.common_image_transform
     )
 
     # Dynamic collate function

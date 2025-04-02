@@ -11,6 +11,7 @@ from dataset.oxfordpet import download_pet_dataset
 from visualize import visualize_cam
 from resnet_drs import ResNet50_CAM_DRS
 from crm import CRM_MODEL_SAVE_PATH
+from model.data import ImageTransform
 
 
 def generate_pseudo_masks(
@@ -46,11 +47,7 @@ def generate_pseudo_masks(
         raise ValueError("CAM class must implement generate_cam() method")
     
     # TODO: Should be aligned with the original dataset
-    mask_transform = transforms.Compose([
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: (x * 255).long() - 1)
-    ])
+    mask_transform = ImageTransform.common_mask_transform
     
     all_pseudo_masks = []
     all_images = []
