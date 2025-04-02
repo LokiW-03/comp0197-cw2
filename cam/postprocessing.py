@@ -19,8 +19,8 @@ def generate_pseudo_masks(
     model: torch.nn.Module,
     cam_generator: Callable,
     save_path: str = './pseudo_masks.pt',
-    threshold_low: float = 0.3,
-    threshold_high: float = 0.7,
+    threshold_low: float = 0.15,
+    threshold_high: float = 0.45,
     device: torch.device = torch.device('cpu')
 ):
     """
