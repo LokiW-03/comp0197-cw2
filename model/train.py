@@ -78,7 +78,8 @@ def train_model(
         num_classes=3,
         compute_test_metrics=False,
         model_name: str='example',
-        scheduler = None):
+        scheduler = None,
+        verbose=False):
     """
     Trains a segmentation model and computes metrics: loss, accuracy, precision, recall, IoU, and Dice coefficient at each epoch.
 
@@ -97,13 +98,19 @@ def train_model(
     """
     print("Number of train batches:", len(trainloader))
 
+    best_test_iou = 0.0
+    best_optimizer = None
+    best_model = None
+    best_message = ""
+
     for epoch in range(1, epochs + 1):
         print("Start epoch", epoch)
         model.train()
         running_loss, total_accuracy, total_precision, total_recall, total_iou, total_dice, num_samples = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         for id, (X_train, y_train) in enumerate(trainloader, 0):
-            print(f'Training batch {id}')
+            if verbose:
+                print(f'Training batch {id}')
 
             X_train, y_train = X_train.to(device), y_train.to(device)
             optimizer.zero_grad()
@@ -148,6 +155,13 @@ def train_model(
         if compute_test_metrics:
             test_metrics = compute_test_metrics_fn(model, trainvalloader, loss_fn, device, num_classes=3, num_eval_batches=1)
             print(f"Test   -> {test_metrics}")
+            if test_metrics["iou"] > best_test_iou:
+                best_test_iou = test_metrics["iou"]
+                best_model = model.state_dict().copy()
+                best_optimizer = optimizer.state_dict().copy()
+                best_message = f"Best model found at epoch {epoch} with IoU {best_test_iou}\n" \
+                                f"Test -> {test_metrics} \n" \
+                                f"Train -> {train_metrics} \n"
         print("-" * 50)
 
         # Save model weights every 2 epochs
@@ -160,6 +174,20 @@ def train_model(
                 checkpoint['lr_scheduler']= scheduler.load_state_dict
             torch.save(checkpoint, f"{model_name}_epoch_{epoch}.pth")
             print(f"Model weights, optimiser, scheduler order saved for model {model_name} at epoch {epoch}")
+        
+        if best_model is not None:
+            print(best_message)
+            # Save best model
+            checkpoint = {
+                    'epoch': epoch,
+                    'model': best_model,
+                    'optimizer': best_optimizer
+            }
+            if scheduler is not None:
+                checkpoint['lr_scheduler']= scheduler.load_state_dict
+            torch.save(checkpoint, f"{model_name}_best.pth")
+            print(f"Best model saved for model {model_name} at epoch {epoch}")
+
 
 
 def main():
@@ -169,6 +197,7 @@ def main():
     parser.add_argument('--model', type=str, default='effunet', choices=['segnet', 'segnext', 'effunet', 'unet'], help='Segmentation model')
     parser.add_argument('--pseudo', action="store_true", help='Use pseudo masks')
     parser.add_argument('--pseudo_path', type=str, default='cam/saved_models/resnet50_pet_cam_pseudo.pt', help='Path to pseudo masks')
+    parser.add_argument('--verbose', action="store_true", help='Print verbose output')
     args = parser.parse_args()
     # check cuda availability
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
@@ -220,7 +249,7 @@ def main():
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
 
     # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = args.model, scheduler=scheduler)
+    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = args.model, scheduler=scheduler, verbose=args.verbose)
 
     # compute metrics on entire test set (may take a while)
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
