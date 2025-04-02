@@ -106,7 +106,6 @@ def train_model(
             print(f'Training batch {id}')
 
             X_train, y_train = X_train.to(device), y_train.to(device)
-
             optimizer.zero_grad()
             y_hat = model(X_train)
 

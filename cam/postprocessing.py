@@ -47,7 +47,11 @@ def generate_pseudo_masks(
         raise ValueError("CAM class must implement generate_cam() method")
     
     # TODO: Should be aligned with the original dataset
-    mask_transform = ImageTransform.common_mask_transform
+    # mask_transform = transforms.Compose([
+    #     transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.NEAREST),
+    #     transforms.PILToTensor(),
+    #     transforms.Lambda(lambda x: x.squeeze().to(torch.long))
+    # ])
     
     all_pseudo_masks = []
     all_images = []
@@ -65,17 +69,21 @@ def generate_pseudo_masks(
         # target_class = torch.argmax(logits, dim=1)
         # cams = cams[torch.arange(cams.size(0)), target_class]  # (B, H, W)
         cams, _ = gradcam.generate_cam(inputs, all_classes=False, resize=True)  # (B, H, W)
-        
+        cams = (cams - cams.min()) / (cams.max() - cams.min() + 1e-8)
         # Generate pseudo masks
         for cam, img_path in zip(cams, paths):
             # Threshold processing to generate three-class mask
             pseudo_mask = torch.zeros_like(cam)
-            pseudo_mask[cam >= threshold_high] = 255   # Foreground
-            pseudo_mask[(cam >= threshold_low) & (cam < threshold_high)] = 128  # Contour
+            pseudo_mask[cam >= threshold_high] = 2   # Foreground
+            pseudo_mask[(cam >= threshold_low) & (cam < threshold_high)] = 1  # Contour
             
             # Convert to PIL Image and apply standard transforms
             pil_mask = Image.fromarray(pseudo_mask.cpu().numpy(), mode='L')
-            processed_mask = mask_transform(pil_mask)
+            processed_mask = torch.nn.functional.interpolate(
+                pseudo_mask.unsqueeze(0).unsqueeze(0).float(),
+                size=(224, 224),
+                mode='nearest'
+            ).squeeze().to(torch.long)
             if len(sample_mask_images) < NUM_SAMPLES:
                 sample_mask_images.append(pil_mask)
             all_pseudo_masks.append(processed_mask)
@@ -95,6 +103,8 @@ def generate_pseudo_masks(
             for img, processed_mask, img_path in zip(all_images, all_pseudo_masks, image_paths)
         ]
     }, save_path)
+
+    print(max(all_pseudo_masks[0].flatten()), min(all_pseudo_masks[0].flatten()))
     
     print(f"Generated {len(all_pseudo_masks)} pseudo masks saved at {save_path}")
 
