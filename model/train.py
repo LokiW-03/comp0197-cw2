@@ -175,18 +175,18 @@ def train_model(
             torch.save(checkpoint, f"{model_name}_epoch_{epoch}.pth")
             print(f"Model weights, optimiser, scheduler order saved for model {model_name} at epoch {epoch}")
         
-        if best_model is not None:
-            print(best_message)
-            # Save best model
-            checkpoint = {
-                    'epoch': epoch,
-                    'model': best_model,
-                    'optimizer': best_optimizer
-            }
-            if scheduler is not None:
-                checkpoint['lr_scheduler']= scheduler.load_state_dict
-            torch.save(checkpoint, f"{model_name}_best.pth")
-            print(f"Best model saved for model {model_name} at epoch {epoch}")
+    if best_model is not None:
+        print(best_message)
+        # Save best model
+        checkpoint = {
+            'epoch': epoch,
+            'model': best_model,
+            'optimizer': best_optimizer
+        }
+        if scheduler is not None:
+            checkpoint['lr_scheduler']= scheduler.load_state_dict
+        torch.save(checkpoint, f"{model_name}_best.pth")
+        print(f"Best model saved for model {model_name} at epoch {epoch}")
 
 
 
