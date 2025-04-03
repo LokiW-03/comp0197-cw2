@@ -1,3 +1,5 @@
+# data_utils.py
+
 import os
 import glob
 from PIL import Image
@@ -20,7 +22,8 @@ class PetsDataset(Dataset):
     Handles loading images, masks, and pre-generated weak labels.
     """
     def __init__(self, data_dir, split='train', supervision_mode='full',
-                 weak_label_path=None, img_size=(256, 256), augment=False):
+                 weak_label_path=None, img_size=(256, 256), augment=False,
+                 num_classes=2): # ***** ADD num_classes ARGUMENT *****
         """
         Args:
             data_dir (str): Path to the dataset directory.
@@ -31,14 +34,21 @@ class PetsDataset(Dataset):
                                              (required for weak supervision modes).
             img_size (tuple): Target image size (height, width).
             augment (bool): Whether to apply data augmentation (only for train split).
+            num_classes (int): Number of segmentation classes (e.g., 2 for BG+Pet). Needed for tag target shape.
         """
         self.data_dir = data_dir
         self.split = split
         self.supervision_mode = supervision_mode
         self.img_size = img_size
         self.augment = augment and split == 'train'
+        # ***** STORE num_classes *****
+        self.num_classes = num_classes
+        # ****************************
 
-        print(f"Initializing dataset: split={split}, mode={supervision_mode}, augment={self.augment}")
+        # ***** Print num_classes being used by dataset *****
+        print(f"Initializing dataset: split={split}, mode={supervision_mode}, augment={self.augment}, num_classes={self.num_classes}")
+        # ****************************************************
+
 
         image_dir = os.path.join(data_dir, 'images')
         trimap_dir = os.path.join(data_dir, 'annotations', 'trimaps')
@@ -57,7 +67,8 @@ class PetsDataset(Dataset):
             print(f"Using first {len(self.image_files)} images for training.")
         elif split == 'val':
             self.image_files = self.image_files[num_train:num_train + num_val]
-            print(f"Using images {num_train} to {num_train + num_val -1} for validation.")
+            # Corrected print statement for val end index
+            print(f"Using images {num_train} to {num_train + num_val - 1} for validation.")
         elif split == 'test':
             self.image_files = self.image_files[num_train + num_val:]
             print(f"Using images from {num_train + num_val} onwards for testing.")
@@ -104,9 +115,7 @@ class PetsDataset(Dataset):
             'boxes': 'boxes',
             'hybrid_tags_points': ['tags', 'points'] # Special case
         }
-        # Pet dataset has 1 class (pet), background, boundary. We simplify to binary.
-        # If multi-class (breeds) is needed, adjust class mapping.
-        self.num_classes = 1 # Binary: Pet vs Background
+        # NOTE: self.num_classes is now passed via __init__
 
     def __len__(self):
         return len(self.image_files)
@@ -119,8 +128,8 @@ class PetsDataset(Dataset):
 
         # Convert trimap to binary mask: Foreground=1, Background=0, Boundary=IGNORE_INDEX
         mask = np.zeros_like(trimap_np, dtype=np.int64) # Use int64 for CE Loss
-        mask[trimap_np == 1] = 1  # Foreground Pet class
-        mask[trimap_np == 2] = 0  # Background class
+        mask[trimap_np == 1] = 1  # Foreground Pet class (INDEX 1)
+        mask[trimap_np == 2] = 0  # Background class (INDEX 0)
         mask[trimap_np == 3] = IGNORE_INDEX # Ignore boundary pixels
 
         return torch.from_numpy(mask) # Return as HxW tensor
@@ -129,15 +138,17 @@ class PetsDataset(Dataset):
         """ Prepares weak supervision signals based on mode. """
         img_filename = os.path.basename(self.image_files[index])
         if self.weak_labels is None or img_filename not in self.weak_labels:
-             # Should not happen if weak labels were generated correctly for train split
              print(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
-             # Return dummy data or handle error appropriately
-             if self.supervision_mode == 'tags': return torch.zeros(self.num_classes, dtype=torch.float32)
+             # Return dummy data matching expected shapes
+             if self.supervision_mode == 'tags':
+                 # ***** Match shape [self.num_classes] *****
+                 return torch.zeros(self.num_classes, dtype=torch.float32)
              if self.supervision_mode == 'points': return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
              if self.supervision_mode == 'scribbles': return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
              if self.supervision_mode == 'boxes': return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
              if self.supervision_mode == 'hybrid_tags_points':
                  return {
+                     # ***** Match shape [self.num_classes] *****
                      'tags': torch.zeros(self.num_classes, dtype=torch.float32),
                      'points': torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
                  }
@@ -151,48 +162,64 @@ class PetsDataset(Dataset):
 
         for key in required_keys:
             if key == 'tags':
-                 # Assuming tags are list of present classes (0 or 1 for binary)
-                 # Convert to multi-hot encoding if needed, here simple binary presence
+                 # ***** ADJUST TAG TENSOR GENERATION *****
+                 # Create tensor with size based on the number of classes passed to dataset
                  tag_tensor = torch.zeros(self.num_classes, dtype=torch.float32)
-                 if 1 in item_labels.get('tags', []): # Check if pet class is present
-                     tag_tensor[0] = 1.0 # Binary case: only class 0 (pet) exists
-                 weak_data['tags'] = tag_tensor
+                 # Assuming class index 1 corresponds to "Pet"
+                 pet_class_index = 1
+                 # Check if the weak label file indicates presence of the pet
+                 # (Assuming '1' in tags list means pet is present, adjust if format differs)
+                 if 1 in item_labels.get('tags', []):
+                     if pet_class_index < self.num_classes:
+                          tag_tensor[pet_class_index] = 1.0 # Set Pet class index to 1.0
+                     else:
+                          print(f"Warning: Pet class index {pet_class_index} out of bounds for num_classes {self.num_classes}")
+                 # Background class (index 0) remains 0.0 unless specified otherwise
+                 weak_data['tags'] = tag_tensor # Now has shape [num_classes]
+                 # ***************************************
 
             elif key in ['points', 'scribbles']:
                  # Expecting list of (y, x) coordinates for the foreground class (1)
                  sparse_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
                  coords = item_labels.get(key, [])
+                 # Assuming points/scribbles always mark the Pet class (index 1)
+                 pet_class_index = 1
                  for y, x in coords:
-                      # Clamp coordinates to be within image bounds after resize
                       y_clamped = max(0, min(y, self.img_size[0] - 1))
                       x_clamped = max(0, min(x, self.img_size[1] - 1))
-                      sparse_mask[y_clamped, x_clamped] = 1 # Label points/scribbles as foreground (class 1)
+                      sparse_mask[y_clamped, x_clamped] = pet_class_index # Label points as Pet class
                  weak_data[key] = sparse_mask # HxW tensor
 
             elif key == 'boxes':
                  # Expecting list of boxes (ymin, xmin, ymax, xmax)
                  # Generate pseudo-mask: Inside box=1 (Foreground), Outside=0 (Background)
-                 box_pseudo_mask = torch.zeros(self.img_size, dtype=torch.int64) # Start with background
+                 # Assuming box marks the Pet class (index 1), outside is Background (index 0)
+                 pet_class_index = 1
+                 bg_class_index = 0
+                 box_pseudo_mask = torch.full(self.img_size, bg_class_index, dtype=torch.int64) # Start with background
                  boxes = item_labels.get('boxes', [])
                  for box in boxes:
                       ymin, xmin, ymax, xmax = box
-                      # Clamp coordinates
                       ymin_c = max(0, min(ymin, self.img_size[0] - 1))
                       xmin_c = max(0, min(xmin, self.img_size[1] - 1))
                       ymax_c = max(0, min(ymax, self.img_size[0] - 1))
                       xmax_c = max(0, min(xmax, self.img_size[1] - 1))
                       if ymax_c > ymin_c and xmax_c > xmin_c:
-                          box_pseudo_mask[ymin_c:ymax_c, xmin_c:xmax_c] = 1 # Mark inside box as foreground
+                          box_pseudo_mask[ymin_c:ymax_c, xmin_c:xmax_c] = pet_class_index # Mark inside as Pet
                  weak_data['boxes'] = box_pseudo_mask # HxW tensor
 
         # Return appropriate format based on mode
         if self.supervision_mode == 'hybrid_tags_points':
+            # Ensure default values have correct shapes if a key is missing
+            if 'tags' not in weak_data:
+                 weak_data['tags'] = torch.zeros(self.num_classes, dtype=torch.float32)
+            if 'points' not in weak_data:
+                 weak_data['points'] = torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
             return weak_data # Return dict with 'tags' and 'points'
         elif required_keys:
             return weak_data[required_keys[0]] # Return the single tensor
-        else: # Should only happen for 'full' mode on train split, which is not expected
+        else: # Should only happen for 'full' mode on train split, which is not expected here
             return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
-
 
     def __getitem__(self, index):
         img_path = self.image_files[index]
@@ -206,15 +233,9 @@ class PetsDataset(Dataset):
 
         # Apply augmentation if enabled
         if self.augment:
-            # Augmentation needs careful handling for masks/points
-            # Simple example: Apply same geometric transforms to image and mask
-            # Seed setting might be needed for reproducibility if random transforms differ
-            # For points/scribbles, coordinates need transformation too (more complex)
-            # Keeping it simple: only flip/rotate image for now. Mask augmentation is harder.
             image_tensor = self.augmentation_transform(image_tensor)
-            # NOTE: Augmenting sparse labels (points/scribbles) correctly is non-trivial
-            #       and omitted here for simplicity within the 1-week scope.
-            #       Full mask augmentation is also omitted but could be added if desired.
+            # NOTE: Augmenting sparse labels/masks correctly requires more complex implementation
+            #       if geometric transforms are applied to them. Omitted for simplicity.
 
         # Prepare supervision target based on mode
         if self.split == 'train':

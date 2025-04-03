@@ -7,7 +7,7 @@
 ## Installation
 Additional installation
 ```bash
-pip install Pillow numpy scikit-image segmentation-models-pytorch
+pip install Pillow numpy scikit-image segmentation-models-pytorch torchmetrics
 ```
 
 ## Expected File Structure
@@ -42,17 +42,17 @@ python weak_label_generator.py --data_dir ./data --output_file ./weak_labels/wea
 Train models
 ```bash
 
-# Points
+# Points, trained
 python train.py \
   --supervision_mode points \
   --run_name points_run1 \
-  --epochs 50 \
+  --epochs 10 \
   --batch_size 8 \
   --lr 1e-4
 
 
 
-# Tags
+# Tags, error with
 python train.py \
   --supervision_mode tags \
   --run_name tags_run1 \
@@ -80,8 +80,39 @@ python train.py \
 python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --epochs 50 --batch_size 8 --lr 1e-4 --lambda_seg 1.0
 
 
+#colab
+!python train.py \
+    --supervision_mode points \
+    --run_name points_run1 \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --data_dir ./data \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 75 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_a100
+
 ```
 
+
+## Colab
+
+```
+!pip install Pillow numpy scikit-image segmentation-models-pytorch torchmetrics
+!python download_data.py
+!python train.py \
+    --supervision_mode points \
+    --run_name points_run1 \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --data_dir ./data \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 75 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_a100
+```
 
 ## Plan
 

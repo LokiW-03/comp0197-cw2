@@ -1,3 +1,4 @@
+#weak_label_generator.py
 import os
 import pickle
 from PIL import Image
