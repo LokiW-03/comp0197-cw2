@@ -3,7 +3,7 @@ from matplotlib.colors import ListedColormap
 import numpy as np
 import torch
 
-def visualize_batch(x, y, nrows=4, ncols=4):
+def visualize_batch(x, y, nrows=4, ncols=4, save_path=None):
     """
     Visualize a batch of images with their corresponding masks overlaid.
     
@@ -13,6 +13,7 @@ def visualize_batch(x, y, nrows=4, ncols=4):
          The mask values are assumed to be in the set {0, 1, 2}.
     - nrows: Number of rows in the grid (default 4 for 16 images).
     - ncols: Number of columns in the grid (default 4 for 16 images).
+    - save_path: Optional string. If provided, the figure is saved to this file instead of shown.
     
     The function creates a custom colormap for the mask:
       - Class 0: fully transparent (so the underlying image shows)
@@ -46,7 +47,11 @@ def visualize_batch(x, y, nrows=4, ncols=4):
         axes[idx].axis('off')
         
     plt.tight_layout()
-    plt.show()
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches='tight')
+        plt.close(fig)
+    else:
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -62,13 +67,19 @@ if __name__ == "__main__":
 
     arg = parser.parse_args()
 
-    print("trainset sample:")
-    x, y = next(iter(trainloader))
-    visualize_batch(x, y)
-    print("testset sample:")
-    x, y = next(iter(testloader))
+    # print("trainset sample:")
+    # x, y = next(iter(trainloader))
+    # visualize_batch(x, y, save_path="train_sample.png")
+    # print("Saved train sample figure as 'train_sample.png'")
+
+    # print("testset sample:")
+    # x, y = next(iter(testloader))
+    # visualize_batch(x, y, save_path="test_sample.png")
+    # print("Saved test sample figure as 'test_sample.png'")
+
     print("pseudo mask sample:")
     from cam.load_pseudo import load_pseudo
     pseudo_loader = load_pseudo(arg.pseudo_path, batch_size=16, shuffle=True)
     x, y = next(iter(pseudo_loader))
-    visualize_batch(x, y)
+    visualize_batch(x, y, save_path="pseudo_mask_sample.png")
+    print("Saved pseudo mask sample figure as 'pseudo_mask_sample.png'")
