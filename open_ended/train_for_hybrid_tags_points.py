@@ -1,4 +1,4 @@
-# train.py
+# train.py (for hybrid tags and points)
 import os
 import argparse
 import torch

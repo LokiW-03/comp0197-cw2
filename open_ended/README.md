@@ -34,7 +34,7 @@ open_ended/
 cd open_ended/
 ```
 
-Generate Weak Labels (4)
+Generate Weak Labels
 ```bash
 python weak_label_generator.py --data_dir ./data --output_file ./weak_labels/weak_labels_train.pkl
 ```
@@ -42,45 +42,7 @@ python weak_label_generator.py --data_dir ./data --output_file ./weak_labels/wea
 Train models
 ```bash
 
-# Points, trained
-python train.py \
-  --supervision_mode points \
-  --run_name points_run1 \
-  --epochs 10 \
-  --batch_size 8 \
-  --lr 1e-4
-
-
-
-# Tags, error with
-python train.py \
-  --supervision_mode tags \
-  --run_name tags_run1 \
-  --epochs 50 \
-  --batch_size 8 \
-  --lr 1e-4
-
-# Scribble
-python train.py \
-  --supervision_mode scribbles \
-  --run_name scribbles_run1 \
-  --epochs 50 \
-  --batch_size 8 \
-  --lr 1e-4
-
-#Boxes
-python train.py \
-  --supervision_mode boxes \
-  --run_name boxes_run1 \
-  --epochs 50 \
-  --batch_size 8 \
-  --lr 1e-4
-
-# Hybrid (Tags + Points)
-python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --epochs 50 --batch_size 8 --lr 1e-4 --lambda_seg 1.0
-
-
-#colab
+# Example of Points
 !python train.py \
     --supervision_mode points \
     --run_name points_run1 \
@@ -93,58 +55,11 @@ python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --e
     --img_size 256 \
     --checkpoint_dir ./checkpoints_a100
 
-# Points + Box
-!python train.py \
-    --supervision_modes points boxes \
-    --lambda_points 1.0 \
-    --lambda_boxes 1.0 \
-    --run_name points_boxes_run1 \
-    --data_dir ./data \
-    --weak_label_path ./weak_labels/weak_labels_train.pkl \
-    --batch_size 32 \
-    --lr 1e-4 \
-    --epochs 50 \
-    --num_workers 8 \
-    --img_size 256 \
-    --checkpoint_dir ./checkpoints_hybrid \
-    --augment
-
-# Scribble + Box
-!python train.py \
-    --supervision_modes scribbles boxes \
-    --lambda_scribbles 1.0 \
-    --lambda_boxes 1.0 \
-    --run_name scribbles_boxes_run1 \
-    --data_dir ./data \
-    --weak_label_path ./weak_labels/weak_labels_train.pkl \
-    --batch_size 32 \
-    --lr 1e-4 \
-    --epochs 50 \
-    --num_workers 8 \
-    --img_size 256 \
-    --checkpoint_dir ./checkpoints_hybrid \
-    --augment
-
-#Points + Scribble
-!python train.py \
-    --supervision_modes points scribbles \
-    --lambda_points 1.0 \
-    --lambda_scribbles 1.0 \
-    --run_name points_scribbles_run1 \
-    --data_dir ./data \
-    --weak_label_path ./weak_labels/weak_labels_train.pkl \
-    --batch_size 32 \
-    --lr 1e-4 \
-    --epochs 50 \
-    --num_workers 8 \
-    --img_size 256 \
-    --checkpoint_dir ./checkpoints_hybrid \
-    --augment
 
 ```
 
 
-## Colab
+## Colab Run script
 
 ```
 !pip install Pillow numpy scikit-image segmentation-models-pytorch torchmetrics
@@ -168,7 +83,7 @@ python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --e
 
 
 1.  **Weak Label Generation:** 
-    *   Image-level tags (list of classes present).
+    *   Image-level tags (list of classes present). Tags is not a valid comparison since they need CAM, where rest is trained end2end, so I didnt include in the future experiment
     *   Points (centroid of each object mask).
     *   Scribbles (e.g., skeletonize mask, sample a path, or erode and sample points). Aim for simplicity first.
     *   Bounding boxes (tightest box around mask).
@@ -177,7 +92,6 @@ python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --e
 
 5.  **Training Framework:** Set up a basic PyTorch training loop (`train.py`). Include standard components: dataloader, model definition, optimizer (AdamW), loss function placeholder, basic metric calculation (e.g., pixel accuracy during training), training/validation steps, checkpoint saving.
 6.  **Implement WSSS Losses & Training Logic:**
-    *   **Tags:** Add a classification head (e.g., linear layer after global pooling) to EffUnet. Train using MultiLabelSoftMarginLoss or BCEWithLogitsLoss on image tags. *For segmentation:* Use a simple CAM generation technique (e.g., using final conv layer weights and activations) after classification training, or train end-to-end using a CAM-based loss if simpler. *Initial approach:* Treat CAM output as pseudo-mask and train decoder with CE loss.
     *   **Points:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels. Modify dataloader to provide point labels.
     *   **Scribbles:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels. Modify dataloader to provide scribble labels.
     *   **Boxes:** Generate pseudo-masks (inside box = foreground, outside = background). Train using standard CrossEntropyLoss on these pseudo-masks. Modify dataloader to provide box labels/masks.
@@ -203,7 +117,6 @@ python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --e
 **Expected Quantitative Results:**
 
 *   We expect a performance ranking roughly following the amount of spatial information provided:
-    *   `Tags` likely lowest mIoU.
     *   `Points` likely better than Tags, but potentially still quite low depending on how well the partial CE loss works without propagation.
     *   `Scribbles` and `Boxes` likely significantly better than Points/Tags, potentially achieving similar mIoU scores to each other.
     *   `Hybrid (Tags + Points)`: This is the key experimental result. We expect it to perform *better* than the `Points`-only model. The interesting question is *how much* better? Will it approach the performance of `Scribbles` or `Boxes`? It's unlikely to surpass them, but closing a significant portion of the gap would be noteworthy.
@@ -211,13 +124,38 @@ python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --e
 
 **Expected Qualitative Results:**
 
-*   **Tags:** Likely produce coarse, blobby segmentations often failing to capture fine details or separate nearby objects, possibly highlighting the most salient object but missing others. CAM artifacts might be visible.
 *   **Points:** Might segment small regions around the click points well but struggle with object extent and boundaries. May fail completely on objects that weren't clicked (if simulating only one click per *image* instead of per *object*). Class accuracy might be reasonable if points are class-labeled.
 *   **Scribbles:** Should produce more complete object shapes than points, potentially with somewhat accurate boundaries where the scribble provides guidance, but rough elsewhere. Might struggle with very thin structures not covered by scribbles.
 *   **Boxes:** Likely yield fairly complete object masks but with boundaries adhering somewhat to the box shape, potentially including background pixels near corners or failing to separate objects within the same box.
+
+
+
+No longer under experiment because of tags is not valid to compare with, but we can use the idea from this for the hybrid experiment.
+
 *   **Hybrid (Tags + Points):**
     *   **Interesting Thing 1 (Completeness):** Compared to Points-only, we hope to see *more complete object segmentation*. Does the global tag information help the model "fill in" the object beyond the single point location?
     *   **Interesting Thing 2 (Class Consistency):** Does adding the tag loss reduce class confusion errors compared to Points-only? E.g., if a point is ambiguously placed, does the image-level tag help assign the correct class to the segmented region?
     *   **Interesting Thing 3 (Failure Modes):** Will the hybrid model exhibit failure modes that are a blend of Tag and Point failures, or does it find a genuinely better solution? For instance, does it still struggle with boundaries like the Point model, or does it become blobby like the Tag model?
 
 >  **Overall:** The most interesting outcome relates to the **hybrid model's effectiveness**. Seeing a improvement over points-only with such minimal extra supervision (tags) would underscore the value of even coarse global context in WSSS. Conversely, if the improvement is negligible, it would suggest that for this architecture/task, simple loss combination isn't enough, and more sophisticated fusion or propagation is needed to leverage minimal signals effectively. The qualitative analysis will be crucial to understand *why* the hybrid model performs as it does.
+
+
+
+## Exploring Hybrid Spatial Supervision (Jessica)
+
+After I trained model with individual types of weak labels. I found anther interesting part with mixing them, which seems highly relevant for practical use cases and less explored in an empircal analysis from past papers.
+
+Think about it: if a team is already annotating bounding boxes, we could automatically generate points (like centroids) and maybe even basic scribbles from those boxes. This would give us richer training data for the segmentation model without asking annotators to do more work.
+
+To see how much benefit we actually get from this, I think the below set of experiments are good enough to see how hybrid improve/or not the result.
+
+
+
+So, we will experiment with
+  - Points + Scribble
+  - Poitns + Bounding box
+  - scrible + bounding box
+  - points + scribble + bounding box
+
+
+All the models will be trained with same settings, and you use train.py as a starting point.
