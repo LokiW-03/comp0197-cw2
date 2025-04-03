@@ -159,9 +159,9 @@ if __name__ == "__main__":
 
     elif args.model == 'resnet_scorecam_crm':
         model = ResNet50_CAM(num_classes)
-        model_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm.pth"
+        model_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth"
         cam_generator = lambda model: ScoreCAM(model)
-        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_pet_scorecam_crm_pseudo.pt"
+        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_scorecam_crm_pseudo.pt"
 
     elif args.model == 'efficientnet_crm':
         model = EfficientNetB4_CAM(num_classes)
