@@ -93,6 +93,54 @@ python train.py --supervision_mode hybrid_tags_points --run_name hybrid_run1 --e
     --img_size 256 \
     --checkpoint_dir ./checkpoints_a100
 
+# Points + Box
+!python train.py \
+    --supervision_modes points boxes \
+    --lambda_points 1.0 \
+    --lambda_boxes 1.0 \
+    --run_name points_boxes_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 32 \
+    --lr 1e-4 \
+    --epochs 50 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_hybrid \
+    --augment
+
+# Scribble + Box
+!python train.py \
+    --supervision_modes scribbles boxes \
+    --lambda_scribbles 1.0 \
+    --lambda_boxes 1.0 \
+    --run_name scribbles_boxes_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 32 \
+    --lr 1e-4 \
+    --epochs 50 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_hybrid \
+    --augment
+
+#Points + Scribble
+!python train.py \
+    --supervision_modes points scribbles \
+    --lambda_points 1.0 \
+    --lambda_scribbles 1.0 \
+    --run_name points_scribbles_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 32 \
+    --lr 1e-4 \
+    --epochs 50 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_hybrid \
+    --augment
+
 ```
 
 
