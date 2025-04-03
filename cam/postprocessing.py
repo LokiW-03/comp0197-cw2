@@ -76,9 +76,9 @@ def generate_pseudo_masks(
             pseudo_mask = torch.zeros_like(cam)
 
             # Aligned with the testsets
-            pseudo_mask[cam >= threshold_high] = 2
-            pseudo_mask[(cam >= threshold_low) & (cam < threshold_high)] = 0
-            pseudo_mask[cam < threshold_low] = 1
+            pseudo_mask[cam >= threshold_high] = 0 # Foreground
+            pseudo_mask[(cam >= threshold_low) & (cam < threshold_high)] = 2 # Contour
+            pseudo_mask[cam < threshold_low] = 1 # Background
             
             # Convert to PIL Image and apply standard transforms
             pil_mask = Image.fromarray(pseudo_mask.cpu().numpy(), mode='L')
@@ -135,6 +135,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     num_classes=37
+    cam_threshold = CAM_THRESHOLD.get(args.model, [0.15, 0.45])
 
     if args.model == 'resnet':
         model = ResNet50_CAM(num_classes)
@@ -192,4 +193,5 @@ if __name__ == "__main__":
     # 2. Data initialization
     train_loader, test_loader = download_pet_dataset(with_paths=True)
     
-    generate_pseudo_masks(train_loader, model, cam_generator, pseudo_save_path, device=device)
+    generate_pseudo_masks(train_loader, model, cam_generator, pseudo_save_path, device=device,
+                          threshold_low=cam_threshold[0], threshold_high=cam_threshold[1])

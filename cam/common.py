@@ -9,3 +9,8 @@ MODEL_SAVE_PATH = f"{os.path.dirname(os.path.abspath(__file__))}/saved_models"
 TMP_OUTPUT_PATH = "output"
 NUM_SAMPLES = 16
 WORKERS = 4
+
+
+CAM_THRESHOLD = {
+    "resnet": [0.2, 0.4]
+}
