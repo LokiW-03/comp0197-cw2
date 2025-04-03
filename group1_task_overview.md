@@ -85,29 +85,37 @@ Hyperparameter tuning was conducted individually for each of the four models mod
 - Epochs: 10
 - Batch size: 16
 
-**SegNet** 
+**SegNet**
 
-|                 |   |   |           |        |   |              |   |                 |   |   |                       |                          |                |             |          |           |        |      |      |
-|-----------------|---|---|-----------|--------|---|--------------|---|-----------------|---|---|-----------------------|--------------------------|----------------|-------------|----------|-----------|--------|------|------|
-| Baseline SegNet |Hyperparameters|   |           |        |   |              |   |                 |   |   |                       |                          |                | Performance |          |           |        |      |      |
-| Model Number    |Epochs|Batch Size| Optimizer | LR     |Momentum| Weight Decay |Learning Rate Constant (Y/N)| LR Scheduler    |Relevant Params (1)|Relevant Params (2)| Data Transformations  | Dropout                  | Model saved as | Loss        | Accuracy | Precision | Recall | IOU  | DICE |
-| 1               |10|16| AdamW     | 1e-3   |NA| 1e-4   |N| StepLR          |step_size= 15|gamma =0.1| NA                    | NA                       | SegNet         | 0.26        | 0.90     | 0.86      | 0.81   | 0.73 | 0.83 |
-| 2               |10|16| AdamW     | 1e-3   |NA| 1e-4   |N| CosineAnnealing |t_max = 50|NA| NA                    | NA                       | SegNet_CA      | 0.24        | 0.91     | 0.86      | 0.85   | 0.76 | 0.85 |
-| 3               |10|16| AdamW     | 1e-3   |NA| 1e-4   |N| StepLR          |step_size= 15|gamma =0.1| NA                    | 0.5 at. both conv layers | SegNet_DROP    | 0.27        | 0.90     | 0.84      | 0.84   | 0.74 | 0.84 |
-| 4               |10|16| AdamW     | 1e-3   |NA| 1e-4   |N| StepLR          |step_size= 15|gamma =0.1| Rotation of 45 degree | NA                       | SegNet_rotate  | 0.64        | 0.73     | 0.66      | 0.58   | 0.46 | 0.60 |
+| SegNet       | Hyperparameters |            |           |      |          |              |                   |                 |                     |                     |                       |                          |               | Performance |          |           |        |      |      |
+| ------------ | --------------- | ---------- | --------- | ---- | -------- | ------------ | ----------------- | --------------- | ------------------- | ------------------- | --------------------- | ------------------------ | ------------- | ----------- | -------- | --------- | ------ | ---- | ---- |
+| Model Number | Epochs          | Batch Size | Optimizer | LR   | Momentum | Weight Decay | LR Constant (Y/N) | LR Scheduler    | Relevant Params (1) | Relevant Params (2) | Data Transform        | Dropout                  | Saved as      | Loss        | Accuracy | Precision | Recall | IOU  | DICE |
+| 1            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | StepLR          | step_size= 15       | gamma =0.1          | NA                    | NA                       | SegNet        | 0.26        | 0.90     | 0.86      | 0.81   | 0.73 | 0.83 |
+| 2            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | CosineAnnealing | t_max = 50          | NA                  | NA                    | NA                       | SegNet_CA     | 0.24        | 0.91     | 0.86      | 0.85   | 0.76 | 0.85 |
+| 3            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | StepLR          | step_size= 15       | gamma =0.1          | NA                    | 0.5 at. both conv layers | SegNet_DROP   | 0.27        | 0.90     | 0.84      | 0.84   | 0.74 | 0.84 |
+| 4            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | StepLR          | step_size= 15       | gamma =0.1          | Rotation of 45 degree | NA                       | SegNet_rotate | 0.64        | 0.73     | 0.66      | 0.58   | 0.46 | 0.60 |
 
+**UNet**
 
-**UNet**  
+| UNet         | Hyperparameters |            |           |      |          |              |                   |                 |                     |                     |                |                          |          | Performance |          |           |        |      |      |
+| ------------ | --------------- | ---------- | --------- | ---- | -------- | ------------ | ----------------- | --------------- | ------------------- | ------------------- | -------------- | ------------------------ | -------- | ----------- | -------- | --------- | ------ | ---- | ---- |
+| Model Number | Epochs          | Batch Size | Optimizer | LR   | Momentum | Weight Decay | LR Constant (Y/N) | LR Scheduler    | Relevant Params (1) | Relevant Params (2) | Data Transform | Dropout                  | Saved as | Loss        | Accuracy | Precision | Recall | IOU  | DICE |
+| 1            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | StepLR          | step_size= 15       | gamma =0.1          | NA             | NA                       | UNet1    | 0.37        | 0.86     | 0.8       | 0.77   | 0.66 | 0.78 |
+| 2            | 10              | 16         | RAdam     | 5e-4 | NA       | 1e-5         | N                 | CosineAnnealing | t_max = 50          | NA                  | NA             | NA                       | UNet2    | 0.35        | 0.87     | 0.81      | 0.78   | 0.67 | 0.79 |
+| 3            | 10              | 16         | RAdam     | 5e-4 | NA       | 1e-5         | N                 | CosineAnnealing | t_max = 50          | NA                  | NA             | 0.3 at. both conv layers | UNet3    | 0.38        | 0.86     | 0.84      | 0.78   | 0.68 | 0.79 |
 
-|   |   |   |           |      |   |              |   |   |   |   |   |   |   |   |   |   |   |   |   |
-|---|---|---|-----------|------|---|--------------|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|Baseline Unet|Hyperparameters|   |           |      |   |              |   |   |   |   |   |   |   |Performance|   |   |   |   |   |
-|Model Number|Epochs|Batch Size| Optimizer | LR   |Momentum| Weight Decay |Learning Rate Constant (Y/N)|LR Scheduler|Relevant Params (1)|Relevant Params (2)|Data Transformations|Dropout|Model saved as|Loss|Accuracy|Precision|Recall|IOU|DICE|
-|1|10|16| AdamW     | 1e-3 |NA| 1e-4         |N|StepLR|step_size= 15|gamma =0.1|NA|NA|UNet1|0.37|0.86|0.8|0.77|0.66|0.78|
-|2|10|16| RAdam     | 5e-4 |NA| 1e-5         |N|CosineAnnealing|t_max = 50|NA|NA|NA|UNet2|0.35|0.87|0.81|0.78|0.67|0.79|
-|3|10|16| RAdam     | 5e-4 |NA| 1e-5         |N|CosineAnnealing|t_max = 50|NA|NA|0.3 at. both conv layers|UNet3|0.38|0.86|0.84|0.78|0.68|0.79|
+**EffUNet**
 
+| EffUNet      | Hyperparameters |            |           |      |          |              |                   |                 |                     |                     |                |         |            | Performance |          |           |        |      |      |
+| ------------ | --------------- | ---------- | --------- | ---- | -------- | ------------ | ----------------- | --------------- | ------------------- | ------------------- | -------------- | ------- | ---------- | ----------- | -------- | --------- | ------ | ---- | ---- |
+| Model Number | Epochs          | Batch Size | Optimizer | LR   | Momentum | Weight Decay | LR Constant (Y/N) | LR Scheduler    | Relevant Params (1) | Relevant Params (2) | Data Transform | Dropout | Saved as   | Loss        | Accuracy | Precision | Recall | IOU  | DICE |
+| 1            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | StepLR          | step_size= 15       | gamma =0.1          | NA             | NA      | EffUNet    | 0.22        | 0.93     | 0.88      | 0.87   | 0.79 | -    |
+| 2            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | CosineAnnealing | t_max = 50          | NA                  | NA             | NA      | EffUNet_CA | 0.22        | 0.92     | 0.88      | 0.87   | 0.79 | 0.87 |
 
-**EfficientNet** 
+**SegNeXt**
 
-**SegNext**
+| SegNeXt      | Hyperparameters |            |           |      |          |              |                   |                 |                     |                     |                |         |            | Performance |          |           |        |      |      |
+| ------------ | --------------- | ---------- | --------- | ---- | -------- | ------------ | ----------------- | --------------- | ------------------- | ------------------- | -------------- | ------- | ---------- | ----------- | -------- | --------- | ------ | ---- | ---- |
+| Model Number | Epochs          | Batch Size | Optimizer | LR   | Momentum | Weight Decay | LR Constant (Y/N) | LR Scheduler    | Relevant Params (1) | Relevant Params (2) | Data Transform | Dropout | Saved as   | Loss        | Accuracy | Precision | Recall | IOU  | DICE |
+| 1            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | StepLR          | step_size= 15       | gamma =0.1          | NA             | NA      | SegNeXt    | nan         | 0.87     | 0.81      | 0.79   | 0.69 | 0.7  |
+| 2            | 10              | 16         | AdamW     | 1e-3 | NA       | 1e-4         | N                 | CosineAnnealing | t_max = 50          | NA                  | NA             | NA      | SegNeXt_CA |             |          |           |        |      |      |
