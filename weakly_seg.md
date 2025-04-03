@@ -2,7 +2,7 @@
 
 ### resnet drs grandcam++ crm
 
-threshold: [0.1, 0.3]
+threshold: [0.1, 0.3] pseudo mask viz:
 
 ![Image](ablation_tools/viz/resnet_gradcam_crm.png)
 
@@ -21,7 +21,7 @@ Best model found at epoch 9 with IoU 0.2364051342010498
 
 ### resnet grandcam++
 
-threshold: [0.2, 0.4]
+threshold: [0.2, 0.4] pseudo mask viz:
 
 ![Image](ablation_tools/viz/resnet_gradcam.png)
 
@@ -40,9 +40,12 @@ Train -> {'loss': 0.21230006302180499, 'accuracy': 0.9082173067590464, 'precisio
 
 ### effnet scorecam
 
+pseudo mask viz:
+
 ![Image](ablation_tools/viz/effnet_scorecam.png)
 
 
 ### effnet scorecam crm
+pseudo mask viz:
 
 ![Image](ablation_tools/viz/effnet_scorecam_crm.png)
