@@ -113,7 +113,11 @@ class PetsDataset(Dataset):
             'points': 'points',
             'scribbles': 'scribbles',
             'boxes': 'boxes',
-            'hybrid_tags_points': ['tags', 'points'] # Special case
+            'hybrid_tags_points': ['tags', 'points'], # Special case
+            'hybrid_points_scribbles': ['scribbles', 'points'],
+            'hybrid_points_boxes': ['points', 'boxes'],
+            'hybrid_scribbles_boxes': ['scribbles', 'boxes'],
+            'hybrid_points_scribbles_boxes': ['points', 'scribbles', 'boxes']
         }
         # NOTE: self.num_classes is now passed via __init__
 
@@ -138,20 +142,50 @@ class PetsDataset(Dataset):
         """ Prepares weak supervision signals based on mode. """
         img_filename = os.path.basename(self.image_files[index])
         if self.weak_labels is None or img_filename not in self.weak_labels:
-             print(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
-             # Return dummy data matching expected shapes
-             if self.supervision_mode == 'tags':
-                 # ***** Match shape [self.num_classes] *****
-                 return torch.zeros(self.num_classes, dtype=torch.float32)
-             if self.supervision_mode == 'points': return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
-             if self.supervision_mode == 'scribbles': return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
-             if self.supervision_mode == 'boxes': return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
-             if self.supervision_mode == 'hybrid_tags_points':
-                 return {
-                     # ***** Match shape [self.num_classes] *****
-                     'tags': torch.zeros(self.num_classes, dtype=torch.float32),
-                     'points': torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
-                 }
+            print(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
+            # Return dummy data matching expected shapes
+            tag_dummy = torch.zeros(self.num_classes, dtype=torch.float32)
+            other_dummy = torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
+            if self.supervision_mode == 'tags':
+                # ***** Match shape [self.num_classes] *****
+                return tag_dummy
+            if self.supervision_mode == 'points':
+                return other_dummy
+            if self.supervision_mode == 'scribbles':
+                return other_dummy
+            if self.supervision_mode == 'boxes':
+                return other_dummy
+            if self.supervision_mode == 'hybrid_tags_points':
+                return {
+                    # ***** Match shape [self.num_classes] *****
+                    'tags': tag_dummy,
+                    'points': other_dummy
+                }
+            if self.supervision_mode == 'hybrid_points_scribbles':
+                return {
+                    # ***** Match shape [self.num_classes] *****
+                    'scribbles': other_dummy,
+                    'points': other_dummy
+                }
+            if self.supervision_mode == 'hybrid_points_boxes':
+                return {
+                    # ***** Match shape [self.num_classes] *****
+                    'boxes': other_dummy,
+                    'points': other_dummy
+                }
+            if self.supervision_mode == 'hybrid_scribbles_boxes':
+                return {
+                    # ***** Match shape [self.num_classes] *****
+                    'scribbles': other_dummy,
+                    'boxes': other_dummy
+                }
+            if self.supervision_mode == 'hybrid_points_scribbles_boxes':
+                return {
+                    # ***** Match shape [self.num_classes] *****
+                    'scribbles': other_dummy,
+                    'points': other_dummy,
+                    'boxes': other_dummy
+                }
 
         item_labels = self.weak_labels[img_filename]
         weak_data = {}
