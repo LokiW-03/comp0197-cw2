@@ -12,5 +12,6 @@ WORKERS = 4
 
 
 CAM_THRESHOLD = {
-    "resnet": [0.2, 0.4]
+    "resnet": [0.2, 0.4],
+    "resnet_drs": [0.1, 0.3]
 }
