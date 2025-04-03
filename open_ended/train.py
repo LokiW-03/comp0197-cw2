@@ -44,17 +44,19 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
         images = images.to(device)
 
         # Move targets to device based on mode
-        if mode == 'hybrid_tags_points':
+        if mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
             targets_device = {k: v.to(device) for k, v in targets.items()}
         elif isinstance(targets, torch.Tensor):
              targets_device = targets.to(device)
         # Add handling if targets is unexpected type
+        else:
+            raise TypeError('Unexpected target type.')
 
         optimizer.zero_grad()
         outputs = model(images)
 
         # Calculate loss based on mode
-        if mode == 'hybrid_tags_points':
+        if mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
             loss = loss_fn(outputs, targets_device) # Combined loss expects dicts
         elif mode == 'tags': # Assumes classification output
              loss = loss_fn(outputs, targets_device.float()) # BCE expects float targets
@@ -98,7 +100,7 @@ def validate_one_epoch(model, loader, loss_fn, device, mode):
 
             # Calculate loss based on mode (using same loss as training for consistency)
             try:
-                if mode == 'hybrid_tags_points':
+                if mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
                     loss = loss_fn(outputs, targets_device)
                 elif mode == 'tags':
                     loss = loss_fn(outputs, targets_device.float())
@@ -148,11 +150,12 @@ def main():
                             num_workers=args.num_workers, pin_memory=True)
 
     # --- Initialize Model ---
-    model_mode = 'segmentation' # Default
     if args.supervision_mode == 'tags':
         model_mode = 'classification'
-    elif args.supervision_mode == 'hybrid_tags_points':
+    elif args.supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
         model_mode = 'hybrid'
+    else:
+        model_mode = 'segmentation' # Default
 
     # +1 for background class if using standard CE loss expecting class indices 0...N
     # If binary (num_classes=1) with BCE or Dice, keep num_classes=1
@@ -170,7 +173,7 @@ def main():
     elif args.supervision_mode in ['boxes', 'full']:
         # For boxes pseudo-mask and full GT mask
         loss_fn = torch.nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    elif args.supervision_mode == 'hybrid_tags_points':
+    elif args.supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
         loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX)
     else:
         raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
