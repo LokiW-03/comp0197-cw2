@@ -11,3 +11,4 @@ cam/output/grid.jpg
 cam/.DS_Store
 .DS_Store
 open_ended/checkpoints/points_run1_best.pth
+open_ended/models
