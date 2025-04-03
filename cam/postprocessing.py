@@ -74,8 +74,11 @@ def generate_pseudo_masks(
         for cam, img_path in zip(cams, paths):
             # Threshold processing to generate three-class mask
             pseudo_mask = torch.zeros_like(cam)
-            pseudo_mask[cam >= threshold_high] = 2   # Foreground
-            pseudo_mask[(cam >= threshold_low) & (cam < threshold_high)] = 1  # Contour
+
+            # Aligned with the testsets
+            pseudo_mask[cam >= threshold_high] = 2
+            pseudo_mask[(cam >= threshold_low) & (cam < threshold_high)] = 0
+            pseudo_mask[cam < threshold_low] = 1
             
             # Convert to PIL Image and apply standard transforms
             pil_mask = Image.fromarray(pseudo_mask.cpu().numpy(), mode='L')
@@ -159,9 +162,9 @@ if __name__ == "__main__":
 
     elif args.model == 'resnet_scorecam_crm':
         model = ResNet50_CAM(num_classes)
-        model_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth"
+        model_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm.pth"
         cam_generator = lambda model: ScoreCAM(model)
-        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_scorecam_crm_pseudo.pt"
+        pseudo_save_path = f"{CRM_MODEL_SAVE_PATH}/resnet_pet_scorecam_crm_pseudo.pt"
 
     elif args.model == 'efficientnet_crm':
         model = EfficientNetB4_CAM(num_classes)
