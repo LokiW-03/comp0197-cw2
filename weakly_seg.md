@@ -81,4 +81,26 @@ Best model found at epoch 9 with IoU 0.1118076890707016
 Best model found at epoch 6 with IoU **0.19912287592887878**
 
 - Test -> {'loss': 21.240909576416016, **'accuracy': 0.4339450001716614**, 'precision': 0.4373089671134949, 'recall': 0.38066643476486206, 'iou': 0.19912287592887878, 'dice': 0.3088137209415436} 
-- Train -> {'loss': 0.1910024340385976, 'accuracy': 0.9174443864304086, 'precision': 0.893762079010839, 'recall': 0.8915848825288856, 'iou': 0.8129882931709289, 'dice': 0.8919412149035413} 
+- Train -> {'loss': 0.1910024340385976, 'accuracy': 0.9174443864304086, 'precision': 0.893762079010839, 'recall': 0.8915848825288856, 'iou': 0.8129882931709289, 'dice': 0.8919412149035413}
+
+---
+
+!python -m model.train --model=segnet --pseudo_path=crm_models/efficientnet_pet_scorecam_crm_pseudo.pt --pseudo
+
+Best model found at epoch 2 with IoU 0.13847368955612183
+
+- Test -> {'loss': 1.4231476783752441, 'accuracy': 0.40854567289352417, 'precision': 0.4963960647583008, 'recall': 0.3326534926891327, 'iou': 0.13847368955612183, 'dice': 0.19748926162719727} 
+- Train -> {'loss': 0.812461589212003, 'accuracy': 0.6543437911116559, 'precision': 0.5136680683364039, 'recall': 0.3691250963055569, 'iou': 0.2521116081139316, 'dice': 0.3226535166087358}
+
+!python -m model.train --model=segnext --pseudo_path=crm_models/efficientnet_pet_scorecam_crm_pseudo.pt --pseudo
+
+Best model found at epoch 2 with IoU **0.15319056808948517**
+
+- Test -> {'loss': nan, 'accuracy': 0.3083769977092743, 'precision': 0.35885366797447205, 'recall': 0.35634180903434753, 'iou': 0.15319056808948517, 'dice': 0.2580549716949463} 
+- Train -> {'loss': 0.799606141059295, 'accuracy': 0.6564411111499953, 'precision': 0.6571199818797734, 'recall': 0.3778862239226051, 'iou': 0.2599610084424848, 'dice': 0.3342016395667325}
+
+!python -m model.train --model=effunet --pseudo_path=crm_models/efficientnet_pet_scorecam_crm_pseudo.pt --pseudo
+
+Best model found at epoch 6 with IoU 0.1409446746110916
+Test -> {'loss': 5.354954719543457, 'accuracy': 0.28874486684799194, 'precision': 0.27732181549072266, 'recall': 0.29664498567581177, 'iou': 0.1409446746110916, 'dice': 0.23677051067352295} 
+Train -> {'loss': 0.7765060178611589, 'accuracy': 0.664254694658777, 'precision': 0.5094418077365211, 'recall': 0.40856502535550493, 'iou': 0.2880035237773605, 'dice': 0.37630955045637876} 
