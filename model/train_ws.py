@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from metrics import compute_metrics
+from metrics_ws import compute_metrics
 from baseline_segnet import SegNet
 from efficient_unet import EfficientUNet
 from baseline_unet import UNet
@@ -13,10 +13,10 @@ from data import trainset, testset
 SAVE_WEIGHTS_FREQUENCY = 2 # save weights to a file every {num} epochs
 EPOCHS = 10
 
-def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3, num_eval_batches = None):
+def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3, num_eval_batches = None, use_mask=False):
     """
-    Evaluate metrics on test set, option to specify number of batches
-    
+    Evaluate metrics on test set, with optional masking for weak supervision.
+
     Args:
         model (torch.nn.Module): The segmentation model.
         testloader (torch.utils.data.DataLoader): DataLoader for test data.
@@ -25,24 +25,33 @@ def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3,
         num_classes (int): Number of segmentation classes
         num_eval_batches (int): Number of test set batches to use for computing metrics.
             If not specified, this is run on the entire test set.
+        use_mask (Bool): Optionally mask out contour class when evaluating pseudo masks.
 
     Return: 
-        test_metrics (dict)
+        test_metrics (dict)    
     """
     model.eval()
     with torch.no_grad():
         test_loss, test_accuracy, test_precision, test_recall, test_iou, test_dice, test_samples = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        
-        
+
         for j, (X_test, y_test) in enumerate(testloader):
-            if j == num_eval_batches:
+            if num_eval_batches is not None and j == num_eval_batches:
                 break
 
-            X_test, y_test = X_test.to(device), y_test.to(device)
-
+            X_test = X_test.to(device)
+            y_test = y_test.to(device)
             y_test_hat = model(X_test)
+
             y_test = y_test.squeeze(dim=1)
-            batch_metrics = compute_metrics(y_test_hat, y_test, loss_fn, num_classes)
+
+            # Optional: apply label remapping and masking
+            eval_mask = None
+            if use_mask:
+                y_test = torch.where(y_test == 128, 1, y_test)  # contour → 1
+                y_test = torch.where(y_test == 255, 2, y_test)  # foreground → 2
+                eval_mask = (y_test != 1).float()               # ignore contour
+
+            batch_metrics = compute_metrics(y_test_hat, y_test, loss_fn, num_classes, mask=eval_mask)
             batch_size = X_test.size(0)
 
             test_loss += batch_metrics["loss"] * batch_size
@@ -105,7 +114,9 @@ def train_model(
         for id, (X_train, y_train) in enumerate(trainloader, 0):
             print(f'Training batch {id}')
 
-            X_train, y_train = X_train.to(device), y_train.to(device)
+            X_train = X_train.to(device)
+            y_train = y_train.to(device)
+
 
             optimizer.zero_grad()
             y_hat = model(X_train)
@@ -153,14 +164,14 @@ def train_model(
 
         # Save model weights every 2 epochs
         if epoch % SAVE_WEIGHTS_FREQUENCY == 0:
-            checkpoint = {
+            checkpoint = { 
                     'epoch': epoch,
                     'model': model.state_dict(),
-                    'optimizer': optimizer.state_dict()}
-            if scheduler is not None:
+                    'optimizer': optimizer.state_dict()} 
+            if scheduler is not None: 
                 checkpoint['lr_scheduler']= scheduler.load_state_dict
             torch.save(checkpoint, f"{model_name}_epoch_{epoch}.pth")
-            print(f"Model weights, optimiser, scheduler order saved for model {model_name} at epoch {epoch}")
+            print(f"Model weights saved for model {model_name} at epoch {epoch}")
 
 
 def main():
@@ -175,13 +186,12 @@ def main():
 
     # Check training input shape
     X_train_batch, y_train_batch = next(iter(train_loader))
-    X_train_batch, y_train_batch = X_train_batch.to(device), y_train_batch.to(device)
     print(X_train_batch.shape, y_train_batch.shape)
 
     # initialise model
-    model = SegNet().to(device)
+    #model = SegNet().to(device)
     #model = EfficientUNet().to(device)
-    #model = UNet(3, 3).to(device)
+    model = UNet(3, 3, dropout = 0.3).to(device)
     # model = SegNeXt(num_classes=3).to(device)
 
     # test model giving correct shape
@@ -191,16 +201,16 @@ def main():
 
     # initialise optimiser & loss class
     loss_fn = nn.CrossEntropyLoss(reduction='mean')
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
+    #optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    optimizer = torch.optim.RAdam(model.parameters(), lr=5e-4, weight_decay=1e-5)
+    #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)
 
     # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'SegNet_CA', scheduler=scheduler)
+    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'UNet2', scheduler=scheduler)
 
     # compute metrics on entire test set (may take a while)
-    test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
+    test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes=3, num_eval_batches=None, use_mask=True)
     print(f"Final test metrics:   -> {test_metrics}")
 
 
