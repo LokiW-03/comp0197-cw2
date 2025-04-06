@@ -136,10 +136,9 @@ def iou_fn(preds, y, num_classes=3):
         union = torch.logical_or(pred_cls, true_cls).sum()
 
         if union == 0:  
-            ious.append(torch.tensor(1.0)) 
+            ious.append(torch.tensor(1.0).to(preds.device)) 
         else:
-            ious.append(intersection / union)
-
+            ious.append((intersection / union).to(preds.device))
     return torch.mean(torch.stack(ious))
 
 # Dice Coefficient

@@ -13,8 +13,6 @@ def custom_collate_fn(batch):
     # Stack tensors to form a batch
     x_batch = torch.stack(x_batch, dim=0)
     y_batch = torch.stack(y_batch, dim=0)
-    # Convert all label values of 2 to 0
-    y_batch[y_batch == 2] = 0
     if y_batch.ndim == 3:
         # Append a channel dimension to x_batch
         y_batch = y_batch.unsqueeze(1)
@@ -68,7 +66,7 @@ class PetModel(pl.LightningModule):
         assert mask.ndim == 4
 
         # Check that mask values in between 0 and 1, NOT 0 and 255 for binary segmentation
-        assert mask.max() <= 1.0 and mask.min() >= 0
+        assert mask.max() <= 2.0 and mask.min() >= 0
 
         logits_mask = self.forward(image)
 
@@ -171,7 +169,7 @@ class PetModel(pl.LightningModule):
         return
 
 if __name__ == "__main__":
-    from cam.load_pseudo import load_pseudo
+    from cam.load_pseudo import load_pseudo_dataset
     from model.data import testset
     from torch.utils.data import DataLoader
 
@@ -179,12 +177,9 @@ if __name__ == "__main__":
                         else 'mps' if torch.backends.mps.is_available()                          
                            else 'cpu')
 
-    pseudo_set = load_pseudo(
+    pseudo_set = load_pseudo_dataset(
         save_path="cam/saved_models/resnet50_pet_cam_pseudo.pt",
-        batch_size=16,
-        shuffle=True,
-        device=device,
-        dataset=True
+        device=device
     )
     pseudo_loader = DataLoader(pseudo_set, batch_size=64, shuffle=True, collate_fn=custom_collate_fn)
     test_loader = DataLoader(testset, batch_size=64, shuffle=False, collate_fn=custom_collate_fn)

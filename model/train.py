@@ -198,6 +198,7 @@ def main():
     parser.add_argument('--pseudo', action="store_true", help='Use pseudo masks')
     parser.add_argument('--pseudo_path', type=str, default='cam/saved_models/resnet50_pet_cam_pseudo.pt', help='Path to pseudo masks')
     parser.add_argument('--verbose', action="store_true", help='Print verbose output')
+    parser.add_argument('--collapse_contour', action='store_true')
     args = parser.parse_args()
     # check cuda availability
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
@@ -206,7 +207,22 @@ def main():
     # Create DataLoaders for batch processing
     train_loader = DataLoader(trainset, batch_size=16, shuffle=True) # Using small batch-size as running out of memory
     trainval_loader = DataLoader(testset, batch_size=16, shuffle=True)
-    test_loader = DataLoader(testset, batch_size=64, shuffle=False)
+    
+    if args.collapse_contour:
+        def custom_collate_fn(batch):
+            # collapse contour class into foreground
+            masks = torch.stack([item[1] for item in batch])
+            masks[masks == 2] = 0
+            images = torch.stack([item[0] for item in batch])
+            return images, masks
+        
+        train_loader = DataLoader(trainset, batch_size=16, shuffle=True, collate_fn=custom_collate_fn) # Using small batch-size as running out of memory
+        trainval_loader = DataLoader(testset, batch_size=16, shuffle=True, collate_fn=custom_collate_fn)
+        test_loader = DataLoader(testset, batch_size=64, shuffle=False, collate_fn=custom_collate_fn)
+    else:
+        train_loader = DataLoader(trainset, batch_size=16, shuffle=True) # Using small batch-size as running out of memory
+        trainval_loader = DataLoader(testset, batch_size=16, shuffle=True)
+        test_loader = DataLoader(testset, batch_size=64, shuffle=False)
 
     # Check training input shape
     X_train_batch, y_train_batch = next(iter(train_loader))
@@ -229,7 +245,7 @@ def main():
 
     if args.pseudo:
         from cam.load_pseudo import load_pseudo
-        pseudo_loader = load_pseudo(args.pseudo_path, batch_size=16, shuffle=True, device=device)
+        pseudo_loader = load_pseudo(args.pseudo_path, batch_size=16, shuffle=True, device=device, collapse_contour=args.collapse_contour)
         X_train_batch, y_train_batch = next(iter(pseudo_loader))
         train_loader = pseudo_loader
         print("Pseudo mask data loaded from", args.pseudo_path)
