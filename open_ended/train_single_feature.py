@@ -12,7 +12,6 @@ import numpy as np # Needed for metric calculation maybe
 DEFAULT_DATA_DIR = './data'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
-DEFAULT_NUM_CLASSES = 3 # IoU should have 3 classes, foreground, background and unknown
 
 def setup_arg_parser():
     parser = argparse.ArgumentParser(description='Train WSSS Model on Pets Dataset')
@@ -147,7 +146,7 @@ def main():
     # +1 for background class if using standard CE loss expecting class indices 0...N
     # If binary (num_classes=1) with BCE or Dice, keep num_classes=1
     # Let's use standard CE, so need 2 classes: 0=background, 1=pet
-    num_output_classes = 2 # Background + Pet
+    num_output_classes = 2 # Background + Pet, boundary is ignored
     model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)
     model.to(device)
 

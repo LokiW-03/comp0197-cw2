@@ -18,7 +18,7 @@ import time
 DEFAULT_DATA_DIR = './data'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
-DEFAULT_NUM_CLASSES = 3 # IoU should have 3 classes, foreground, background and unknown
+DEFAULT_NUM_CLASSES = 2 # IoU should have 3 classes, foreground, background and boundary. Boundary is ignored here.
 
 # ***** HELPER FUNCTION for formatting time *****
 def format_time(seconds):
@@ -114,7 +114,7 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
     #return avg_loss
 
 
-def validate_one_epoch(model, loader, device, mode, num_classes):
+def validate_one_epoch(model, loader, device, num_classes):
     model.eval()
     total_loss = 0.0
     num_batches = len(loader)
@@ -209,11 +209,9 @@ def main():
     # --- Create Datasets and Dataloaders ---
     img_size_tuple = (args.img_size, args.img_size)
     train_dataset = PetsDataset(args.data_dir, split='train', supervision_mode=args.supervision_mode,
-                                weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=args.augment,
-                                num_classes=num_output_classes)
+                                weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=args.augment)
     val_dataset = PetsDataset(args.data_dir, split='val', supervision_mode=args.supervision_mode,
-                              weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=False,
-                              num_classes=num_output_classes) # Also pass to val dataset
+                              weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=False) # Also pass to val dataset
 
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,

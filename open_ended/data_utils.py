@@ -22,8 +22,7 @@ class PetsDataset(Dataset):
     Handles loading images, masks, and pre-generated weak labels.
     """
     def __init__(self, data_dir, split='train', supervision_mode='full',
-                 weak_label_path=None, img_size=(256, 256), augment=False,
-                 num_classes=2): # ***** ADD num_classes ARGUMENT *****
+                 weak_label_path=None, img_size=(256, 256), augment=False):
         """
         Args:
             data_dir (str): Path to the dataset directory.
@@ -34,19 +33,16 @@ class PetsDataset(Dataset):
                                              (required for weak supervision modes).
             img_size (tuple): Target image size (height, width).
             augment (bool): Whether to apply data augmentation (only for train split).
-            num_classes (int): Number of segmentation classes (e.g., 2 for BG+Pet). Needed for tag target shape.
         """
         self.data_dir = data_dir
         self.split = split
         self.supervision_mode = supervision_mode
         self.img_size = img_size
         self.augment = augment and split == 'train'
-        # ***** STORE num_classes *****
-        self.num_classes = num_classes
         # ****************************
 
-        # ***** Print num_classes being used by dataset *****
-        print(f"Initializing dataset: split={split}, mode={supervision_mode}, augment={self.augment}, num_classes={self.num_classes}")
+        # ***** Print data info being used by dataset *****
+        print(f"Initializing dataset: split={split}, mode={supervision_mode}, augment={self.augment}")
         # ****************************************************
 
 
@@ -117,7 +113,6 @@ class PetsDataset(Dataset):
             'hybrid_scribbles_boxes': ['scribbles', 'boxes'],
             'hybrid_points_scribbles_boxes': ['points', 'scribbles', 'boxes']
         }
-        # NOTE: self.num_classes is now passed via __init__
 
     def __len__(self):
         return len(self.image_files)
@@ -139,8 +134,6 @@ class PetsDataset(Dataset):
     def _get_weak_supervision(self, index):
         """ Prepares weak supervision signals based on mode. """
         img_filename = os.path.basename(self.image_files[index])
-        tag_dummy = torch.zeros(self.num_classes, dtype=torch.float32)
-        other_dummy = torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
         if self.weak_labels is None or img_filename not in self.weak_labels:
             raise ValueError(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
 
