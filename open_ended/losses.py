@@ -2,6 +2,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from pkg_resources import require
+
 
 class PartialCrossEntropyLoss(nn.Module):
     """
@@ -46,13 +48,24 @@ class CombinedLoss(nn.Module):
     """
     Combines Classification Loss (BCE) and Partial Segmentation Loss (Partial CE).
     """
-    def __init__(self, lambda_seg=1.0, ignore_index=255):
+    def __init__(self, mode, lambda_seg=1.0, ignore_index=255):
         super().__init__()
         # For binary classification (pet present/absent) or multi-label
         self.classification_loss_fn = nn.BCEWithLogitsLoss()
         # For sparse segmentation labels (points)
         self.segmentation_loss_fn = PartialCrossEntropyLoss(ignore_index=ignore_index)
         self.lambda_seg = lambda_seg # Weight for the segmentation loss
+        self.mode = mode
+        self.mode_to_key = {
+            'points': 'points',
+            'scribbles': 'scribbles',
+            'boxes': 'boxes',  # Special case
+            'hybrid_points_scribbles': ['scribbles', 'points'],
+            'hybrid_points_boxes': ['points', 'boxes'],
+            'hybrid_scribbles_boxes': ['scribbles', 'boxes'],
+            'hybrid_points_scribbles_boxes': ['points', 'scribbles', 'boxes']
+        }
+        self.ignore_index = ignore_index
 
     def forward(self, model_output, targets):
         """
@@ -61,17 +74,26 @@ class CombinedLoss(nn.Module):
             targets (dict): {'tags': target_tags, 'points': target_points_sparse}
         """
         # Classification Loss (Tags)
-        cls_logits = model_output['classification'] # Shape (B, C)
-        tag_targets = targets['tags'] # Shape (B, C), float for BCE
-        loss_cls = self.classification_loss_fn(cls_logits, tag_targets)
+        #cls_logits = model_output['classification'] # Shape (B, C)
+        #tag_targets = targets['tags'] # Shape (B, C), float for BCE
+        #loss_cls = self.classification_loss_fn(cls_logits, tag_targets)
 
-        # Segmentation Loss (Points)
-        seg_logits = model_output['segmentation'] # Shape (B, C, H, W)
-        point_targets = targets['points'] # Shape (B, H, W), long with ignore_index
-        loss_seg = self.segmentation_loss_fn(seg_logits, point_targets)
+        required_keys = self.mode_to_key.get(self.supervision_mode, [])
+        loss_list = []
+
+        for key in required_keys:
+            if key in ['points', 'scribbles']:
+                # Segmentation Loss (Points)
+                seg_logits = model_output['segmentation'] # Shape (B, C, H, W)
+                point_targets = targets['points'] # Shape (B, H, W), long with ignore_index
+                loss_list.append(self.segmentation_loss_fn(seg_logits, point_targets))
+            elif key == "boxes":
+                loss_list.append(torch.nn.CrossEntropyLoss(ignore_index=self.ignore_index))
+            else:
+                raise ValueError("Invalid key.")
 
         # Combine losses
-        total_loss = loss_cls + self.lambda_seg * loss_seg
+        total_loss = sum([loss * self.lambda_seg for loss in loss_list])
 
         # Optional: return individual losses for logging
         return total_loss #, loss_cls, loss_seg

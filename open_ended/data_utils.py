@@ -109,11 +109,9 @@ class PetsDataset(Dataset):
 
         # Map supervision mode to required weak label keys
         self.mode_to_key = {
-            'tags': 'tags',
             'points': 'points',
             'scribbles': 'scribbles',
-            'boxes': 'boxes',
-            'hybrid_tags_points': ['tags', 'points'], # Special case
+            'boxes': 'boxes', # Special case
             'hybrid_points_scribbles': ['scribbles', 'points'],
             'hybrid_points_boxes': ['points', 'boxes'],
             'hybrid_scribbles_boxes': ['scribbles', 'boxes'],
@@ -154,24 +152,7 @@ class PetsDataset(Dataset):
             required_keys = [required_keys]
 
         for key in required_keys:
-            if key == 'tags':
-                 # ***** ADJUST TAG TENSOR GENERATION *****
-                 # Create tensor with size based on the number of classes passed to dataset
-                 tag_tensor = tag_dummy
-                 # Assuming class index 1 corresponds to "Pet"
-                 pet_class_index = 1
-                 # Check if the weak label file indicates presence of the pet
-                 # (Assuming '1' in tags list means pet is present, adjust if format differs)
-                 if 1 in item_labels.get('tags', []):
-                     if pet_class_index < self.num_classes:
-                          tag_tensor[pet_class_index] = 1.0 # Set Pet class index to 1.0
-                     else:
-                          print(f"Warning: Pet class index {pet_class_index} out of bounds for num_classes {self.num_classes}")
-                 # Background class (index 0) remains 0.0 unless specified otherwise
-                 weak_data['tags'] = tag_tensor # Now has shape [num_classes]
-                 # ***************************************
-
-            elif key in ['points', 'scribbles']:
+            if key in ['points', 'scribbles']:
                  # Expecting list of (y, x) coordinates for the foreground class (1)
                  sparse_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
                  coords = item_labels.get(key, [])
