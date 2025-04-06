@@ -7,6 +7,8 @@ from model import EffUnetWrapper
 from data_utils import PetsDataset, IGNORE_INDEX
 from tqdm import tqdm # Using tqdm here for convenience, replace with print if needed
 
+DEFAULT_DATA_DIR = './data'
+
 
 # Simple IoU calculation
 def calculate_iou(pred, target, num_classes, ignore_index=IGNORE_INDEX):
@@ -58,7 +60,7 @@ def evaluate_model(model, loader, device, num_classes, supervision_mode):
                 # Or implement CAM generation here if needed.
                 # For now, raise error if trying to evaluate tags mode directly for segmentation
                 raise NotImplementedError("Evaluation for 'tags' mode requires CAM generation logic.")
-            elif supervision_mode == 'hybrid_tags_points':
+            elif supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
                  seg_logits = outputs['segmentation'] # Shape (B, C, H, W)
             else: # 'full', 'points', 'scribbles', 'boxes'
                  seg_logits = outputs # Shape (B, C, H, W)
@@ -101,8 +103,10 @@ def evaluate_model(model, loader, device, num_classes, supervision_mode):
             images = images.to(device)
             gt_masks = gt_masks.to(device)
             outputs = model(images)
-            if supervision_mode == 'hybrid_tags_points': seg_logits = outputs['segmentation']
-            else: seg_logits = outputs
+            if supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+                seg_logits = outputs['segmentation']
+            else:
+                seg_logits = outputs
             predictions = torch.argmax(seg_logits, dim=1)
 
             pred_flat = predictions.view(-1)
@@ -150,8 +154,10 @@ def main():
 
     # --- Initialize Model ---
     model_mode = 'segmentation' # Default
-    if train_args.supervision_mode == 'tags': model_mode = 'classification'
-    elif train_args.supervision_mode == 'hybrid_tags_points': model_mode = 'hybrid'
+    if train_args.supervision_mode == 'tags':
+        model_mode = 'classification'
+    elif train_args.supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+        model_mode = 'hybrid'
 
     num_output_classes = 2 # Background + Pet (consistent with training)
     model = EffUnetWrapper(backbone=train_args.backbone, num_classes=num_output_classes, mode=model_mode)
