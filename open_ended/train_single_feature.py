@@ -117,6 +117,7 @@ def validate_one_epoch(model, loader, loss_fn, device, mode):
 
 
 def main():
+    torch.manual_seed(42)
     parser = setup_arg_parser()
     args = parser.parse_args()
 

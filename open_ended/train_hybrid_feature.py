@@ -192,10 +192,10 @@ def validate_one_epoch(model, loader, device, num_classes):
 
 
 def main():
+
+    torch.manual_seed(42)
     parser = setup_arg_parser()
     args = parser.parse_args()
-    
-    num_output_classes = args.num_classes
 
     if torch.cuda.is_available():
         device = torch.device('cuda')
@@ -261,7 +261,7 @@ def main():
 
         try:
             train_one_epoch(model, train_loader, optimizer, loss_fn, device, args.supervision_mode)
-            val_loss, val_iou = validate_one_epoch(model, val_loader, device, args.supervision_mode, num_output_classes)
+            val_loss, val_iou = validate_one_epoch(model, val_loader, device, num_output_classes)
             scheduler.step()
 
             # ***** SAVE CHECKPOINT Logic (Based on Validation IoU) *****
