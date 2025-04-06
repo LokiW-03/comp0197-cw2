@@ -58,11 +58,15 @@ if __name__ == "__main__":
         cam = cam[0]
         cam = resize(cam.cpu()).to(device)
         pseudo_mask = postprocessing(cam, 0.15, 0.45)
-        all_pseudo_masks.append(pseudo_mask)
+        processed_mask = torch.nn.functional.interpolate(
+                pseudo_mask.unsqueeze(1).float(),
+                size=(224, 224),
+                mode='nearest'
+            ).squeeze().to(torch.long)
+        all_pseudo_masks.append(processed_mask)
         all_images.append(x)
     
     all_pseudo_masks = torch.cat(all_pseudo_masks, dim=0)
-    all_pseudo_masks = all_pseudo_masks.unsqueeze(1).float()
     all_images = torch.cat(all_images, dim=0)
     # save as dataset
     torch.save({
@@ -74,11 +78,3 @@ if __name__ == "__main__":
             for img, processed_mask in zip(all_images, all_pseudo_masks)
         ]
     }, SAVE_PATH)
-
-
-    
-
-
-        
-
-        

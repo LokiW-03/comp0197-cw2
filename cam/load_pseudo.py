@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from dataset.oxfordpet_pseudo import OxfordPetWithPseudo
 from common import MODEL_SAVE_PATH
 
-def load_pseudo(save_path, batch_size=32, shuffle=False, device=torch.device('cpu')):
+def load_pseudo(save_path, batch_size=32, shuffle=False, device=torch.device('cpu'), dataset=False):
     """
     Load pseudo mask data and create a DataLoader compatible with original format
     
@@ -29,12 +29,16 @@ def load_pseudo(save_path, batch_size=32, shuffle=False, device=torch.device('cp
         masks = torch.stack([item[1] for item in batch])
         return images, masks  # (B,3,H,W), (B,1,H,W)
     
-    return DataLoader(
+    dataloader = DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=shuffle,
         collate_fn=collate_fn
     )
+    if dataset:
+        return dataset
+    else:
+        return dataloader
 
 
 if __name__ == "__main__":
