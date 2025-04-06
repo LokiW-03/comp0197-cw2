@@ -18,7 +18,7 @@ def search(model_path, save_path, batch_size, thres_low, thres_step, epochs):
     model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     cam_generator = lambda model: GradCAMpp(model)
 
-    train_loader, test_loader = download_pet_dataset(with_paths=True)
+    train_loader, _ = download_pet_dataset(with_paths=True)
     generate_pseudo_masks(train_loader, model, cam_generator, 
                           save_path=save_path,
                           threshold_low=thres_low,
@@ -26,6 +26,7 @@ def search(model_path, save_path, batch_size, thres_low, thres_step, epochs):
                           device=device)
     pseudo_loader = load_pseudo(save_path, batch_size=batch_size, shuffle=True, device=device, collapse_contour=False)
     trainval_loader = DataLoader(testset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False)
 
 
     model = SegNet().to(device)
@@ -50,6 +51,8 @@ if __name__ == "__main__":
 
     N_TRIALS = 10
     EPOCHS = 5
+    max_iou = 0
+    best_threshold = (0, 0)
 
     for i in range(N_TRIALS):
         thres_low = random.uniform(0, 1)
@@ -65,3 +68,12 @@ if __name__ == "__main__":
             thres_step=thres_step,
             epochs=EPOCHS
         )
+
+        print(f"Test metrics: {test_metrics}")
+        iou = test_metrics["iou"]
+        if iou > max_iou:
+            max_iou = iou
+            best_threshold = (thres_low, thres_step + thres_low)
+        
+    print(f"Best threshold: {best_threshold}")
+            
