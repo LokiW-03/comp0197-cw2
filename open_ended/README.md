@@ -43,7 +43,7 @@ Train models
 ```bash
 
 # Example of Points
-!python train.py \
+!python train_single_feature.py \
     --supervision_mode points \
     --run_name points_run1 \
     --weak_label_path ./weak_labels/weak_labels_train.pkl \
@@ -64,7 +64,7 @@ Train models
 ```
 !pip install Pillow numpy scikit-image segmentation-models-pytorch torchmetrics
 !python download_data.py
-!python train.py \
+!python train_single_feature.py \
     --supervision_mode points \
     --run_name points_run1 \
     --weak_label_path ./weak_labels/weak_labels_train.pkl \

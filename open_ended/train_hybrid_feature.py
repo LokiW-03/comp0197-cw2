@@ -1,4 +1,4 @@
-# train.py (for hybrid tags and points)
+# train_hybrid_feature.py (for hybrid combinations)
 import os
 import argparse
 import torch
@@ -34,7 +34,7 @@ def setup_arg_parser():
     parser.add_argument('--data_dir', type=str, default=DEFAULT_DATA_DIR, help='Dataset directory')
     parser.add_argument('--weak_label_path', type=str, default=DEFAULT_WEAK_LABEL_PATH, help='Path to pre-generated weak labels')
     parser.add_argument('--supervision_mode', type=str, required=True,
-                        choices=['full', 'tags', 'points', 'scribbles', 'boxes', 'hybrid_tags_points','hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes'],
+                        choices=['full', 'points', 'scribbles', 'boxes', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes'],
                         help='Type of supervision to use for training')
     parser.add_argument('--backbone', type=str, default='efficientnet-b0', help='EffUnet backbone')
     parser.add_argument('--img_size', type=int, default=256, help='Image size for training (square)')
@@ -75,11 +75,8 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
 
         # Calculate loss based on mode
         try:
-            if mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+            if mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
                 loss = loss_fn(outputs, targets_device)
-            elif mode == 'tags':
-                 cls_output = outputs['classification'] if isinstance(outputs, dict) else outputs
-                 loss = loss_fn(cls_output, targets_device.float())
             elif mode in ['points', 'scribbles', 'boxes', 'full']:
                  seg_output = outputs['segmentation'] if isinstance(outputs, dict) else outputs
                  loss = loss_fn(seg_output, targets_device.long())
@@ -167,9 +164,8 @@ def validate_one_epoch(model, loader, device, mode, num_classes):
                  seg_logits_for_metric = None
                  if isinstance(outputs, dict):
                      seg_logits_for_metric = outputs.get('segmentation', None)
-                 elif isinstance(outputs, torch.Tensor) and mode != 'tags':
+                 elif isinstance(outputs, torch.Tensor):
                      seg_logits_for_metric = outputs
-
                  if seg_logits_for_metric is not None:
                       preds = torch.argmax(seg_logits_for_metric, dim=1)
                       val_iou.update(preds, gt_masks)
@@ -226,28 +222,21 @@ def main():
                             num_workers=args.num_workers, pin_memory=True if device != torch.device('cpu') else False)
 
     # --- Initialize Model ---
-    model_mode = 'segmentation'
-    if args.supervision_mode == 'tags':
-        model_mode = 'hybrid' # Keep segmentation head for potential eval
-    elif args.supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+    if args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
         model_mode = 'hybrid'
+    else:
+        model_mode = 'segmentation'
     num_output_classes = args.num_classes
     print(f"Initializing model with {num_output_classes} output classes for segmentation head.")
     model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)
     model.to(device)
 
     # --- Define Loss Function ---
-    if args.supervision_mode == 'tags':
-        # Using CombinedLoss even for tags, assuming model has both heads ('hybrid' mode)
-        # If you strictly want only BCE on classification, adjust model mode and loss
-        loss_fn = torch.nn.BCEWithLogitsLoss() # Set lambda_seg=0? or use BCE?
-        # Alternative if only BCE desired and model mode is classification:
-        # loss_fn = torch.nn.BCEWithLogitsLoss()
-    elif args.supervision_mode in ['points', 'scribbles']:
+    if args.supervision_mode in ['points', 'scribbles']:
         loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
     elif args.supervision_mode in ['boxes', 'full']:
         loss_fn = torch.nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    elif args.supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+    elif args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
         loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX)
     else:
         raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
