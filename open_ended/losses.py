@@ -78,7 +78,7 @@ class CombinedLoss(nn.Module):
         #tag_targets = targets['tags'] # Shape (B, C), float for BCE
         #loss_cls = self.classification_loss_fn(cls_logits, tag_targets)
 
-        required_keys = self.mode_to_key.get(self.supervision_mode, [])
+        required_keys = self.mode_to_key.get(self.mode, [])
         loss_list = []
 
         for key in required_keys:

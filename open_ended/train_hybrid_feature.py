@@ -232,12 +232,8 @@ def main():
     model.to(device)
 
     # --- Define Loss Function ---
-    if args.supervision_mode in ['points', 'scribbles']:
-        loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    elif args.supervision_mode in ['boxes', 'full']:
-        loss_fn = torch.nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    elif args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
-        loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX)
+    if args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+        loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
     else:
         raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
 
