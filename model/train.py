@@ -191,7 +191,6 @@ def main():
 
     # initialise optimiser & loss class
     loss_fn = nn.CrossEntropyLoss(reduction='mean')
-    # loss_fn = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
