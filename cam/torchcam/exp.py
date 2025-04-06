@@ -57,7 +57,7 @@ if __name__ == "__main__":
         cam = cam_extractor(class_idxs.tolist(), out, normalized=True)
         cam = cam[0]
         cam = resize(cam.cpu()).to(device)
-        pseudo_mask = postprocessing(cam, 0.3, 0.375)
+        pseudo_mask = postprocessing(cam, 0.2, 0.275)
         processed_mask = torch.nn.functional.interpolate(
                 pseudo_mask.unsqueeze(1).float(),
                 size=(224, 224),
