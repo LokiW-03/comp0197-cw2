@@ -34,7 +34,7 @@ def setup_arg_parser():
     parser.add_argument('--data_dir', type=str, default=DEFAULT_DATA_DIR, help='Dataset directory')
     parser.add_argument('--weak_label_path', type=str, default=DEFAULT_WEAK_LABEL_PATH, help='Path to pre-generated weak labels')
     parser.add_argument('--supervision_mode', type=str, required=True,
-                        choices=['full', 'tags', 'points', 'scribbles', 'boxes', 'hybrid_tags_points'],
+                        choices=['full', 'tags', 'points', 'scribbles', 'boxes', 'hybrid_tags_points','hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes'],
                         help='Type of supervision to use for training')
     parser.add_argument('--backbone', type=str, default='efficientnet-b0', help='EffUnet backbone')
     parser.add_argument('--img_size', type=int, default=256, help='Image size for training (square)')
@@ -63,7 +63,7 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
         images = images.to(device)
 
         # Move targets to device based on mode
-        if mode == 'hybrid_tags_points':
+        if mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
             targets_device = {k: v.to(device) for k, v in targets.items()}
         elif isinstance(targets, torch.Tensor):
              targets_device = targets.to(device)
@@ -76,7 +76,7 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
 
         # Calculate loss based on mode
         try:
-            if mode == 'hybrid_tags_points':
+            if mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
                 loss = loss_fn(outputs, targets_device)
             elif mode == 'tags':
                  cls_output = outputs['classification'] if isinstance(outputs, dict) else outputs
@@ -115,10 +115,10 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
 
     avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
     print(f"Training epoch finished. Average Loss: {avg_loss:.4f}")
-    return avg_loss
+    #return avg_loss
 
 
-def validate_one_epoch(model, loader, loss_fn, device, mode, num_classes):
+def validate_one_epoch(model, loader, device, mode, num_classes):
     model.eval()
     total_loss = 0.0
     num_batches = len(loader)
@@ -131,19 +131,14 @@ def validate_one_epoch(model, loader, loss_fn, device, mode, num_classes):
     val_loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX).to(device)
     print(f"Starting validation epoch...")
     with torch.no_grad():
-        for i, (images, targets, gt_masks) in enumerate(loader):
+        for i, (images, _, gt_masks) in enumerate(loader):
             images = images.to(device)
             gt_masks = gt_masks.to(device).long()
-
-            # if mode == 'hybrid_tags_points':
-            #      targets_device = {k: v.to(device) for k, v in targets.items()}
-            # elif isinstance(targets, torch.Tensor):
-            #      targets_device = targets.to(device)
 
             outputs = model(images)
 
             # --- Loss Calculation ---
-            loss = torch.tensor(0.0, device=device)
+            #loss = torch.tensor(0.0, device=device)
             seg_logits_for_loss = None
             
             # Extract segmentation logits consistently
@@ -235,7 +230,7 @@ def main():
     model_mode = 'segmentation'
     if args.supervision_mode == 'tags':
         model_mode = 'hybrid' # Keep segmentation head for potential eval
-    elif args.supervision_mode == 'hybrid_tags_points':
+    elif args.supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
         model_mode = 'hybrid'
     num_output_classes = args.num_classes
     print(f"Initializing model with {num_output_classes} output classes for segmentation head.")
@@ -246,14 +241,14 @@ def main():
     if args.supervision_mode == 'tags':
         # Using CombinedLoss even for tags, assuming model has both heads ('hybrid' mode)
         # If you strictly want only BCE on classification, adjust model mode and loss
-        loss_fn = CombinedLoss(lambda_seg=0.0, ignore_index=IGNORE_INDEX, num_classes=num_output_classes) # Set lambda_seg=0? or use BCE?
+        loss_fn = torch.nn.BCEWithLogitsLoss() # Set lambda_seg=0? or use BCE?
         # Alternative if only BCE desired and model mode is classification:
         # loss_fn = torch.nn.BCEWithLogitsLoss()
     elif args.supervision_mode in ['points', 'scribbles']:
         loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
     elif args.supervision_mode in ['boxes', 'full']:
         loss_fn = torch.nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    elif args.supervision_mode == 'hybrid_tags_points':
+    elif args.supervision_mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
         loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX)
     else:
         raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
@@ -283,8 +278,8 @@ def main():
         print(f"\n--- Epoch {epoch+1}/{args.epochs} ---")
 
         try:
-            train_loss = train_one_epoch(model, train_loader, optimizer, loss_fn, device, args.supervision_mode)
-            val_loss, val_iou = validate_one_epoch(model, val_loader, loss_fn, device, args.supervision_mode, num_output_classes)
+            train_one_epoch(model, train_loader, optimizer, loss_fn, device, args.supervision_mode)
+            val_loss, val_iou = validate_one_epoch(model, val_loader, device, args.supervision_mode, num_output_classes)
             scheduler.step()
 
             # ***** SAVE CHECKPOINT Logic (Based on Validation IoU) *****
