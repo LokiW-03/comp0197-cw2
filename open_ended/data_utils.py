@@ -141,51 +141,10 @@ class PetsDataset(Dataset):
     def _get_weak_supervision(self, index):
         """ Prepares weak supervision signals based on mode. """
         img_filename = os.path.basename(self.image_files[index])
+        tag_dummy = torch.zeros(self.num_classes, dtype=torch.float32)
+        other_dummy = torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
         if self.weak_labels is None or img_filename not in self.weak_labels:
-            print(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
-            # Return dummy data matching expected shapes
-            tag_dummy = torch.zeros(self.num_classes, dtype=torch.float32)
-            other_dummy = torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
-            if self.supervision_mode == 'tags':
-                # ***** Match shape [self.num_classes] *****
-                return tag_dummy
-            if self.supervision_mode == 'points':
-                return other_dummy
-            if self.supervision_mode == 'scribbles':
-                return other_dummy
-            if self.supervision_mode == 'boxes':
-                return other_dummy
-            if self.supervision_mode == 'hybrid_tags_points':
-                return {
-                    # ***** Match shape [self.num_classes] *****
-                    'tags': tag_dummy,
-                    'points': other_dummy
-                }
-            if self.supervision_mode == 'hybrid_points_scribbles':
-                return {
-                    # ***** Match shape [self.num_classes] *****
-                    'scribbles': other_dummy,
-                    'points': other_dummy
-                }
-            if self.supervision_mode == 'hybrid_points_boxes':
-                return {
-                    # ***** Match shape [self.num_classes] *****
-                    'boxes': other_dummy,
-                    'points': other_dummy
-                }
-            if self.supervision_mode == 'hybrid_scribbles_boxes':
-                return {
-                    # ***** Match shape [self.num_classes] *****
-                    'scribbles': other_dummy,
-                    'boxes': other_dummy
-                }
-            if self.supervision_mode == 'hybrid_points_scribbles_boxes':
-                return {
-                    # ***** Match shape [self.num_classes] *****
-                    'scribbles': other_dummy,
-                    'points': other_dummy,
-                    'boxes': other_dummy
-                }
+            raise ValueError(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
 
         item_labels = self.weak_labels[img_filename]
         weak_data = {}
@@ -198,7 +157,7 @@ class PetsDataset(Dataset):
             if key == 'tags':
                  # ***** ADJUST TAG TENSOR GENERATION *****
                  # Create tensor with size based on the number of classes passed to dataset
-                 tag_tensor = torch.zeros(self.num_classes, dtype=torch.float32)
+                 tag_tensor = tag_dummy
                  # Assuming class index 1 corresponds to "Pet"
                  pet_class_index = 1
                  # Check if the weak label file indicates presence of the pet
@@ -243,17 +202,10 @@ class PetsDataset(Dataset):
                  weak_data['boxes'] = box_pseudo_mask # HxW tensor
 
         # Return appropriate format based on mode
-        if self.supervision_mode == 'hybrid_tags_points':
-            # Ensure default values have correct shapes if a key is missing
-            if 'tags' not in weak_data:
-                 weak_data['tags'] = torch.zeros(self.num_classes, dtype=torch.float32)
-            if 'points' not in weak_data:
-                 weak_data['points'] = torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
-            return weak_data # Return dict with 'tags' and 'points'
-        elif required_keys:
-            return weak_data[required_keys[0]] # Return the single tensor
-        else: # Should only happen for 'full' mode on train split, which is not expected here
+        if self.supervision_mode == "full":
             return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
+        else:
+            return weak_data
 
     def __getitem__(self, index):
         img_path = self.image_files[index]

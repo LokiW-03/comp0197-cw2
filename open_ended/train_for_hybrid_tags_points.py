@@ -18,7 +18,7 @@ import time
 DEFAULT_DATA_DIR = './data'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
-DEFAULT_NUM_CLASSES = 2 # 0=Background, 1=Pet for CrossEntropyLoss/IoU calculation
+DEFAULT_NUM_CLASSES = 3 # IoU should have 3 classes, foreground, background and unknown
 
 # ***** HELPER FUNCTION for formatting time *****
 def format_time(seconds):
@@ -63,13 +63,12 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
         images = images.to(device)
 
         # Move targets to device based on mode
-        if mode in ['hybrid_tags_points', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+        if isinstance(targets, torch.Tensor):
+            targets_device = targets.to(device)
+        elif isinstance(targets, dict):
             targets_device = {k: v.to(device) for k, v in targets.items()}
-        elif isinstance(targets, torch.Tensor):
-             targets_device = targets.to(device)
         else:
-             print(f"Warning: Unexpected target type in training batch {i}: {type(targets)}")
-             continue
+            raise TypeError("Invalid target type")
 
         optimizer.zero_grad()
         outputs = model(images)
