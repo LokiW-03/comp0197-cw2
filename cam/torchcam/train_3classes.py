@@ -161,12 +161,12 @@ if __name__ == "__main__":
     test_loader = DataLoader(testset, batch_size=64, shuffle=False)
 
 
-    EPOCHS = 1
+    EPOCHS = 10
     T_MAX = EPOCHS * len(pseudo_loader)
     OUT_CLASSES = 3
 
     # Initialize model
-    model = PetModel("FPN", "resnext50_32x4d", in_channels=3, out_classes=OUT_CLASSES)
+    model = PetModel("FPN", "resnet34", in_channels=3, out_classes=OUT_CLASSES)
 
     trainer = pl.Trainer(max_epochs=EPOCHS, log_every_n_steps=1)
 

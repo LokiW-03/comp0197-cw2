@@ -194,7 +194,7 @@ if __name__ == "__main__":
         print(a["image"].shape, a["mask"].shape)
         break
 
-    EPOCHS = 1
+    EPOCHS = 10
     T_MAX = EPOCHS * len(pseudo_loader)
     OUT_CLASSES = 1
 
