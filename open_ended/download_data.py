@@ -20,6 +20,7 @@ TORCHVISION_SUBDIR = "oxford-iiit-pet"
 CLEANUP_ARCHIVES = True
 # --- End Configuration ---
 
+# TODO: edit final_data_root and remove resturcturing
 def restructure_directory(download_root, final_root, torchvision_subdir):
     """
     Moves contents from the torchvision subdirectory to the final root
@@ -111,6 +112,8 @@ def restructure_directory(download_root, final_root, torchvision_subdir):
         logging.error(f"An error occurred during directory restructuring: {e}", exc_info=True)
         return False
 
+
+# TODO: check model/data.py and see if we can combine the two together
 def download_oxford_pet(download_root):
     """
     Downloads the Oxford-IIIT Pet dataset using torchvision.
