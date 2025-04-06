@@ -32,7 +32,7 @@ pip install <package name>
    python -m cam.postprocessing --model=resnet
    ```
 
-   Sample heapmap images are generated in the ```cam/outout/grid_cam.png```
+   Sample heapmap images are generated in the ```cam/output/cam_grid.jpg```
 3. Train the segmentation model with pseudo masks
    ```sh
    python -m model.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet50_gradcampp_pseudo.pt
