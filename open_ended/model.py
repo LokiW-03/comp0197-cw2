@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import segmentation_models_pytorch as smp
 
+# TODO: What if we opt for a different segmentation model? How easy it is to make this change? Does this model need to match the model used in MRP?
+# TODO: Can we use the model built in /model/baseline_<model name>.py?
 class EffUnetWrapper(nn.Module):
     """
     Wrapper around segmentation-models-pytorch Unet with EfficientNet backbone.
@@ -53,7 +55,7 @@ class EffUnetWrapper(nn.Module):
              # For multi-class (num_classes=N), output is [B, N, H, W]
              output['segmentation'] = segmentation_logits
 
-        if self.mode == 'classification' or self.mode == 'hybrid':
+        if self.mode == 'classification' or self.mode == 'hybrid': #TODO: Do we need classification? Remove if not
             # Use features from the deepest encoder stage for classification
             pooled_features = self.global_pool(features[-1]) # Pool features from last encoder stage
             pooled_features = torch.flatten(pooled_features, 1) # Flatten
