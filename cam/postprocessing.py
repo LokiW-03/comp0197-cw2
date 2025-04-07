@@ -87,8 +87,18 @@ def generate_pseudo_masks(
                 size=(224, 224),
                 mode='nearest'
             ).squeeze().to(torch.long)
+            
             if len(sample_mask_images) < NUM_SAMPLES:
-                sample_mask_images.append(pil_mask)
+                vis_mask = torch.zeros_like(pseudo_mask, dtype=torch.uint8)
+                vis_mask[pseudo_mask == 0] = 255 # Foreground = White
+                vis_mask[pseudo_mask == 1] = 0   # Background = Black
+                vis_mask[pseudo_mask == 2] = 128 # Contour = Gray
+                
+                to_pil_transform = transforms.ToPILImage(mode='L')
+                pil_mask_for_saving = to_pil_transform(vis_mask)
+
+                sample_mask_images.append(pil_mask_for_saving)
+
             all_pseudo_masks.append(processed_mask)
             image_paths.append(img_path)
     
