@@ -1,4 +1,5 @@
 # Import packages
+import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -9,9 +10,10 @@ from baseline_unet import UNet
 from segnext import SegNeXt
 from PIL import Image
 from data import trainset, testset
+from visualise import visualise_fs_segmentation
 
 SAVE_WEIGHTS_FREQUENCY = 2 # save weights to a file every {num} epochs
-EPOCHS = 10
+EPOCHS = 1
 
 def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3, num_eval_batches = None):
     """
@@ -179,8 +181,8 @@ def main():
     print(X_train_batch.shape, y_train_batch.shape)
 
     # initialise model
-    model = SegNet().to(device)
-    #model = EfficientUNet().to(device)
+    # model = SegNet().to(device)
+    model = EfficientUNet().to(device)
     #model = UNet(3, 3).to(device)
     # model = SegNeXt(num_classes=3).to(device)
 
@@ -196,13 +198,29 @@ def main():
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
 
-    # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = 'SegNet_CA', scheduler=scheduler)
+    model_name = 'EffUNet'
+    epoch = 10
+    checkpoint_file = f"{model_name}_epoch_{epoch}.pth"
+    if os.path.exists(checkpoint_file):
+        # Load the checkpoint
+        checkpoint = torch.load(checkpoint_file)
+        # Restore states
+        model.load_state_dict(checkpoint['model'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+
+        # # Check if lr_scheduler was saved
+        # if 'lr_scheduler' in checkpoint:
+        #     scheduler.load_state_dict(checkpoint['lr_scheduler'])
+
+    else:
+        # train model
+        train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics=True, model_name=model_name, scheduler=scheduler)
 
     # compute metrics on entire test set (may take a while)
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
     print(f"Final test metrics:   -> {test_metrics}")
 
+    visualise_fs_segmentation(model, testset, device)
 
 if __name__ == "__main__":
     main()
