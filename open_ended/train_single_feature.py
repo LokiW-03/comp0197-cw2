@@ -145,7 +145,6 @@ def main():
     model_mode = 'segmentation'
 
     # +1 for background class if using standard CE loss expecting class indices 0...N
-    # If binary (num_classes=1) with BCE or Dice, keep num_classes=1
     # Let's use standard CE, so need 2 classes: 0=background, 1=pet
     num_output_classes = 2 # Background + Pet, boundary is ignored
     model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)

@@ -141,7 +141,7 @@ No longer under experiment because of tags is not valid to compare with, but we 
 
 
 
-## Exploring Hybrid Spatial Supervision (Jessica)
+## Exploring Hybrid Spatial Supervision
 
 After I trained model with individual types of weak labels. I found anther interesting part with mixing them, which seems highly relevant for practical use cases and less explored in an empircal analysis from past papers.
 
@@ -151,11 +151,11 @@ To see how much benefit we actually get from this, I think the below set of expe
 
 
 
-So, we will experiment with
+So, we have experimented with:
   - Points + Scribble
   - Poitns + Bounding box
   - scrible + bounding box
   - points + scribble + bounding box
 
 
-All the models will be trained with same settings, and you use train.py as a starting point.
+All the models were trained with same settings, ex. batch size etc.
