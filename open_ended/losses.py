@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pkg_resources import require
+from torch.nn import CrossEntropyLoss
 
 
 class PartialCrossEntropyLoss(nn.Module):
@@ -54,6 +55,7 @@ class CombinedLoss(nn.Module):
         self.classification_loss_fn = nn.BCEWithLogitsLoss()
         # For sparse segmentation labels (points)
         self.segmentation_loss_fn = PartialCrossEntropyLoss(ignore_index=ignore_index)
+        self.cross_entropy_loss_fn = nn.CrossEntropyLoss(ignore_index=ignore_index)
         self.lambda_seg = lambda_seg # Weight for the segmentation loss
         self.mode = mode
         self.mode_to_key = {
@@ -85,10 +87,12 @@ class CombinedLoss(nn.Module):
             if key in ['points', 'scribbles']:
                 # Segmentation Loss (Points)
                 seg_logits = model_output['segmentation'] # Shape (B, C, H, W)
-                point_targets = targets['points'] # Shape (B, H, W), long with ignore_index
-                loss_list.append(self.segmentation_loss_fn(seg_logits, point_targets))
+                key_targets = targets[key] # Shape (B, H, W), long with ignore_index
+                loss_list.append(self.segmentation_loss_fn(seg_logits, key_targets))
             elif key == "boxes":
-                loss_list.append(torch.nn.CrossEntropyLoss(ignore_index=self.ignore_index))
+                seg_logits = model_output['segmentation']
+                key_targets = targets[key]
+                loss_list.append(self.cross_entropy_loss_fn(seg_logits, key_targets))
             else:
                 raise ValueError("Invalid key.")
 
