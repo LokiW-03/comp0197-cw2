@@ -10,8 +10,10 @@ from torch.utils.data import Dataset, DataLoader
 # copied from https://github.com/qubvel-org/segmentation_models.pytorch/blob/main/examples/camvid_segmentation_multiclass.ipynb
 
 class PetModel(pl.LightningModule):
-    def __init__(self, arch, encoder_name, in_channels, out_classes, **kwargs):
+    def __init__(self, arch, encoder_name, in_channels, out_classes, lr=2e-4, T_max=50, eta_min=1e-5, **kwargs):
         super().__init__()
+        #Save input hyperparameters
+        self.save_hyperparameters()
         self.model = smp.create_model(
             arch,
             encoder_name=encoder_name,
@@ -134,8 +136,12 @@ class PetModel(pl.LightningModule):
         self.test_step_outputs.clear()
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=2e-4)
-        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-5)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
+        scheduler = lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=self.hparams.T_max,
+            eta_min=self.hparams.eta_min,
+        )
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
@@ -144,6 +150,7 @@ class PetModel(pl.LightningModule):
                 "frequency": 1,
             },
         }
+
 if __name__ == "__main__":
     from cam.load_pseudo import load_pseudo_dataset,load_pseudo
     from model.data import testset
@@ -164,9 +171,12 @@ if __name__ == "__main__":
     EPOCHS = 10
     T_MAX = EPOCHS * len(pseudo_loader)
     OUT_CLASSES = 3
+    LR = 2e-4
+    ETA_MIN = 1e-5
 
     # Initialize model
-    model = PetModel("FPN", "resnet34", in_channels=3, out_classes=OUT_CLASSES)
+    model = PetModel("FPN", "resnet34", in_channels=3, out_classes=OUT_CLASSES, lr=LR, 
+                     T_max=T_MAX, eta_min=ETA_MIN)
 
     trainer = pl.Trainer(max_epochs=EPOCHS, log_every_n_steps=1)
 

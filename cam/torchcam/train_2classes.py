@@ -21,8 +21,10 @@ def custom_collate_fn(batch):
     return {"image": x_batch, "mask": y_batch}
 
 class PetModel(pl.LightningModule):
-    def __init__(self, arch, encoder_name, in_channels, out_classes, **kwargs):
+    def __init__(self, arch, encoder_name, in_channels, out_classes, lr=2e-4, T_max=50, eta_min=1e-5, **kwargs):
         super().__init__()
+        #Save input hyperparameters
+        self.save_hyperparameters()
         self.model = smp.create_model(
             arch,
             encoder_name=encoder_name,
@@ -30,6 +32,7 @@ class PetModel(pl.LightningModule):
             classes=out_classes,
             **kwargs,
         )
+
         # preprocessing parameteres for image
         params = smp.encoders.get_preprocessing_params(encoder_name)
         self.register_buffer("std", torch.tensor(params["std"]).view(1, 3, 1, 1))
@@ -158,8 +161,12 @@ class PetModel(pl.LightningModule):
         return
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=2e-4)
-        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=T_MAX, eta_min=1e-5)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
+        scheduler = lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=self.hparams.T_max,
+            eta_min=self.hparams.eta_min,
+        )
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
@@ -168,7 +175,6 @@ class PetModel(pl.LightningModule):
                 "frequency": 1,
             },
         }
-        return
 
 if __name__ == "__main__":
     from cam.load_pseudo import load_pseudo_dataset
@@ -199,7 +205,8 @@ if __name__ == "__main__":
     OUT_CLASSES = 1
 
     # Initialize model
-    model = PetModel("FPN", "resnet34", in_channels=3, out_classes=1)
+    model = PetModel("FPN", "resnet34", in_channels=3, out_classes=OUT_CLASSES, lr=LR, 
+                     T_max=T_MAX, eta_min=ETA_MIN)
 
     trainer = pl.Trainer(max_epochs=EPOCHS, log_every_n_steps=1)
 
