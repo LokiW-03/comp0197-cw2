@@ -13,6 +13,7 @@ from model.train import train_model, compute_test_metrics_fn
 import itertools
 from ablation.search_space import generate_refined_cam_threshold_space
 from ablation.search_tools import save_results_to_csv
+from model.loss import DiceLoss, CombinedCELDiceLoss
 
 
 def search(seg_model_name, # Segmentation model
@@ -86,7 +87,9 @@ if __name__ == "__main__":
         (0.21, 0.33)
     ]
     loss_fn_space = {
-        "ce_mean": nn.CrossEntropyLoss(reduction='mean')
+        "ce_mean": nn.CrossEntropyLoss(reduction='mean'),
+        "dice_loss": DiceLoss(),
+        # "combined_loss": CombinedCELDiceLoss(),
     }
     optimizer_generator_space = {
         "adamw_1e-3_1e-4": lambda model: torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4),
@@ -94,9 +97,9 @@ if __name__ == "__main__":
     }
     scheduler_generator_space = {
         "steplr_15_0.1": lambda optimizer: torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1),
-        "ca_50_1e-6": lambda optimizer: torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
+        # "ca_50_1e-6": lambda optimizer: torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
     }
-    batch_size_space = [16, 32]
+    batch_size_space = [32]
 
     # generate all combinations of parameters
     param_combinations = itertools.product(
@@ -156,5 +159,3 @@ if __name__ == "__main__":
     print("Best metrics:", best_metrics)
 
     save_results_to_csv(results, filename="grid_search_results.csv")
-
-    

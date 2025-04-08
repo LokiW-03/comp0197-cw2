@@ -7,6 +7,7 @@ from baseline_segnet import SegNet
 from efficient_unet import EfficientUNet
 from baseline_unet import UNet
 from segnext import SegNeXt
+from loss import DiceLoss, CombinedCELDiceLoss
 from PIL import Image
 from data import trainset, testset
 
@@ -257,8 +258,9 @@ def main():
     print(output.shape)
 
     # initialise optimiser & loss class
-    loss_fn = nn.CrossEntropyLoss(reduction='mean')
-    # loss_fn = nn.BCEWithLogitsLoss()
+    # loss_fn = nn.CrossEntropyLoss(reduction='mean')
+    # loss_fn = DiceLoss()
+    loss_fn = CombinedCELDiceLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
