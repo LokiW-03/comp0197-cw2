@@ -21,7 +21,8 @@ def generate_pseudo_masks(
     save_path: str = './pseudo_masks.pt',
     threshold_low: float = 0.15,
     threshold_high: float = 0.45,
-    device: torch.device = torch.device('cpu')
+    device: torch.device = torch.device('cpu'),
+    side_effect: bool = True
 ):
     """
     Enhanced pseudo mask generation function
@@ -81,14 +82,13 @@ def generate_pseudo_masks(
             pseudo_mask[cam < threshold_low] = 1 # Background
             
             # Convert to PIL Image and apply standard transforms
-            pil_mask = Image.fromarray(pseudo_mask.cpu().numpy(), mode='L')
             processed_mask = torch.nn.functional.interpolate(
                 pseudo_mask.unsqueeze(0).unsqueeze(0).float(),
                 size=(224, 224),
                 mode='nearest'
             ).squeeze().to(torch.long)
             
-            if len(sample_mask_images) < NUM_SAMPLES:
+            if side_effect and len(sample_mask_images) < NUM_SAMPLES:
                 vis_mask = torch.zeros_like(pseudo_mask, dtype=torch.uint8)
                 vis_mask[pseudo_mask == 0] = 255 # Foreground = White
                 vis_mask[pseudo_mask == 1] = 0   # Background = Black
@@ -121,14 +121,15 @@ def generate_pseudo_masks(
     
     print(f"Generated {len(all_pseudo_masks)} pseudo masks saved at {save_path}")
 
-    # save sample mask images
-    for i, mask in enumerate(sample_mask_images):
-        os.makedirs(f'{TMP_OUTPUT_PATH}/masks', exist_ok=True)
-        mask.save(f'{TMP_OUTPUT_PATH}/masks/{os.path.basename(image_paths[i]).split(".")[0]}.png')
-    
-    # save sample mask images
-    visualize_cam(inputs[:NUM_SAMPLES], cams[:NUM_SAMPLES], f'{TMP_OUTPUT_PATH}/cam_grid.jpg')
-    
+    if side_effect:
+        # save sample mask images
+        for i, mask in enumerate(sample_mask_images):
+            os.makedirs(f'{TMP_OUTPUT_PATH}/masks', exist_ok=True)
+            mask.save(f'{TMP_OUTPUT_PATH}/masks/{os.path.basename(image_paths[i]).split(".")[0]}.png')
+        
+        # save sample mask images
+        visualize_cam(inputs[:NUM_SAMPLES], cams[:NUM_SAMPLES], f'{TMP_OUTPUT_PATH}/cam_grid.jpg')
+        
     return save_path
 
 
