@@ -97,7 +97,7 @@ if __name__ == "__main__":
         "steplr_15_0.1": lambda optimizer: torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1),
         # "ca_50_1e-6": lambda optimizer: torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
     }
-    batch_size_space = [32]
+    batch_size_space = [16, 64]
 
     # generate all combinations of parameters
     param_combinations = itertools.product(
