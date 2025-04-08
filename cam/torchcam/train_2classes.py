@@ -101,31 +101,71 @@ class PetModel(pl.LightningModule):
             "tn": tn,
         }
 
-    def shared_epoch_end(self, outputs, stage):
-        # aggregate step metics
-        tp = torch.cat([x["tp"] for x in outputs])
-        fp = torch.cat([x["fp"] for x in outputs])
-        fn = torch.cat([x["fn"] for x in outputs])
-        tn = torch.cat([x["tn"] for x in outputs])
+    # def shared_epoch_end(self, outputs, stage):
+    #     # aggregate step metics
+    #     tp = torch.cat([x["tp"] for x in outputs])
+    #     fp = torch.cat([x["fp"] for x in outputs])
+    #     fn = torch.cat([x["fn"] for x in outputs])
+    #     tn = torch.cat([x["tn"] for x in outputs])
 
-        # per image IoU means that we first calculate IoU score for each image
-        # and then compute mean over these scores
-        per_image_iou = smp.metrics.iou_score(
+    #     # per image IoU means that we first calculate IoU score for each image
+    #     # and then compute mean over these scores
+    #     per_image_iou = smp.metrics.iou_score(
+    #         tp, fp, fn, tn, reduction="micro-imagewise"
+    #     )
+
+    #     # dataset IoU means that we aggregate intersection and union over whole dataset
+    #     # and then compute IoU score. The difference between dataset_iou and per_image_iou scores
+    #     # in this particular case will not be much, however for dataset
+    #     # with "empty" images (images without target class) a large gap could be observed.
+    #     # Empty images influence a lot on per_image_iou and much less on dataset_iou.
+    #     dataset_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
+    #     metrics = {
+    #         f"{stage}_per_image_iou": per_image_iou,
+    #         f"{stage}_dataset_iou": dataset_iou,
+    #     }
+
+    #     self.log_dict(metrics, prog_bar=True)
+
+    def shared_epoch_end(self, outputs, stage):
+        # aggregate step metrics
+        tp = torch.cat([x["tp"] for x in outputs]) # Assuming these are for Class 1 (Background)
+        fp = torch.cat([x["fp"] for x in outputs]) # Assuming these are for Class 1
+        fn = torch.cat([x["fn"] for x in outputs]) # Assuming these are for Class 1
+        tn = torch.cat([x["tn"] for x in outputs]) # Assuming these are for Class 1
+
+        # --- Calculate metrics for BACKGROUND (Class 1) ---
+        per_image_iou_bg = smp.metrics.iou_score(
             tp, fp, fn, tn, reduction="micro-imagewise"
         )
+        dataset_iou_bg = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
 
-        # dataset IoU means that we aggregate intersection and union over whole dataset
-        # and then compute IoU score. The difference between dataset_iou and per_image_iou scores
-        # in this particular case will not be much, however for dataset
-        # with "empty" images (images without target class) a large gap could be observed.
-        # Empty images influence a lot on per_image_iou and much less on dataset_iou.
-        dataset_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
+        # --- Derive stats and calculate metrics for FOREGROUND (Class 0) ---
+        # If tp, fp, fn, tn were calculated for class 1 vs class 0:
+        # True Positives for class 0 = True Negatives for class 1
+        tp_0 = tn
+        # False Positives for class 0 = False Negatives for class 1
+        fp_0 = fn
+        # False Negatives for class 0 = False Positives for class 1
+        fn_0 = fp
+        # True Negatives for class 0 = True Positives for class 1
+        tn_0 = tp # Optional, not strictly needed for IoU score function
+
+        per_image_iou_fg = smp.metrics.iou_score(
+            tp_0, fp_0, fn_0, tn_0, reduction="micro-imagewise" # Pass tn_0 too
+        )
+        dataset_iou_fg = smp.metrics.iou_score(tp_0, fp_0, fn_0, tn_0, reduction="micro") # Pass tn_0 too
+
+        # --- Log Corrected Metrics ---
         metrics = {
-            f"{stage}_per_image_iou": per_image_iou,
-            f"{stage}_dataset_iou": dataset_iou,
+            f"{stage}_per_image_iou": per_image_iou_fg, # Log FG IoU as the main one
+            f"{stage}_dataset_iou": dataset_iou_fg,   # Log FG IoU as the main one
+            f"{stage}_per_image_iou_BG": per_image_iou_bg, # Optionally log BG IoU for comparison
+            f"{stage}_dataset_iou_BG": dataset_iou_bg,   # Optionally log BG IoU
         }
 
-        self.log_dict(metrics, prog_bar=True)
+        # Set prog_bar=True only for the metrics you want prominently displayed
+        self.log_dict(metrics, prog_bar=True) # prog_bar=True might show multiple, adjust as needed
 
     def training_step(self, batch, batch_idx):
         train_loss_info = self.shared_step(batch, "train")
