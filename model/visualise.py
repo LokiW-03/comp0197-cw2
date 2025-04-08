@@ -52,9 +52,9 @@ def tensor_to_pil(image):
 
 def visualise_fs_segmentation(model, testset, device):
     """
-    Runs 8 examples through the model and draws them on a single 4x4 grid:
-    - 2 images per example: original (left) + overlay (right)
-    - 4 rows of examples (2 examples per row) = 8 examples total = 16 cells
+    Runs 8 examples through the model and draws them on a single 8x3 grid:
+    - 3 images per example: original (left), ground truth (middle), prediction (right)
+    - 8 rows (one per example), 3 columns = 24 cells total
     """
     model.eval()
     
@@ -62,13 +62,15 @@ def visualise_fs_segmentation(model, testset, device):
     total_samples = len(testset)
     samples = random.sample(range(total_samples), 8)
 
-    # First, load and process all images & overlays so we know the size
+    # We'll store these images for each sample
     original_list = []
-    overlay_list = []
+    gt_list = []
+    pred_list = []
     
     for idx in samples:
-        # Load one sample
-        img, _ = testset[idx]
+        # Load one sample (assumes testset returns (img, mask))
+        img, mask = testset[idx]
+        mask = mask.squeeze()
 
         # Convert original image to PIL
         original_pil = tensor_to_pil(img)
@@ -78,18 +80,21 @@ def visualise_fs_segmentation(model, testset, device):
         with torch.no_grad():
             pred = model(img_batch).argmax(dim=1).squeeze(0)
         
-        # Create overlay
-        overlay_pil = overlay_mask_on_image(img, pred)
+        # Create ground-truth overlay
+        gt_overlay_pil = overlay_mask_on_image(img, mask)
+        # Create prediction overlay
+        pred_overlay_pil = overlay_mask_on_image(img, pred)
 
         original_list.append(original_pil)
-        overlay_list.append(overlay_pil)
+        gt_list.append(gt_overlay_pil)
+        pred_list.append(pred_overlay_pil)
     
     # Assume all images have the same size
     width, height = original_list[0].size
     
-    # We have 8 examples => 8 * 2 = 16 total cells in a 4x4 grid
-    grid_rows = 4
-    grid_cols = 4
+    # 8 rows, 3 columns
+    grid_rows = 8
+    grid_cols = 3
     
     # Each cell is (width, height). So total size:
     combined_width = grid_cols * width
@@ -98,24 +103,25 @@ def visualise_fs_segmentation(model, testset, device):
     # Create a big blank canvas
     combined = Image.new("RGB", (combined_width, combined_height))
     
-    # Place each example pair (original + overlay) into the grid
-    # We'll do 2 examples per row. Each example uses 2 columns:
-    # row = i // 2, col_offset = (i % 2) * 2
+    # Place each example (original, ground truth, prediction) in its row
     for i in range(len(samples)):
-        row = i // 2
-        col_offset = (i % 2) * 2
-
-        # Original goes in (row, col_offset)
-        x_orig = col_offset * width
-        y_orig = row * height
+        row = i  # each example is on its own row
+        # Column 0: original
+        x_0 = 0 * width
+        y_0 = row * height
         
-        # Overlay goes in (row, col_offset + 1)
-        x_ovly = (col_offset + 1) * width
-        y_ovly = row * height
+        # Column 1: true target overlay
+        x_1 = 1 * width
+        y_1 = row * height
         
-        combined.paste(original_list[i], (x_orig, y_orig))
-        combined.paste(overlay_list[i], (x_ovly, y_ovly))
+        # Column 2: prediction overlay
+        x_2 = 2 * width
+        y_2 = row * height
+        
+        combined.paste(original_list[i], (x_0, y_0))
+        combined.paste(gt_list[i], (x_1, y_1))
+        combined.paste(pred_list[i], (x_2, y_2))
 
-    # Finally, save one image with all 8 pairs in a 4x4 grid
+    # Finally, save the 8x3 grid
     combined.save("all_examples_grid.png")
     print("Saved grid of 8 examples as 'all_examples_grid.png'")
