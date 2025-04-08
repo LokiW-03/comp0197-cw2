@@ -7,13 +7,16 @@ from cam.postprocessing import generate_pseudo_masks
 from cam.dataset.oxfordpet import download_pet_dataset
 from model.data import testset
 from model.baseline_segnet import SegNet
+from model.efficient_unet import EfficientUNet
+from model.segnext import SegNeXt
 from model.train import train_model, compute_test_metrics_fn
 import itertools
 from ablation.search_space import generate_refined_cam_threshold_space
 from ablation.search_tools import save_results_to_csv
 
 
-def search(model_path, # Path to the classification model
+def search(seg_model_name, # Segmentation model
+           model_path, # Path to the classification model
            save_path, # temporary path to save pseudo masks
            batch_size,
            thres_low, # Low threshold for CAM
@@ -41,13 +44,21 @@ def search(model_path, # Path to the classification model
     trainval_loader = DataLoader(testset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False)
 
-
-    model = SegNet().to(device)
-    model.eval()
-    optimizer = optimizer_generator(model)
+    if seg_model_name == "segnet":
+        seg_model = SegNet()
+    elif seg_model_name == "efficientunet":
+        seg_model = EfficientUNet(num_classes=3)
+    elif seg_model_name == "segnext":
+        seg_model = SegNeXt(num_classes=3)
+    else:
+        raise ValueError(f"Invalid segmentation model: {seg_model_name}")
+    
+    seg_model.to(device)
+    seg_model.eval()
+    optimizer = optimizer_generator(seg_model)
     scheduler = scheduler_generator(optimizer)
-    train_model(model, pseudo_loader, trainval_loader, loss_fn, optimizer, epochs, device, compute_test_metrics = True, model_name = "segnet", scheduler=scheduler, verbose=False)
-    test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
+    train_model(seg_model, pseudo_loader, trainval_loader, loss_fn, optimizer, epochs, device, compute_test_metrics = True, model_name=seg_model_name, scheduler=scheduler, verbose=False)
+    test_metrics = compute_test_metrics_fn(seg_model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
 
     return test_metrics
 
@@ -61,23 +72,31 @@ if __name__ == "__main__":
     parser.add_argument("--result_path", type=str, default="./grid_search_results.csv", help="Path to search results")
     args = parser.parse_args()
 
-    MAX_TRIALS = 20
-    EPOCHS = 5
+    MAX_TRIALS = 40
+    EPOCHS = 10
     max_iou = 0
     best_params = {}
     best_metrics = None
 
-    cam_threshold_space = generate_refined_cam_threshold_space(base_low=0.25, base_high=0.325, space_size=10)
+    cam_threshold_space = [
+        (0.25, 0.325),
+        (0.2, 0.4),
+        (0.15, 0.45),
+        (0.3, 0.7),
+        (0.21, 0.33)
+    ]
     loss_fn_space = {
         "ce_mean": nn.CrossEntropyLoss(reduction='mean')
     }
     optimizer_generator_space = {
-        "adamw_1e-3_1e-4": lambda model: torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+        "adamw_1e-3_1e-4": lambda model: torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4),
+        "adamw_1e-2_1e-4": lambda model: torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-4)
     }
     scheduler_generator_space = {
-        "steplr_15_0.1": lambda optimizer: torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+        "steplr_15_0.1": lambda optimizer: torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1),
+        "ca_50_1e-6": lambda optimizer: torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
     }
-    batch_size_space = [64]
+    batch_size_space = [16, 32]
 
     # generate all combinations of parameters
     param_combinations = itertools.product(
@@ -107,6 +126,7 @@ if __name__ == "__main__":
         }
 
         test_metrics = search(
+            seg_model_name="segnet",
             model_path=args.model_path,
             save_path=f"cam/saved_models/resnet50_gradcampp_trial_pseudo.pt",
             batch_size=batch_size,
