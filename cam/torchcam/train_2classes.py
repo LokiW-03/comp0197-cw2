@@ -305,6 +305,8 @@ if __name__ == "__main__":
     EPOCHS = 10
     T_MAX = EPOCHS * len(pseudo_loader)
     OUT_CLASSES = 1
+    LR = 2e-4
+    ETA_MIN = 1e-5
 
     # Initialize model
     model = PetModel("FPN", "resnet34", in_channels=3, out_classes=OUT_CLASSES, lr=LR, 
