@@ -47,7 +47,7 @@ def search(seg_model_name, # Segmentation model
     if seg_model_name == "segnet":
         seg_model = SegNet()
     elif seg_model_name == "efficientunet":
-        seg_model = EfficientUNet(num_classes=3)
+        seg_model = EfficientUNet()
     elif seg_model_name == "segnext":
         seg_model = SegNeXt(num_classes=3)
     else:
