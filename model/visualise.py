@@ -1,5 +1,5 @@
 import torch
-from PIL import Image
+from PIL import Image, ImageDraw
 import random
 
 torch.manual_seed(42)
@@ -100,7 +100,7 @@ def visualise_fs_segmentation(model, testset, device):
     combined_width = grid_cols * width
     combined_height = grid_rows * height
     
-    # Create a big blank canvas
+    # Create a big blank canvas for the montage
     combined = Image.new("RGB", (combined_width, combined_height))
     
     # Place each example (original, ground truth, prediction) in its row
@@ -122,6 +122,18 @@ def visualise_fs_segmentation(model, testset, device):
         combined.paste(gt_list[i], (x_1, y_1))
         combined.paste(pred_list[i], (x_2, y_2))
 
-    # Finally, save the 8x3 grid
-    combined.save("all_examples_grid.png")
-    print("Saved grid of 8 examples as 'all_examples_grid.png'")
+    # Now, add a header region above the grid to draw text
+    header_height = 60  # space for two lines of text
+    montage_with_header = Image.new("RGB", (combined_width, combined_height + header_height), color=(0, 0, 0))
+
+    # Draw text on the new image
+    draw = ImageDraw.Draw(montage_with_header)
+    draw.text((10, 10), "Fully supervised montage", fill=(255, 255, 255))
+    draw.text((10, 30), "(image, mask, prediction)", fill=(255, 255, 255))
+
+    # Paste the montage below the header text
+    montage_with_header.paste(combined, (0, header_height))
+
+    # Save the final montage
+    montage_with_header.save("montage_fully_supervised.png")
+    print("Saved grid of 8 examples as 'montage_fully_supervised.png'")
