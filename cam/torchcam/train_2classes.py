@@ -181,6 +181,54 @@ class PetModel(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         valid_loss_info = self.shared_step(batch, "valid")
+
+        # --- Add Debug Visualization ---
+        if batch_idx == 0: # Only save first batch to avoid clutter
+            import torchvision.utils
+            import os
+            save_dir = "debug_validation_output"
+            os.makedirs(save_dir, exist_ok=True)
+
+            image = batch["image"]
+            mask = batch["mask"] # Ground truth AFTER collate_fn (0s and 1s)
+            # Re-calculate prediction mask if not returned by shared_step
+            with torch.no_grad():
+                logits_mask = self.forward(image)
+                prob_mask = logits_mask.sigmoid()
+                pred_mask = (prob_mask > 0.5).float() # Prediction (0s and 1s)
+
+            n_save = min(image.shape[0], 8) # Save up to 8 samples
+            print(f"\nSaving debug validation images, masks, preds to {save_dir}...")
+
+            # Save Images
+            torchvision.utils.save_image(image[:n_save].cpu(), os.path.join(save_dir, f"epoch_{self.current_epoch}_images.png"))
+
+            # Save Ground Truth Masks (pass float tensor with 0.0/1.0)
+            true_mask_float_01 = mask[:n_save].cpu().float() # Values are 0.0 and 1.0
+            # Let save_image handle scaling [0,1] -> [0,255]
+            torchvision.utils.save_image(true_mask_float_01, os.path.join(save_dir, f"epoch_{self.current_epoch}_true_masks.png"))
+            
+            # Calculation for printing fraction remains the same
+            # Compare mask to 0 (assuming 0 is foreground) -> results in BoolTensor
+            is_foreground_true = (mask[:n_save] == 0)
+            # Convert BoolTensor (True/False) to FloatTensor (1.0/0.0) BEFORE taking mean
+            fg_fraction_true = is_foreground_true.float().mean().item()
+            print(f"  Avg Foreground (0) fraction in True Masks: {fg_fraction_true:.3f}")
+
+
+            # Save Prediction Masks (pass float tensor with 0.0/1.0) - No change needed here
+            pred_mask_float_01 = pred_mask[:n_save].cpu() # Already float
+            torchvision.utils.save_image(pred_mask_float_01, os.path.join(save_dir, f"epoch_{self.current_epoch}_pred_masks.png"))
+
+            # Compare pred_mask to 0 -> results in BoolTensor
+            is_foreground_pred = (pred_mask[:n_save] == 0)
+            # Convert BoolTensor (True/False) to FloatTensor (1.0/0.0) BEFORE taking mean
+            fg_fraction_pred = is_foreground_pred.float().mean().item()
+            print(f"  Avg Foreground (0) fraction in Pred Masks: {fg_fraction_pred:.3f}")
+
+            print("Debug saving complete.\n")
+        # --- End Debug Visualization ---
+
         self.validation_step_outputs.append(valid_loss_info)
         return valid_loss_info
 
@@ -260,5 +308,5 @@ if __name__ == "__main__":
     valid_metrics = trainer.validate(model, dataloaders=test_loader, verbose=False)
     print(valid_metrics)
 
-    from cam.torchcam.exp_viz import vis
+    from cam.torchcam.exp_viz import vis_2class as vis
     vis(test_loader, model, taged=True)
