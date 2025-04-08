@@ -39,7 +39,12 @@ class PetModel(pl.LightningModule):
         self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
 
         # for image segmentation dice loss could be the best first choice
-        self.loss_fn = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
+        # self.loss_fn = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
+        self.dice_loss = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
+        self.bce_loss = nn.BCEWithLogitsLoss()
+
+        self.loss_alpha = 0.5  # Weight for Dice loss
+        self.loss_beta = 0.5   # Weight for BCE loss
 
         # initialize step metics
         self.training_step_outputs = []
@@ -76,7 +81,16 @@ class PetModel(pl.LightningModule):
         logits_mask = self.forward(image)
 
         # Predicted mask contains logits, and loss_fn param `from_logits` is set to True
-        loss = self.loss_fn(logits_mask, mask)
+        # loss = self.loss_fn(logits_mask, mask.float())
+        # --- Calculate Combined Loss ---
+        # Dice loss expects integer/long mask
+        loss_d = self.dice_loss(logits_mask, mask)
+        # BCE loss expects float mask
+        loss_b = self.bce_loss(logits_mask, mask.float()) # Cast mask to float
+
+        # Combine the losses using defined weights
+        loss = (self.loss_alpha * loss_d) + (self.loss_beta * loss_b)
+        # --- End Combined Loss ---
 
         # Lets compute metrics for some threshold
         # first convert mask values to probabilities, then
