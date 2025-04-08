@@ -9,11 +9,9 @@ from model.data import testset
 from model.baseline_segnet import SegNet
 from model.train import train_model, compute_test_metrics_fn
 import itertools
-import random
 from ablation.search_space import generate_refined_cam_threshold_space
 from ablation.search_tools import save_results_to_csv
 
-random.seed(42)
 
 def search(model_path, # Path to the classification model
            save_path, # temporary path to save pseudo masks
@@ -88,9 +86,12 @@ if __name__ == "__main__":
         optimizer_generator_space.keys(),
         scheduler_generator_space.keys(),
         batch_size_space
-    )[:MAX_TRIALS]
+    )
 
     for i, (thresholds, loss_fn_key, opt_gen_key, sch_gen_key, batch_size) in enumerate(param_combinations):
+        if i == MAX_TRIALS:
+            print("Max trials reached.")
+            break
         thres_low, thres_high = thresholds
         
         print(f"\nTrial {i}:")
