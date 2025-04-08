@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     cam_threshold_space = [
         (0.25, 0.325),
-        (0.15, 0.45),
+        (0.3, 0.7), # Use a common setting to avoid bias
         (0.21, 0.33)
     ]
     loss_fn_space = {
@@ -125,6 +125,8 @@ if __name__ == "__main__":
                 "batch_size": batch_size,
             }
         }
+
+        print(f"Parameters: {result['parameters']}")
 
         test_metrics = search(
             seg_model_name="segnet",
