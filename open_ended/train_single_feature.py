@@ -4,8 +4,8 @@ import argparse
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from model_utils import EffUnetWrapper
-from data_utils import PetsDataset, IGNORE_INDEX
+from open_ended.model_utils import EffUnetWrapper
+from open_ended.data_utils import PetsDataset, IGNORE_INDEX
 from losses import PartialCrossEntropyLoss, CombinedLoss
 from model_utils import SegNeXtWrapper
 import numpy as np # Needed for metric calculation maybe
