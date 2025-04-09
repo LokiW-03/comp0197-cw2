@@ -14,7 +14,7 @@ import torchmetrics # Added for metric calculation
 DEFAULT_DATA_DIR = './data'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
-DEFAULT_NUM_CLASSES = 3 # If compare to ground truth, we should have 3 classes
+DEFAULT_NUM_CLASSES = 2 # Pet and Background
 
 def setup_arg_parser():
     parser = argparse.ArgumentParser(description='Train WSSS Model on Pets Dataset')

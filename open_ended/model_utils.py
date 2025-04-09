@@ -25,7 +25,7 @@ class SegNetWrapper(nn.Module):
         self.mode = mode
         self.num_classes = num_classes
         # Use the SegNet model you defined above
-        self.seg_model = SegNet(num_classes=num_classes)
+        self.seg_model = SegNet(output_num_classes=num_classes)
 
     def forward(self, x):
         seg_logits = self.seg_model(x)  # [B, C, H, W]

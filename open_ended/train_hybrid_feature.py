@@ -17,7 +17,7 @@ import traceback
 DEFAULT_DATA_DIR = './data'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
-DEFAULT_NUM_CLASSES = 3 # IoU should have 3 classes, foreground, background and boundary. Boundary is ignored here.
+DEFAULT_NUM_CLASSES = 2 # IoU should have 2 classes, foreground, background
 
 # ***** HELPER FUNCTION for formatting time *****
 def format_time(seconds):
