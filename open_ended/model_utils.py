@@ -2,10 +2,12 @@
 import torch
 import torch.nn as nn
 import segmentation_models_pytorch as smp
-from model.segnext import SegNeXt
-class SegNeXtWrapper(nn.Module):
+from model.baseline_segnet import SegNet
+
+
+class SegNetWrapper(nn.Module):
     """
-    Wrapper that uses the SegNeXt architecture internally, but allows switching 
+    Wrapper that uses the SegNet architecture internally, but allows switching
     between 'single' and 'hybrid' output formats:
 
       * 'single' -> returns only the segmentation tensor
@@ -23,7 +25,7 @@ class SegNeXtWrapper(nn.Module):
         self.mode = mode
         self.num_classes = num_classes
         # Use the SegNeXt model you defined above
-        self.seg_model = SegNeXt(num_classes=num_classes)
+        self.seg_model = SegNet(num_classes=num_classes)
 
     def forward(self, x):
         seg_logits = self.seg_model(x)  # [B, C, H, W]
