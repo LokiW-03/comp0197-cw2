@@ -408,8 +408,8 @@ def main():
             # ********************************************************
 
             # Optional: Save latest checkpoint
-            if (epoch + 1) % 10 == 0 or epoch == args.epochs - 1:
-                latest_save_path = f"{checkpoint_path_base}_latest.pth"
+            if (epoch + 1) % 3 == 0 or epoch == args.epochs - 1:
+                latest_save_path = f"{checkpoint_path_base}_{epoch}.pth"
                 model.cpu()
                 torch.save({
                     'epoch': epoch + 1,
