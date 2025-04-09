@@ -24,7 +24,7 @@ class SegNetWrapper(nn.Module):
         super().__init__()
         self.mode = mode
         self.num_classes = num_classes
-        # Use the SegNeXt model you defined above
+        # Use the SegNet model you defined above
         self.seg_model = SegNet(num_classes=num_classes)
 
     def forward(self, x):
