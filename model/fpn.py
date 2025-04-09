@@ -28,7 +28,7 @@ class ConvReLU(nn.Sequential):
             padding=padding,
             bias=not use_batchnorm,
         )
-        relu = nn.ReLU(inplace=True)
+        relu = nn.ReLU(inplace=False)
         layers = [conv, relu]
         if use_batchnorm:
             layers.insert(1, nn.BatchNorm2d(out_channels))
@@ -117,7 +117,7 @@ class FPN(nn.Module):
             padding=1,
             use_batchnorm=use_batchnorm,
         )
-        self.dropout = nn.Dropout2d(p=dropout, inplace=True)
+        self.dropout = nn.Dropout2d(p=dropout, inplace=False)
         self.final_conv = nn.Conv2d(segmentation_channels, classes, kernel_size=1)
 
         # --- Initialize ONLY FPN Layers ---
