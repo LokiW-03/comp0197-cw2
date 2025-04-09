@@ -38,101 +38,145 @@ def setup_arg_parser():
 
     return parser
 
-# Modified train_one_epoch to calculate and return train loss, accuracy, and pet_iou
 def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes):
     model.train()
     total_loss = 0.0
     num_batches = len(loader)
 
-    # Initialize metrics
+    # Initialize metrics (to be computed against GT)
     train_accuracy = torchmetrics.Accuracy(
         task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='macro'
-        ).to(device)
+    ).to(device)
     train_iou = torchmetrics.JaccardIndex(
-        task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='none' # Get IoU per class
-        ).to(device)
+        task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='none'
+    ).to(device)
 
-    print(f"Starting training epoch...") # Simple progress indicator
-    for i, (images, targets, _) in enumerate(loader): # Ignore GT mask during weak training unless needed
+    print(f"Starting training epoch (Metrics calculated against GT)...")
+    # Expecting (images, supervision_target, gt_mask) from the DataLoader
+    for i, batch_data in enumerate(loader):
+        if len(batch_data) != 3:
+             print(f"Warning: Unexpected data format from loader in batch {i}. Expected 3 items, got {len(batch_data)}. Skipping batch.")
+             continue
+        # Unpack all three components
+        images, targets, gt_masks = batch_data
+
         images = images.to(device)
+        # --- Use GT Mask for metrics ---
+        gt_masks_device = gt_masks.to(device).long() # Ensure GT is LongTensor on device
 
-        # Targets here are the weak labels (points, scribbles, boxes pseudo-masks, or full masks)
-        # Need targets as LongTensor for loss and metrics
+        # --- Prepare Supervision Target for LOSS ---
+        # This logic handles Tensor or Dict targets for the loss function
+        targets_for_loss = None
         if isinstance(targets, torch.Tensor):
-            targets_device = targets.to(device).long() # Ensure LongTensor
+            # Expected case for single supervision modes if dataset is correct
+            targets_for_loss = targets.to(device).long()
         elif isinstance(targets, dict):
-            # This script shouldn't hit this based on its modes, but handle defensively
-            # Assuming the relevant target for segmentation is a tensor if dict is used
-            if 'segmentation' in targets:
-                 targets_device = targets['segmentation'].to(device).long()
-            else:
-                 # Heuristic: try to find a tensor target
+             # Handle dict if dataset returns it unexpectedly or for specific loss fns
+             if mode == 'points' and 'points' in targets:
+                 targets_for_loss = targets['points'].to(device).long()
+             elif mode == 'scribbles' and 'scribbles' in targets:
+                 targets_for_loss = targets['scribbles'].to(device).long()
+             elif mode == 'boxes' and 'boxes' in targets:
+                 targets_for_loss = targets['boxes'].to(device).long()
+             # Add more specific handling if needed, or a fallback
+             else:
+                 # Fallback logic (less ideal) - try finding any tensor
                  found_target = None
                  for k, v in targets.items():
                      if isinstance(v, torch.Tensor):
                          found_target = v.to(device).long()
-                         print(f"Warning: Using target['{k}'] for training metrics as default 'segmentation' not found.")
+                         print(f"Warning: Using target['{k}'] heuristically for LOSS calculation in mode '{mode}'.")
                          break
                  if found_target is None:
-                     print(f"Error: Cannot determine target tensor for metrics in training batch {i}. Skipping metrics update.")
-                     targets_device = None # Signal to skip metrics
+                      print(f"Error: Cannot determine suitable target tensor for LOSS in batch {i}. Skipping loss.")
+                      targets_for_loss = None
                  else:
-                     targets_device = found_target
-
+                      targets_for_loss = found_target
         else:
-            raise TypeError("Invalid target type")
+             print(f"Error: Invalid target type for loss: {type(targets)}. Skipping batch {i}.")
+             continue # Skip if target type is wrong
 
+        # --- Training Step ---
         optimizer.zero_grad()
-        outputs = model(images) # Shape: (B, C, H, W)
+        outputs = model(images) # Shape: (B, C, H, W) - Assuming single tensor output
 
-        # Calculate loss based on mode
-        if targets_device is not None:
-            if mode in ['points', 'scribbles', 'boxes', 'full']: # Assume segmentation output
-                 loss = loss_fn(outputs, targets_device) # CE/PartialCE expects long targets
-            else:
-                 raise ValueError(f"Unknown mode {mode} for loss calculation")
-
-            if torch.isnan(loss) or torch.isinf(loss):
-                 print(f"Warning: NaN or Inf loss encountered in batch {i}. Skipping backward pass.")
-                 # Optional: Add more debugging here (print inputs/outputs)
-                 continue # Skip this batch
-
-            loss.backward()
-            optimizer.step()
-
-            total_loss += loss.item()
-
-            # Calculate metrics
-            try:
-                preds = torch.argmax(outputs, dim=1) # Shape: (B, H, W)
-                train_accuracy.update(preds, targets_device)
-                train_iou.update(preds, targets_device)
-            except Exception as e:
-                print(f"Warning: Error updating training metrics in batch {i}: {e}")
-
-        else:
-             # Skip batch if target couldn't be determined
-             print(f"Skipping training batch {i} due to missing target for metrics.")
+        # Check model output type
+        if not isinstance(outputs, torch.Tensor):
+             print(f"Error: Model output is not a Tensor. Got {type(outputs)}. Skipping batch {i}.")
              continue
 
+        # Calculate Loss (using the prepared targets_for_loss)
+        loss = torch.tensor(0.0).to(device) # Initialize loss
+        if targets_for_loss is not None:
+             try:
+                  # Use the appropriate target for the loss function
+                  loss = loss_fn(outputs, targets_for_loss)
 
-        if (i + 1) % 50 == 0: # Print progress every 50 batches
-             print(f"  Batch {i+1}/{num_batches}, Current Avg Loss: {total_loss / (i+1):.4f}")
+                  if torch.isnan(loss) or torch.isinf(loss):
+                      print(f"Warning: NaN or Inf loss encountered in batch {i}. Skipping backward pass.")
+                      continue
+
+                  loss.backward() # Backpropagate only if loss is valid
+                  optimizer.step()
+                  total_loss += loss.item()
+
+             except Exception as e:
+                  print(f"Error during loss calculation/backward in batch {i}: {e}")
+                  import traceback
+                  traceback.print_exc()
+                  # Don't update metrics if loss failed
+                  continue # Skip metric update for this batch
+        else:
+            # If targets_for_loss is None, skip backward/step and metric update
+            print(f"Skipping backward/step and metrics for batch {i} due to missing loss target.")
+            continue
+
+
+        # --- Calculate Metrics (using GT masks) ---
+        try:
+            with torch.no_grad():
+                preds = torch.argmax(outputs, dim=1) # Shape: (B, H, W)
+                # Update metrics using predictions and GROUND TRUTH masks
+                train_accuracy.update(preds, gt_masks_device)
+                train_iou.update(preds, gt_masks_device)
+        except Exception as e:
+            print(f"Warning: Error updating training metrics in batch {i}: {e}")
+            # Continue training even if metrics fail for a batch
+
+
+        if (i + 1) % 50 == 0:
+             # Optionally compute/print current metrics here if needed (can be slow)
+             # current_acc = train_accuracy.compute().item()
+             print(f"  Batch {i+1}/{num_batches}, Current Avg Loss: {total_loss / (i+1):.4f}") # Use i+1 for avg loss calc
+
 
     avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
 
-    # Compute final epoch metrics
+    # Compute final epoch metrics from GT comparison
     epoch_train_acc = 0.0
     epoch_train_pet_iou = 0.0
     try:
         epoch_train_acc = train_accuracy.compute().item()
         iou_per_class = train_iou.compute()
-        if num_classes > 1 and len(iou_per_class) > 1:
-            epoch_train_pet_iou = iou_per_class[1].item() # Assuming class 1 is 'pet'
-        elif num_classes == 1:
-             epoch_train_pet_iou = iou_per_class[0].item() # Or handle single class case if needed
-        else: # Handle cases where IoU might not be computed correctly (e.g., all ignored pixels)
+        if num_classes > 1 and iou_per_class.numel() > 1 :
+             # Add check for NaN/Inf IoU
+             pet_iou_tensor = iou_per_class[1]
+             if torch.isinf(pet_iou_tensor) or torch.isnan(pet_iou_tensor):
+                 epoch_train_pet_iou = 0.0
+                 print("Warning: Pet IoU calculation resulted in NaN or Inf for training epoch.")
+             else:
+                 epoch_train_pet_iou = pet_iou_tensor.item() # Assuming class 1 is 'pet'
+        elif num_classes == 1 and iou_per_class.numel() > 0:
+             pet_iou_tensor = iou_per_class[0]
+             if torch.isinf(pet_iou_tensor) or torch.isnan(pet_iou_tensor):
+                 epoch_train_pet_iou = 0.0
+                 print("Warning: Single class IoU calculation resulted in NaN or Inf for training epoch.")
+             else:
+                 epoch_train_pet_iou = iou_per_class[0].item()
+        else:
              epoch_train_pet_iou = 0.0
+             print(f"Warning: Could not compute valid Pet IoU for training epoch (num_classes={num_classes}, iou_tensor_size={iou_per_class.numel()}).")
+
 
     except Exception as e:
         print(f"Error computing final training metrics: {e}")
@@ -140,7 +184,8 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes
         train_accuracy.reset()
         train_iou.reset()
 
-    print(f"Training epoch finished. Average Loss: {avg_loss:.4f}, Train Acc: {epoch_train_acc:.4f}, Train Pet IoU: {epoch_train_pet_iou:.4f}")
+    print(f"Training epoch finished. Avg Loss: {avg_loss:.4f}, Train Acc (GT): {epoch_train_acc:.4f}, Train Pet IoU (GT): {epoch_train_pet_iou:.4f}")
+    # Return metrics calculated against GT
     return avg_loss, epoch_train_acc, epoch_train_pet_iou
 
 # Modified validate_one_epoch to calculate and return val loss, accuracy, and pet_iou
