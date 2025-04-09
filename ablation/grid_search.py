@@ -9,6 +9,7 @@ from model.data import testset
 from model.baseline_segnet import SegNet
 from model.efficient_unet import EfficientUNet
 from model.segnext import SegNeXt
+from model.baseline_unet import UNet
 from model.train import train_model, compute_test_metrics_fn
 import itertools
 from ablation.search_space import generate_refined_cam_threshold_space
@@ -51,6 +52,8 @@ def search(seg_model_name, # Segmentation model
         seg_model = EfficientUNet()
     elif seg_model_name == "segnext":
         seg_model = SegNeXt(num_classes=3)
+    elif seg_model_name == "unet":
+        seg_model = UNet(3, 3)
     else:
         raise ValueError(f"Invalid segmentation model: {seg_model_name}")
     
@@ -129,7 +132,7 @@ if __name__ == "__main__":
         print(f"Parameters: {result['parameters']}")
 
         test_metrics = search(
-            seg_model_name="segnet",
+            seg_model_name="unet",
             model_path=args.model_path,
             save_path=f"cam/saved_models/resnet50_gradcampp_trial_pseudo.pt",
             batch_size=batch_size,
