@@ -58,6 +58,12 @@ Train models
 
 ```
 
+## Visualization
+
+```
+python visualize.py
+```
+
 
 ## Colab Run script
 
