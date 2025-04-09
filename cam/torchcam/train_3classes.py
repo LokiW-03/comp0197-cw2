@@ -16,6 +16,7 @@ class PetModel(pl.LightningModule):
         super().__init__()
         #Save input hyperparameters
         self.save_hyperparameters()
+        self.number_of_classes = out_classes
         
         if arch.lower() == "fpn":
             use_pretrained = True
@@ -31,8 +32,8 @@ class PetModel(pl.LightningModule):
             )
             # Set normalization for standard ImageNet pretraining
             print("Setting normalization to ImageNet defaults for custom FPN.")
-            self.register_buffer("mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
-            self.register_buffer("std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
+            self.register_buffer("mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)) # resnet34
+            self.register_buffer("std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)) # resnet34
 
         else:
             self.model = smp.create_model(
@@ -44,7 +45,6 @@ class PetModel(pl.LightningModule):
             )
             # Preprocessing parameters for image normalization
             params = smp.encoders.get_preprocessing_params(encoder_name)
-            self.number_of_classes = out_classes
             self.register_buffer("std", torch.tensor(params["std"]).view(1, 3, 1, 1))
             self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
 
