@@ -14,7 +14,7 @@ import torchmetrics # Added for metric calculation
 DEFAULT_DATA_DIR = './data'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
-DEFAULT_NUM_CLASSES = 2 # BG + Pet
+DEFAULT_NUM_CLASSES = 3 # If compare to ground truth, we should have 3 classes
 
 def setup_arg_parser():
     parser = argparse.ArgumentParser(description='Train WSSS Model on Pets Dataset')
@@ -349,7 +349,7 @@ def main():
 
             # --- Save checkpoint based on best validation accuracy ---
             if val_pet_iou > best_val_iou:
-                best_val_iou = val_acc
+                best_val_iou = val_pet_iou
                 save_path = f"{checkpoint_path_base}_best_acc.pth" # Changed filename
                 # Save metrics along with model state
                 torch.save({
@@ -366,7 +366,7 @@ def main():
                     'best_val_iou': best_val_iou, # Save the best iou achieved so far
                     'args': args # Save config too
                 }, save_path)
-                print(f"Checkpoint saved: Validation accuracy improved to {best_val_iou:.4f}. Saved to {save_path}")
+                print(f"Checkpoint saved: Validation IOU improved to {best_val_iou:.4f}. Saved to {save_path}")
             # ---------------------------------------------------------
 
             # Optional: Save latest checkpoint every N epochs or at the end

@@ -17,7 +17,7 @@ import traceback
 DEFAULT_DATA_DIR = './data'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
-DEFAULT_NUM_CLASSES = 2 # IoU should have 3 classes, foreground, background and boundary. Boundary is ignored here.
+DEFAULT_NUM_CLASSES = 3 # IoU should have 3 classes, foreground, background and boundary. Boundary is ignored here.
 
 # ***** HELPER FUNCTION for formatting time *****
 def format_time(seconds):
@@ -388,7 +388,7 @@ def main():
 
             # --- Save checkpoint based on best validation accuracy ---
             if val_pet_iou > best_val_iou:
-                best_val_iou = val_acc
+                best_val_iou = val_pet_iou
                 save_path = f"{checkpoint_path_base}_best_acc.pth" # Changed filename
                 model.cpu() # Move to CPU before saving
                 torch.save({
@@ -404,7 +404,7 @@ def main():
                     'args': args
                 }, save_path)
                 model.to(device) # Move back to device
-                print(f"Checkpoint saved: Validation accuracy improved to {best_val_iou:.4f} (Loss: {val_loss:.4f}, Pet IoU: {val_pet_iou:.4f}). Saved to {save_path}")
+                print(f"Checkpoint saved: Validation IOU improved to {best_val_iou:.4f} (Loss: {val_loss:.4f}, Pet IoU: {val_pet_iou:.4f}). Saved to {save_path}")
             # ********************************************************
 
             # Optional: Save latest checkpoint
