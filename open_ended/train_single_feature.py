@@ -295,6 +295,13 @@ def main():
             )
 
             scheduler.step() # Step the scheduler each epoch
+            current_lr = scheduler.get_last_lr()[0]
+
+            # ***** MODIFIED PRINT STATEMENT *****
+            print(f"Epoch {epoch+1} Summary: "
+                  f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train Pet IoU: {train_pet_iou:.4f} | "
+                  f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val Pet IoU: {val_pet_iou:.4f} | "
+                  f"LR: {current_lr:.6f}")
 
             # --- Save checkpoint based on best validation accuracy ---
             if val_acc > best_val_acc:

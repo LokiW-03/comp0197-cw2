@@ -12,6 +12,7 @@ import numpy as np
 import torchmetrics # Added for metric calculation
 from model import SegNeXtWrapper
 import time
+import traceback
 
 # --- Configuration ---
 DEFAULT_DATA_DIR = './data'
@@ -49,55 +50,69 @@ def setup_arg_parser():
 
     return parser
 
-# Modified train_one_epoch: Only calculates and returns train loss for hybrid mode
-# Calculating reliable train accuracy/IoU with hybrid targets is complex. Focus on validation metrics.
-def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
+def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes):
     model.train()
     total_loss = 0.0
     num_batches = len(loader)
-    epoch_batches_start_time = time.time() # Time batch processing within epoch
+    epoch_batches_start_time = time.time()
 
-    print(f"Starting training epoch...")
-    # The third item returned by dataset is GT mask - ignored during weak training
-    for i, (images, targets, _) in enumerate(loader):
+    # --- Initialize metrics (similar to train.py) ---
+    train_accuracy = torchmetrics.Accuracy(
+        task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='macro'
+    ).to(device)
+    train_iou = torchmetrics.JaccardIndex(
+        task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='none' # Get IoU per class
+    ).to(device)
+    # ------------------------------------------------
+
+    print(f"Starting training epoch (metrics calculated against GT)...")
+    # Dataset returns (image, weak_target, gt_mask)
+    # We use weak_target for loss, gt_mask for metrics
+    for i, batch_data in enumerate(loader):
         batch_start_time = time.time()
-        images = images.to(device)
 
-        # Move targets to device based on mode (targets is expected to be a dict in hybrid modes)
+        if len(batch_data) != 3:
+             print(f"Warning: Unexpected data format from loader in batch {i}. Expected 3 items, got {len(batch_data)}. Skipping batch.")
+             continue
+        images, targets, gt_masks = batch_data # Unpack all three
+
+        images = images.to(device)
+        # Ensure GT masks are suitable for metrics (LongTensor)
+        gt_masks_device = gt_masks.to(device).long()
+
+        # Move weak targets to device based on mode
         if isinstance(targets, torch.Tensor):
-            # This case might occur if 'full' or single weak supervision is used with this script
-            targets_device = targets.to(device).long() # Ensure long for potential CE loss inside CombinedLoss
-            print(f"Warning: Training with Tensor targets in hybrid script (Batch {i}). Ensure loss function handles this.")
+            targets_device = targets.to(device).long()
+            # print(f"Warning: Training with Tensor targets in hybrid script (Batch {i}). Ensure loss function handles this.")
         elif isinstance(targets, dict):
             targets_device = {k: v.to(device) for k, v in targets.items()}
         else:
-            raise TypeError("Invalid target type")
+            print(f"Error: Invalid weak target type received: {type(targets)}. Skipping batch {i}.")
+            continue # Skip batch
 
         optimizer.zero_grad()
-        outputs = model(images) # Expect dict output {'segmentation': ...} in hybrid mode
 
-        # Calculate loss based on mode
         try:
-            # CombinedLoss expects the dictionary of targets
-            if mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
-                loss = loss_fn(outputs, targets_device)
-            # Handle non-hybrid modes if they are run through this script (less ideal)
-            elif mode in ['points', 'scribbles', 'boxes', 'full']:
-                 seg_output = outputs['segmentation'] if isinstance(outputs, dict) else outputs
-                 # Use a simple CE loss here if CombinedLoss is not appropriate
-                 # Using loss_fn might be wrong if it's CombinedLoss instance.
-                 # For simplicity, assuming loss_fn is correctly set based on mode in main()
-                 # But if CombinedLoss is passed, it might error on Tensor targets.
-                 # It's better to use the other script for non-hybrid modes.
-                 # Let's assume loss_fn handles both dict and tensor outputs/targets correctly if needed.
-                 temp_loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX).to(device) if not isinstance(loss_fn, CombinedLoss) else loss_fn
-                 # We need the target tensor, not the dict for simple CE
-                 target_tensor_for_loss = targets_device if isinstance(targets_device, torch.Tensor) else targets_device.get('segmentation') # Heuristic
-                 if target_tensor_for_loss is None:
-                     raise ValueError("Cannot find suitable target tensor for non-hybrid loss calculation in hybrid script.")
-                 loss = temp_loss_fn(seg_output, target_tensor_for_loss)
+            # --- Model Forward Pass ---
+            outputs = model(images) # Expect dict {'segmentation':...} or tensor
+
+            # --- Extract Segmentation Logits ---
+            # Handle potential dict or tensor output from model consistently
+            seg_logits = None
+            if isinstance(outputs, dict):
+                seg_logits = outputs.get('segmentation')
+                if seg_logits is None:
+                     print(f"Error: Model output dictionary missing 'segmentation' key in training batch {i}. Skipping.")
+                     continue
+            elif isinstance(outputs, torch.Tensor):
+                seg_logits = outputs
             else:
-                 raise ValueError(f"Unknown mode {mode} for loss calculation")
+                 print(f"Error: Unexpected model output type in training batch {i}: {type(outputs)}. Skipping.")
+                 continue
+
+            # --- Loss Calculation (using weak labels) ---
+            # Pass the original outputs (dict or tensor) and weak targets (targets_device) to loss_fn
+            loss = loss_fn(outputs, targets_device)
 
             if torch.isnan(loss) or torch.isinf(loss):
                  print(f"Warning: NaN or Inf loss encountered in training batch {i}. Skipping backward pass.")
@@ -105,8 +120,15 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
 
             loss.backward()
             optimizer.step()
-
             total_loss += loss.item()
+
+            # --- Metric Calculation (using GT masks) ---
+            with torch.no_grad(): # Ensure metrics don't track gradients
+                 preds = torch.argmax(seg_logits, dim=1) # Get predictions from logits
+                 # Update metrics using predictions and the GROUND TRUTH mask
+                 train_accuracy.update(preds, gt_masks_device)
+                 train_iou.update(preds, gt_masks_device)
+            # --------------------------------------------
 
             # --- Optional: Batch timing and ETA within epoch ---
             batch_end_time = time.time()
@@ -119,19 +141,55 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
 
             if (i + 1) % 50 == 0: # Print progress every 50 batches
                  eta_epoch_str = format_time(eta_epoch_seconds)
-                 print(f"  Train Batch {i+1}/{num_batches}, Current Avg Loss: {total_loss / (i+1):.4f}, Batch Time: {batch_duration:.2f}s, Epoch ETA: {eta_epoch_str}")
+                 # Calculate current average accuracy for interim reporting (optional)
+                 current_acc = train_accuracy.compute().item() # Compute on the fly
+                 print(f"  Train Batch {i+1}/{num_batches}, Loss: {total_loss / (i+1):.4f}, Current Train Acc (GT): {current_acc:.4f}, Batch Time: {batch_duration:.2f}s, Epoch ETA: {eta_epoch_str}")
 
         except Exception as e:
             print(f"Error during training batch {i}: {e}")
-            import traceback
             traceback.print_exc()
             continue # Skip batch on error
 
     avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
-    print(f"Training epoch finished. Average Loss: {avg_loss:.4f}")
-    # Return only average loss for training in hybrid mode
-    return avg_loss
 
+    # --- Compute final epoch metrics ---
+    epoch_train_acc = 0.0
+    epoch_train_pet_iou = 0.0
+    try:
+        epoch_train_acc = train_accuracy.compute().item()
+        iou_per_class = train_iou.compute()
+        # Handle potential issues with IoU calculation (e.g., division by zero if no true positives/union)
+        if num_classes > 1 and iou_per_class.numel() > 1:
+            # Check for NaN/Inf before converting to item()
+            pet_iou_tensor = iou_per_class[1]
+            if torch.isinf(pet_iou_tensor) or torch.isnan(pet_iou_tensor):
+                 epoch_train_pet_iou = 0.0 # Assign 0 if IoU is invalid
+                 print("Warning: Pet IoU calculation resulted in NaN or Inf for training.")
+            else:
+                 epoch_train_pet_iou = pet_iou_tensor.item() # Assuming class 1 is 'pet'
+        elif num_classes == 1 and iou_per_class.numel() > 0:
+             pet_iou_tensor = iou_per_class[0]
+             if torch.isinf(pet_iou_tensor) or torch.isnan(pet_iou_tensor):
+                  epoch_train_pet_iou = 0.0
+                  print("Warning: Single class IoU calculation resulted in NaN or Inf for training.")
+             else:
+                  epoch_train_pet_iou = pet_iou_tensor.item()
+        else:
+            epoch_train_pet_iou = 0.0 # Handle cases where IoU might not be computed correctly
+            print(f"Warning: Could not compute valid Pet IoU for training (num_classes={num_classes}, iou_tensor_size={iou_per_class.numel()}).")
+
+    except Exception as e:
+        print(f"Error computing final training metrics: {e}")
+        traceback.print_exc()
+    finally:
+        # Reset metrics for the next epoch
+        train_accuracy.reset()
+        train_iou.reset()
+    # ---------------------------------
+
+    # --- Updated Print Statement & Return Value ---
+    print(f"Training epoch finished. Average Loss: {avg_loss:.4f}, Train Acc (GT): {epoch_train_acc:.4f}, Train Pet IoU (GT): {epoch_train_pet_iou:.4f}")
+    return avg_loss, epoch_train_acc, epoch_train_pet_iou # Return metrics
 
 # Modified validate_one_epoch to calculate and return val loss, accuracy, and pet_iou
 def validate_one_epoch(model, loader, device, num_classes):
@@ -313,14 +371,21 @@ def main():
 
         try:
             # Get train loss (only loss is returned now)
-            train_loss = train_one_epoch(
-                model, train_loader, optimizer, loss_fn, device, args.supervision_mode
+            train_loss, train_acc, train_pet_iou = train_one_epoch(
+                model, train_loader, optimizer, loss_fn, device, args.supervision_mode, num_output_classes
             )
             # Get validation metrics
             val_loss, val_acc, val_pet_iou = validate_one_epoch(
                 model, val_loader, device, num_output_classes
             )
-            scheduler.step()
+            scheduler.step() # Step the scheduler each epoch
+            current_lr = scheduler.get_last_lr()[0]
+
+            # ***** MODIFIED PRINT STATEMENT *****
+            print(f"Epoch {epoch+1} Summary: "
+                  f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train Pet IoU: {train_pet_iou:.4f} | "
+                  f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val Pet IoU: {val_pet_iou:.4f} | "
+                  f"LR: {current_lr:.6f}")
 
             # --- Save checkpoint based on best validation accuracy ---
             if val_acc > best_val_acc:
