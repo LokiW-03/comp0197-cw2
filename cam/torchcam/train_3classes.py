@@ -25,10 +25,13 @@ class PetModel(pl.LightningModule):
                 use_pretrained = False
                 
             self.model = FPN(
+                encoder_name=encoder_name,
                 in_channels=in_channels,
                 classes=out_classes,
                 pretrained=use_pretrained,
-                **kwargs,
+                pyramid_channels=kwargs.get('fpn_pyramid_channels', 256),
+                segmentation_channels=kwargs.get('fpn_segmentation_channels', 128),
+                dropout=kwargs.get('fpn_dropout', 0.2)
             )
             # Set normalization for standard ImageNet pretraining
             print("Setting normalization to ImageNet defaults for custom FPN.")
