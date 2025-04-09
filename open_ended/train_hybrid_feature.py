@@ -5,7 +5,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
-from open_ended.model_utils import EffUnetWrapper, SegNeXtWrapper
+from open_ended.model_utils import EffUnetWrapper, SegNetWrapper
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
 from open_ended.losses import PartialCrossEntropyLoss, CombinedLoss
 import numpy as np
@@ -326,7 +326,7 @@ def main():
     print(f"Initializing model in '{model_mode}' mode with {num_output_classes} output classes for segmentation head.")
     # model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)
     # model.to(device)
-    model = SegNeXtWrapper(num_classes=num_output_classes, mode=model_mode) # Pass num_classes here
+    model = SegNetWrapper(num_classes=num_output_classes, mode=model_mode) # Pass num_classes here
     model.to(device)
 
     # --- Define Loss Function ---
