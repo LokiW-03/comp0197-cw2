@@ -4,11 +4,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-from torchvision.models import ResNet34_Weights # Modern weights API
+from torchvision.models import ResNet34_Weights
 from torchvision.models.feature_extraction import create_feature_extractor
-from typing import Optional, Dict
+from typing import Dict
 
-# Keep the ConvReLU helper class
 class ConvReLU(nn.Sequential):
     """Standard Conv -> BN (optional) -> ReLU block."""
     def __init__(
@@ -35,32 +34,50 @@ class ConvReLU(nn.Sequential):
         super().__init__(*layers)
 
 
+from torchvision.models import ResNet34_Weights, ResNet50_Weights
+# --- Helper dictionary for encoder properties ---
+# Maps encoder name to: (torchvision_model_fn, weights_enum, return_nodes, C2-C5_channels)
+ENCODER_INFO = {
+    "resnet34": (
+        models.resnet34,
+        ResNet34_Weights.IMAGENET1K_V1,
+        {'layer1': 'c2', 'layer2': 'c3', 'layer3': 'c4', 'layer4': 'c5'},
+        [64, 128, 256, 512], # Channels for C2, C3, C4, C5
+    ),
+    "resnet50": (
+        models.resnet50,
+        ResNet50_Weights.IMAGENET1K_V2, # Use V2 for ResNet50
+        {'layer1': 'c2', 'layer2': 'c3', 'layer3': 'c4', 'layer4': 'c5'},
+        # Note: Bottleneck blocks change channel dims for ResNet50
+        [256, 512, 1024, 2048], # Channels for C2, C3, C4, C5
+    ),
+}
+
 class FPN(nn.Module):
     """
     Feature Pyramid Network (FPN) for Semantic Segmentation using a
-    Torchvision ResNet-34 backbone with pretrained weights.
+    configurable Torchvision backbone with pretrained weights.
 
     Args:
+        encoder_name (str): Name of the Torchvision backbone to use
+                            (e.g., "resnet34", "resnet50").
         in_channels (int): Number of input channels (e.g., 3 for RGB images).
-            Must be 3 if using standard ImageNet pretrained weights. Defaults to 3.
-        classes (int): Number of output segmentation classes. Defaults to 1.
+                            Must be 3 if using standard ImageNet pretrained weights.
+        classes (int): Number of output segmentation classes.
         pretrained (bool): Whether to use ImageNet pretrained weights for the
-            ResNet-34 backbone. Defaults to True.
+                            backbone. Defaults to True.
         pyramid_channels (int): Number of channels in the FPN lateral and
-            top-down layers. Defaults to 256.
+                            top-down layers. Defaults to 256.
         segmentation_channels (int): Number of channels in the segmentation
-            head before the final classification layer. Defaults to 128.
-        final_upsampling (int): The factor by which to upsample the final
-            logits map. Should typically match the stride of the P2 feature map (4).
-            Defaults to 4.
-        dropout (float): Dropout probability applied in the segmentation head.
-            Defaults to 0.2.
-        use_batchnorm (bool): Whether to use BatchNorm in the ConvReLU blocks
-            within the FPN layers and segmentation head. Defaults to True.
+                                    head. Defaults to 128.
+        final_upsampling (int): Upsampling factor for final logits. Defaults to 4.
+        dropout (float): Dropout probability in segmentation head. Defaults to 0.2.
+        use_batchnorm (bool): Whether to use BatchNorm in FPN/Head layers. Defaults to True.
     """
     def __init__(
         self,
-        in_channels: int = 3, # Must be 3 for standard pretrained weights
+        encoder_name: str = "resnet34",
+        in_channels: int = 3,
         classes: int = 1,
         pretrained: bool = True,
         pyramid_channels: int = 256,
@@ -68,42 +85,34 @@ class FPN(nn.Module):
         final_upsampling: int = 4,
         dropout: float = 0.2,
         use_batchnorm: bool = True,
-    ):
+    ):  
         super().__init__()
 
+        if encoder_name not in ENCODER_INFO:
+            raise ValueError(f"Encoder '{encoder_name}' not supported. Available: {list(ENCODER_INFO.keys())}")
+
         if pretrained and in_channels != 3:
-            print("Warning: Pretrained weights require in_channels=3. Setting pretrained=False.")
+            print(f"Warning: Pretrained weights requested for encoder '{encoder_name}' but in_channels={in_channels} != 3. Forcing pretrained=False.")
             pretrained = False
 
         self.classes = classes
         self.final_upsampling = final_upsampling
 
-        # --- Load Pretrained ResNet-34 Backbone ---
-        weights = ResNet34_Weights.IMAGENET1K_V1 if pretrained else None
-        backbone = models.resnet34(weights=weights)
+        # --- Dynamically Load Encoder Info ---
+        model_fn, weights_enum, return_nodes, encoder_channels = ENCODER_INFO[encoder_name]
+
+        # --- Load Backbone ---
+        weights = weights_enum if pretrained else None
+        backbone = model_fn(weights=weights)
 
         # --- Create Feature Extractor ---
-        # Define the nodes (layers) from ResNet-34 to extract features from.
-        # These correspond typically to the outputs of stage 1, 2, 3, 4 -> C2, C3, C4, C5 for FPN
-        # Common layer names in torchvision ResNet: 'layer1', 'layer2', 'layer3', 'layer4'
-        return_nodes = {
-            # node_name: user_defined_feature_name
-            'layer1': 'c2', # Output of ResNet layer 1 (BasicBlock x3, stride 4) -> 64 channels
-            'layer2': 'c3', # Output of ResNet layer 2 (BasicBlock x4, stride 8) -> 128 channels
-            'layer3': 'c4', # Output of ResNet layer 3 (BasicBlock x6, stride 16) -> 256 channels
-            'layer4': 'c5', # Output of ResNet layer 4 (BasicBlock x3, stride 32) -> 512 channels
-        }
         self.encoder = create_feature_extractor(backbone, return_nodes=return_nodes)
 
-        # --- Define Encoder Output Channels ---
-        # These are fixed for ResNet-34 stages corresponding to C2, C3, C4, C5
-        encoder_channels = [64, 128, 256, 512]
-
-        # --- FPN Layers (Lateral, Smoothing) ---
-        self.lateral_c2 = nn.Conv2d(encoder_channels[0], pyramid_channels, kernel_size=1)
-        self.lateral_c3 = nn.Conv2d(encoder_channels[1], pyramid_channels, kernel_size=1)
-        self.lateral_c4 = nn.Conv2d(encoder_channels[2], pyramid_channels, kernel_size=1)
-        self.lateral_c5 = nn.Conv2d(encoder_channels[3], pyramid_channels, kernel_size=1)
+        # --- FPN Layers (using dynamically determined encoder_channels) ---
+        self.lateral_c2 = nn.Conv2d(encoder_channels[0], pyramid_channels, kernel_size=1) # C2 channels
+        self.lateral_c3 = nn.Conv2d(encoder_channels[1], pyramid_channels, kernel_size=1) # C3 channels
+        self.lateral_c4 = nn.Conv2d(encoder_channels[2], pyramid_channels, kernel_size=1) # C4 channels
+        self.lateral_c5 = nn.Conv2d(encoder_channels[3], pyramid_channels, kernel_size=1) # C5 channels
 
         self.smooth_p4 = ConvReLU(pyramid_channels, pyramid_channels, kernel_size=3, padding=1, use_batchnorm=use_batchnorm)
         self.smooth_p3 = ConvReLU(pyramid_channels, pyramid_channels, kernel_size=3, padding=1, use_batchnorm=use_batchnorm)
@@ -111,7 +120,7 @@ class FPN(nn.Module):
 
         # --- Segmentation Head ---
         self.seg_head_conv = ConvReLU(
-            pyramid_channels * 4, # Concatenated P2, P3, P4, P5
+            pyramid_channels * len(encoder_channels), # Number of pyramid levels used
             segmentation_channels,
             kernel_size=3,
             padding=1,
@@ -121,7 +130,6 @@ class FPN(nn.Module):
         self.final_conv = nn.Conv2d(segmentation_channels, classes, kernel_size=1)
 
         # --- Initialize ONLY FPN Layers ---
-        # The encoder part uses pretrained weights (if loaded) or torchvision's default init.
         self.initialize_fpn_layers()
 
     def initialize_fpn_layers(self):
@@ -148,17 +156,11 @@ class FPN(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass through the FPN model with Torchvision ResNet encoder.
-
-        Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, in_channels, H, W).
-
-        Returns:
-            torch.Tensor: Output logits tensor of shape (batch_size, classes, H, W).
+        Forward pass through the FPN model with configurable Torchvision encoder.
         """
         # --- Encoder ---
-        # features is a Dict[str, torch.Tensor]: {'c2': tensor, 'c3': tensor, ...}
         features: Dict[str, torch.Tensor] = self.encoder(x)
+        # Extract features based on the keys defined in return_nodes (c2, c3, c4, c5)
         c2, c3, c4, c5 = features['c2'], features['c3'], features['c4'], features['c5']
 
         # --- Top-down Pathway & Lateral Connections ---
@@ -179,7 +181,7 @@ class FPN(nn.Module):
         pyramid_features_cat = torch.cat([p2, p3_upsampled, p4_upsampled, p5_upsampled], dim=1)
 
         segmentation_features = self.seg_head_conv(pyramid_features_cat)
-        segmentation_features = self.dropout(segmentation_features)
+        segmentation_features = self.dropout(segmentation_features) # Dropout applied here
         logits = self.final_conv(segmentation_features) # Output at P2 resolution (H/4, W/4)
 
         # --- Final Upsampling ---
