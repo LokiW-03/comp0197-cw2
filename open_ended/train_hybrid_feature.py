@@ -1,4 +1,4 @@
-# train_hybrid_feature.py (for hybrid combinations)
+# train_hybrid_feature.py (modified script)
 import os
 import argparse
 import torch
@@ -9,10 +9,9 @@ from model import EffUnetWrapper
 from data_utils import PetsDataset, IGNORE_INDEX
 from losses import PartialCrossEntropyLoss, CombinedLoss
 import numpy as np
-import torchmetrics
-# ***** ADDED IMPORT *****
+import torchmetrics # Added for metric calculation
+from model import SegNeXtWrapper
 import time
-# ***********************
 
 # --- Configuration ---
 DEFAULT_DATA_DIR = './data'
@@ -50,6 +49,8 @@ def setup_arg_parser():
 
     return parser
 
+# Modified train_one_epoch: Only calculates and returns train loss for hybrid mode
+# Calculating reliable train accuracy/IoU with hybrid targets is complex. Focus on validation metrics.
 def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
     model.train()
     total_loss = 0.0
@@ -62,24 +63,39 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
         batch_start_time = time.time()
         images = images.to(device)
 
-        # Move targets to device based on mode
+        # Move targets to device based on mode (targets is expected to be a dict in hybrid modes)
         if isinstance(targets, torch.Tensor):
-            targets_device = targets.to(device)
+            # This case might occur if 'full' or single weak supervision is used with this script
+            targets_device = targets.to(device).long() # Ensure long for potential CE loss inside CombinedLoss
+            print(f"Warning: Training with Tensor targets in hybrid script (Batch {i}). Ensure loss function handles this.")
         elif isinstance(targets, dict):
             targets_device = {k: v.to(device) for k, v in targets.items()}
         else:
             raise TypeError("Invalid target type")
 
         optimizer.zero_grad()
-        outputs = model(images)
+        outputs = model(images) # Expect dict output {'segmentation': ...} in hybrid mode
 
         # Calculate loss based on mode
         try:
+            # CombinedLoss expects the dictionary of targets
             if mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
                 loss = loss_fn(outputs, targets_device)
+            # Handle non-hybrid modes if they are run through this script (less ideal)
             elif mode in ['points', 'scribbles', 'boxes', 'full']:
                  seg_output = outputs['segmentation'] if isinstance(outputs, dict) else outputs
-                 loss = loss_fn(seg_output, targets_device.long())
+                 # Use a simple CE loss here if CombinedLoss is not appropriate
+                 # Using loss_fn might be wrong if it's CombinedLoss instance.
+                 # For simplicity, assuming loss_fn is correctly set based on mode in main()
+                 # But if CombinedLoss is passed, it might error on Tensor targets.
+                 # It's better to use the other script for non-hybrid modes.
+                 # Let's assume loss_fn handles both dict and tensor outputs/targets correctly if needed.
+                 temp_loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX).to(device) if not isinstance(loss_fn, CombinedLoss) else loss_fn
+                 # We need the target tensor, not the dict for simple CE
+                 target_tensor_for_loss = targets_device if isinstance(targets_device, torch.Tensor) else targets_device.get('segmentation') # Heuristic
+                 if target_tensor_for_loss is None:
+                     raise ValueError("Cannot find suitable target tensor for non-hybrid loss calculation in hybrid script.")
+                 loss = temp_loss_fn(seg_output, target_tensor_for_loss)
             else:
                  raise ValueError(f"Unknown mode {mode} for loss calculation")
 
@@ -107,44 +123,53 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode):
 
         except Exception as e:
             print(f"Error during training batch {i}: {e}")
+            import traceback
+            traceback.print_exc()
             continue # Skip batch on error
 
     avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
     print(f"Training epoch finished. Average Loss: {avg_loss:.4f}")
-    #return avg_loss
+    # Return only average loss for training in hybrid mode
+    return avg_loss
 
 
+# Modified validate_one_epoch to calculate and return val loss, accuracy, and pet_iou
 def validate_one_epoch(model, loader, device, num_classes):
     model.eval()
     total_loss = 0.0
     num_batches = len(loader)
 
+    # Initialize metrics
+    val_accuracy = torchmetrics.Accuracy(
+        task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='macro'
+        ).to(device)
     val_iou = torchmetrics.JaccardIndex(
-        task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='none'
+        task="multiclass", num_classes=num_classes, ignore_index=IGNORE_INDEX, average='none' # Get IoU per class
         ).to(device)
 
-
+    # Use standard CrossEntropyLoss for validation against GT masks
     val_loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX).to(device)
+
     print(f"Starting validation epoch...")
     with torch.no_grad():
+        # Validation uses the ground truth mask (third item from dataset)
         for i, (images, _, gt_masks) in enumerate(loader):
             images = images.to(device)
-            gt_masks = gt_masks.to(device).long()
+            gt_masks = gt_masks.to(device).long() # Ensure LongTensor for GT
 
-            outputs = model(images)
+            # --- Model Forward Pass ---
+            outputs = model(images) # Expect dict or tensor
 
             # --- Loss Calculation ---
-            #loss = torch.tensor(0.0, device=device)
             seg_logits_for_loss = None
-            
-            # Extract segmentation logits consistently
+            # Extract segmentation logits consistently, assuming 'segmentation' key if dict
             if isinstance(outputs, dict):
                 seg_logits_for_loss = outputs.get('segmentation')
             elif isinstance(outputs, torch.Tensor): # Handle case where model directly outputs seg logits
                 seg_logits_for_loss = outputs
             else:
                  print(f"Warning: Unexpected model output type during validation: {type(outputs)}")
-            
+
             if seg_logits_for_loss is not None:
                 try:
                     # Calculate validation loss against the ground truth mask
@@ -157,38 +182,50 @@ def validate_one_epoch(model, loader, device, num_classes):
                 except Exception as e:
                      print(f"Error during validation loss calculation in batch {i}: {e}")
             else:
-                print(f"Warning: Could not find 'segmentation' output in model dictionary during validation batch {i}")
+                print(f"Warning: Could not find 'segmentation' output or suitable tensor in model output during validation batch {i}")
 
-            # --- Metric Calculation ---
+            # --- Metric Calculation (Accuracy and IoU against GT) ---
             try:
-                 seg_logits_for_metric = None
-                 if isinstance(outputs, dict):
-                     seg_logits_for_metric = outputs.get('segmentation', None)
-                 elif isinstance(outputs, torch.Tensor):
-                     seg_logits_for_metric = outputs
+                 seg_logits_for_metric = seg_logits_for_loss # Use the same logits used for loss
                  if seg_logits_for_metric is not None:
-                      preds = torch.argmax(seg_logits_for_metric, dim=1)
+                      preds = torch.argmax(seg_logits_for_metric, dim=1) # Shape: (B, H, W)
+                      val_accuracy.update(preds, gt_masks)
                       val_iou.update(preds, gt_masks)
+                 # else: # Warning already printed above if logits are None
+                 #    pass
             except Exception as e:
                  print(f"Error during validation metric calculation in batch {i}: {e}")
 
     avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
 
-    # --- Compute and Log Metrics ---
-    pet_iou = 0.0
+    # --- Compute and Log Final Metrics ---
+    epoch_val_acc = 0.0
+    epoch_val_pet_iou = 0.0
     try:
+        epoch_val_acc = val_accuracy.compute().item()
         final_iou_per_class = val_iou.compute()
         if num_classes > 1 and len(final_iou_per_class) > 1:
-             pet_iou = final_iou_per_class[1].item()
+             # Ensure tensor index is valid before accessing
+             if final_iou_per_class.numel() > 1:
+                epoch_val_pet_iou = final_iou_per_class[1].item() # Assuming class 1 is 'pet'
+             else:
+                print("Warning: IoU per class tensor has fewer than 2 elements.")
+                epoch_val_pet_iou = 0.0
         elif num_classes == 1:
-             pet_iou = final_iou_per_class[0].item()
-        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Pet IoU: {pet_iou:.4f}")
+             epoch_val_pet_iou = final_iou_per_class[0].item()
+        else: # Handle cases where IoU might not be computed correctly
+             epoch_val_pet_iou = 0.0
+
+        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Val Acc: {epoch_val_acc:.4f}, Val Pet IoU: {epoch_val_pet_iou:.4f}")
     except Exception as e:
         print(f"Error computing final validation metrics: {e}")
-        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Pet IoU: Calculation Error")
+        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Val Acc: Calculation Error, Val Pet IoU: Calculation Error")
+    finally:
+        val_accuracy.reset()
+        val_iou.reset()
 
-    val_iou.reset()
-    return avg_loss, pet_iou
+    # Return all calculated validation metrics
+    return avg_loss, epoch_val_acc, epoch_val_pet_iou
 
 
 def main():
@@ -208,10 +245,12 @@ def main():
 
     # --- Create Datasets and Dataloaders ---
     img_size_tuple = (args.img_size, args.img_size)
+    # Training dataset uses the specified hybrid/weak mode
     train_dataset = PetsDataset(args.data_dir, split='train', supervision_mode=args.supervision_mode,
                                 weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=args.augment)
-    val_dataset = PetsDataset(args.data_dir, split='val', supervision_mode=args.supervision_mode,
-                              weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=False) # Also pass to val dataset
+    # Validation dataset always uses 'full' supervision mode internally to load GT masks for evaluation
+    val_dataset = PetsDataset(args.data_dir, split='val', supervision_mode='full', # Load GT for validation
+                              weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=False)
 
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
@@ -220,20 +259,32 @@ def main():
                             num_workers=args.num_workers, pin_memory=True if device != torch.device('cpu') else False)
 
     # --- Initialize Model ---
+    # Determine model mode based on supervision type
     if args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
-        model_mode = 'hybrid'
+        model_mode = 'hybrid' # Expects dict output?
     else:
-        model_mode = 'segmentation'
+        # If running non-hybrid modes through this script, assume 'single' output
+        model_mode = 'single' # Assumed equivalent to 'segmentation' for SegNeXtWrapper
     num_output_classes = args.num_classes
-    print(f"Initializing model with {num_output_classes} output classes for segmentation head.")
-    model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)
+    print(f"Initializing model in '{model_mode}' mode with {num_output_classes} output classes for segmentation head.")
+    # model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)
+    # model.to(device)
+    model = SegNeXtWrapper(num_classes=num_output_classes, mode=model_mode) # Pass num_classes here
     model.to(device)
 
     # --- Define Loss Function ---
     if args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
         loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
+    elif args.supervision_mode in ['points', 'scribbles']:
+        print("Warning: Running single weak supervision mode with hybrid script. Using PartialCrossEntropyLoss.")
+        loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    elif args.supervision_mode in ['boxes', 'full']:
+        print("Warning: Running boxes/full supervision mode with hybrid script. Using CrossEntropyLoss.")
+        loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     else:
+        # Should not be reachable due to argparse choices
         raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
+    loss_fn.to(device) # Move loss function to device
 
     # --- Optimizer ---
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
@@ -241,12 +292,13 @@ def main():
 
 
     # --- Training Loop ---
-    best_val_iou = 0.0
+    # Initialize based on validation accuracy
+    best_val_acc = 0.0 # Changed from best_val_iou
     os.makedirs(args.checkpoint_dir, exist_ok=True)
     checkpoint_path_base = os.path.join(args.checkpoint_dir, f"{args.run_name}")
 
     print(f"\nStarting training run: {args.run_name}")
-    print(f"Supervision: {args.supervision_mode}, Batch Size: {args.batch_size}, LR: {args.lr}, Epochs: {args.epochs}")
+    print(f"Supervision: {args.supervision_mode}, Batch Size: {args.batch_size}, LR: {args.lr}, Epochs: {args.epochs}, Num Classes: {num_output_classes}")
 
     # ***** ADDED: Time tracking variables *****
     training_start_time = time.time()
@@ -260,26 +312,35 @@ def main():
         print(f"\n--- Epoch {epoch+1}/{args.epochs} ---")
 
         try:
-            train_one_epoch(model, train_loader, optimizer, loss_fn, device, args.supervision_mode)
-            val_loss, val_iou = validate_one_epoch(model, val_loader, device, num_output_classes)
+            # Get train loss (only loss is returned now)
+            train_loss = train_one_epoch(
+                model, train_loader, optimizer, loss_fn, device, args.supervision_mode
+            )
+            # Get validation metrics
+            val_loss, val_acc, val_pet_iou = validate_one_epoch(
+                model, val_loader, device, num_output_classes
+            )
             scheduler.step()
 
-            # ***** SAVE CHECKPOINT Logic (Based on Validation IoU) *****
-            if val_iou > best_val_iou:
-                best_val_iou = val_iou
-                save_path = f"{checkpoint_path_base}_best_iou.pth"
-                model.cpu()
+            # --- Save checkpoint based on best validation accuracy ---
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                save_path = f"{checkpoint_path_base}_best_acc.pth" # Changed filename
+                model.cpu() # Move to CPU before saving
                 torch.save({
                     'epoch': epoch + 1,
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'scheduler_state_dict': scheduler.state_dict(),
-                    'val_loss': val_loss,
-                    'val_iou': best_val_iou,
+                    'train_loss': train_loss, # Save train loss
+                    'val_loss': val_loss,     # Save current val loss
+                    'val_acc': val_acc,       # Save current val accuracy
+                    'val_pet_iou': val_pet_iou,# Save current val pet iou
+                    'best_val_acc': best_val_acc, # Save the best accuracy achieved
                     'args': args
                 }, save_path)
-                model.to(device)
-                print(f"Checkpoint saved: Validation IoU improved to {best_val_iou:.4f} (Loss: {val_loss:.4f}). Saved to {save_path}")
+                model.to(device) # Move back to device
+                print(f"Checkpoint saved: Validation accuracy improved to {best_val_acc:.4f} (Loss: {val_loss:.4f}, Pet IoU: {val_pet_iou:.4f}). Saved to {save_path}")
             # ********************************************************
 
             # Optional: Save latest checkpoint
@@ -291,8 +352,11 @@ def main():
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'scheduler_state_dict': scheduler.state_dict(),
-                    'val_loss': val_loss,
-                    'val_iou': val_iou,
+                    'train_loss': train_loss, # Save current train loss
+                    'val_loss': val_loss,     # Save current val metrics
+                    'val_acc': val_acc,
+                    'val_pet_iou': val_pet_iou,
+                    'best_val_acc': best_val_acc, # Keep track of best acc
                     'args': args
                 }, latest_save_path)
                 model.to(device)
@@ -329,10 +393,10 @@ def main():
     print("Training finished.")
     print(f"Total Training Time: {format_time(total_training_time)}")
     # ************************************
-    print(f"Best Validation Pet IoU achieved: {best_val_iou:.4f}")
-    print(f"Best model saved to: {checkpoint_path_base}_best_iou.pth (if IoU improved)")
+    print(f"Best Validation Accuracy achieved: {best_val_acc:.4f}") # Changed metric name
+    print(f"Best model saved to: {checkpoint_path_base}_best_acc.pth (if accuracy improved)") # Changed filename
     print(f"Latest model saved to: {checkpoint_path_base}_latest.pth")
-    print("\nRECOMMENDATION: Load the '_best_iou.pth' checkpoint and evaluate it on the separate TEST set for final performance.")
+    print("\nRECOMMENDATION: Load the '_best_acc.pth' checkpoint and evaluate it on the separate TEST set for final performance.")
 
 
 if __name__ == '__main__':

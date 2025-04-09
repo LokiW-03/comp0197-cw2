@@ -2,6 +2,44 @@
 import torch
 import torch.nn as nn
 import segmentation_models_pytorch as smp
+from model.segnext import SegNeXt
+class SegNeXtWrapper(nn.Module):
+    """
+    Wrapper that uses the SegNeXt architecture internally, but allows switching 
+    between 'single' and 'hybrid' output formats:
+
+      * 'single' -> returns only the segmentation tensor
+      * 'hybrid' -> returns a dictionary: {'segmentation': seg_logits}
+
+    No classification head is used here.
+    """
+    def __init__(self, num_classes=2, mode='single'):
+        """
+        Args:
+            num_classes (int): number of segmentation classes (e.g. 2 => BG + Foreground).
+            mode (str): 'single' or 'hybrid'.
+        """
+        super().__init__()
+        self.mode = mode
+        self.num_classes = num_classes
+        # Use the SegNeXt model you defined above
+        self.seg_model = SegNeXt(num_classes=num_classes)
+
+    def forward(self, x):
+        seg_logits = self.seg_model(x)  # [B, C, H, W]
+
+        if self.mode == 'single':
+            return seg_logits
+        elif self.mode == 'hybrid':
+            # Return dict with key 'segmentation', so training code that does:
+            #    outputs['segmentation']
+            # will still work
+            return {'segmentation': seg_logits}
+        else:
+            raise ValueError(f"Unknown mode {self.mode}, must be 'single' or 'hybrid'.")
+
+
+
 
 # TODO: What if we opt for a different segmentation model? How easy it is to make this change? Does this model need to match the model used in MRP?
 # TODO: Can we use the model built in /model/baseline_<model name>.py?
