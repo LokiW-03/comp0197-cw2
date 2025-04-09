@@ -317,7 +317,7 @@ def main():
 
     # --- Training Loop ---
     # Initialize based on validation accuracy
-    best_val_acc = 0.0 # Changed from best_val_loss
+    best_val_iou = 0.0 # Changed from best_val_loss
     os.makedirs(args.checkpoint_dir, exist_ok=True)
     checkpoint_path_base = os.path.join(args.checkpoint_dir, f"{args.run_name}")
 
@@ -348,8 +348,8 @@ def main():
                   f"LR: {current_lr:.6f}")
 
             # --- Save checkpoint based on best validation accuracy ---
-            if val_acc > best_val_acc:
-                best_val_acc = val_acc
+            if val_pet_iou > best_val_iou:
+                best_val_iou = val_acc
                 save_path = f"{checkpoint_path_base}_best_acc.pth" # Changed filename
                 # Save metrics along with model state
                 torch.save({
@@ -363,10 +363,10 @@ def main():
                     'val_loss': val_loss,
                     'val_acc': val_acc,       # Save the current val_acc
                     'val_pet_iou': val_pet_iou,
-                    'best_val_acc': best_val_acc, # Save the best val_acc achieved so far
+                    'best_val_iou': best_val_iou, # Save the best iou achieved so far
                     'args': args # Save config too
                 }, save_path)
-                print(f"Checkpoint saved: Validation accuracy improved to {best_val_acc:.4f}. Saved to {save_path}")
+                print(f"Checkpoint saved: Validation accuracy improved to {best_val_iou:.4f}. Saved to {save_path}")
             # ---------------------------------------------------------
 
             # Optional: Save latest checkpoint every N epochs or at the end
@@ -384,7 +384,7 @@ def main():
                     'val_loss': val_loss,
                     'val_acc': val_acc,
                     'val_pet_iou': val_pet_iou,
-                    'best_val_acc': best_val_acc, # Keep track of best acc in latest too
+                    'best_val_acc': best_val_iou, # Keep track of best acc in latest too
                     'args': args
                 }, latest_save_path)
                 model.to(device) # Move back to device
@@ -403,7 +403,7 @@ def main():
 
     print("\n------------------------------------")
     print("Training finished.")
-    print(f"Best Validation Accuracy achieved: {best_val_acc:.4f}")
+    print(f"Best Validation IOU achieved: {best_val_iou:.4f}")
     print(f"Best model saved to: {checkpoint_path_base}_best_acc.pth (if accuracy improved)")
     print(f"Latest model saved to: {checkpoint_path_base}_latest.pth")
     print("\nRECOMMENDATION: Load the '_best_acc.pth' checkpoint and evaluate it on the separate TEST set for final performance.")
