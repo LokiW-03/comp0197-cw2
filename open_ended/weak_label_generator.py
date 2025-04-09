@@ -75,8 +75,6 @@ def get_scribbles(mask_np, num_points_per_obj=NUM_SCRIBBLE_POINTS_PER_OBJ):
 
                  num_to_sample = min(num_points_per_obj, len(coords))
 
-                 # !!! CRITICAL: np.random.choice uses the global NumPy random state.
-                 # This state MUST be seeded externally (e.g., in main) for deterministic results.
                  indices = np.random.choice(len(coords), size=num_to_sample, replace=False)
 
                  # Sort indices to ensure the order of points added to scribbles is consistent
