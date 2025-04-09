@@ -4,10 +4,10 @@ import argparse
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from model import EffUnetWrapper
+from model_utils import EffUnetWrapper
 from data_utils import PetsDataset, IGNORE_INDEX
 from losses import PartialCrossEntropyLoss, CombinedLoss
-from model import SegNeXtWrapper
+from model_utils import SegNeXtWrapper
 import numpy as np # Needed for metric calculation maybe
 import torchmetrics # Added for metric calculation
 

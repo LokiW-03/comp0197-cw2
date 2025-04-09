@@ -5,12 +5,12 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
-from model import EffUnetWrapper
+from model_utils import EffUnetWrapper
 from data_utils import PetsDataset, IGNORE_INDEX
 from losses import PartialCrossEntropyLoss, CombinedLoss
 import numpy as np
 import torchmetrics # Added for metric calculation
-from model import SegNeXtWrapper
+from model_utils import SegNeXtWrapper
 import time
 import traceback
 
