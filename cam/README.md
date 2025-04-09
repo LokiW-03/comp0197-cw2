@@ -33,7 +33,3 @@ This folder implements a weakly-supervised segmentation pipeline for the Oxford-
 1. Generate class activation maps (CAMs) for target classes
 2. Apply thresholds on cam to generate pseudo masks
 
-
-### 1. Fine-tune Classifier
-```bash
-python train.py --data_dir path/to/oxford-iiit-pet --epochs 50
