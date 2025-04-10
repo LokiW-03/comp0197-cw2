@@ -52,33 +52,23 @@ Use a weighted combined loss:
 
 - CAM backbone: 
   - ResNet50 + GradCAM++ 
-  - EfficientNet + ScoreCAM
-  - ResNet50 + DRS + (ScoreCAM | GradCAM++)
+  - ResNet50 + DRS + GradCAM++
 
 - Freeze all classifier layers except last two
 - Train backbone and Reconstruction Network together and use Reconstruction loss as regularization term
 - Optimizers:
   - Classifier: Adam (LR=1e-3)
-  - Reconstruction Network: Adam (LR=1e-2)
+  - Reconstruction Network: Adam (LR=2e-3)
 
 ### Trained Models
 - Path: `comp0197-cw2/crm_models/...`
 
 - [ResNet50](https://1drv.ms/u/c/2ef0e412637ecc3c/EawGxav3g3BPke8uXA7C5W0Bdf2oIHQSoV6smZgRWXR1NA?e=zlKiYk) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EdhrCbIkW6dEpXfImbAcRsoBBb_3ceJHz16NxfTiqLPmhg?e=DWot9e) 
-  - Classifier test accuracy: 84%, CAM concentrated on face
+  - Classifier test accuracy: 84%
     
 
 - [ResNet50 + DRS + GradCAM++](https://1drv.ms/u/c/2ef0e412637ecc3c/EQU-6ec3hklKhi9hTXwXxDEBWx5czmOywqLiH3gsT0qhAQ?e=SBTBau) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EesRuHMqxgZAvj6Qc710poYBfyskimMUQtJAFrfC9wmOCw?e=h5RG8g) 
   - Classifier test accuracy: 91%
-  - Best results so far using **`ScoreCAM`** for postprocessing
-
-
-- [ResNet50 + DRS + ScoreCAM](https://1drv.ms/u/c/2ef0e412637ecc3c/ETNymtaAwt5JixWupsbx3DEBCsdYh314NkdB9sgR0VAoLA?e=eegB8H) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/Eazk46cxIBxLtiljWMgFtj0BJPlyJ8GLiCdMDM12MMTZ4A?e=MtlaVK) 
-  - Classifier test accuracy: 2%, CAM: wider spread
-
-
-- [EfficientNet + ScoreCAM](https://1drv.ms/u/c/2ef0e412637ecc3c/ET5xMqyXSEZFtgBoxctczOoBlHe9TeUCs9bs2dtkeds0mg?e=qcX8fS) + [CRM](https://1drv.ms/u/c/2ef0e412637ecc3c/EVLqrBIaSYdKv65GvgDGuxMB8kMmELodniKSPzy7-fBbKg?e=9XuhVo)
-  - Classifier test accuracy: 2%, CAM: wider spread (but noisier)
 
 - See sample CAM heatmap and reconstruction image in `crm/img`
 
@@ -91,10 +81,25 @@ Use a weighted combined loss:
 - Pipeline:
 
   ```bash
-  python -m crm.train_cam_with_crm --model resnet_drs
-  python -m crm.evaluate_with_crm --model resnet_drs
-  python -m cam.postprocessing --model resnet_drs
+  python -m crm.train_cam_with_crm --model=resnet_drs
+  python -m crm.evaluate_with_crm --model=resnet_drs
+  python -m cam.postprocessing --model=resnet_drs
   ```
 
-  - model can be `[resnet_drs, resnet, efficientnet]`
+  - model can be `[resnet_drs, resnet]`
 
+---
+
+### Limitation 
+- CRM require high computational cost for reconstruction network, a superpixel alignment loss and vgg loss
+  - Even with a lightweight superpixel processing compared to the original paper
+  - Note: Our approach required an additional layer of upsampling due to the dimension of the CAM, hence increases the model's complexity
+
+- Little improvement on CAM compare to pure Resnet50, and poor reconstructed images due to limited resources
+  - (see CAM in `crm/img`)
+  
+- Unstable training dynamics
+  - The reconstruction loss remains high in early epochs because the classifier's CAM features are not yet meaningful. But further training could risk classifier to overfit
+  - (see `graph/resnet_drs_crm_loss_curve.png`)
+
+- Due to the above constraints, we did not perform full grid search for resnet drs + crm.
