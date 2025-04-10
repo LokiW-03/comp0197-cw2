@@ -5,7 +5,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
-from open_ended.model_utils import EffUnetWrapper, SegNetWrapper
+from open_ended.model_utils import SegNetWrapper
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
 from open_ended.losses import PartialCrossEntropyLoss, CombinedLoss
 import torchmetrics # Added for metric calculation
