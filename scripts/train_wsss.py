@@ -213,7 +213,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_root', type=str, default='./data', help='Root directory for OxfordIIITPet dataset')
 
     # --- Training Hyperparameters ---
-    parser.add_argument('--epochs', type=int, default=50, help='Number of training epochs')
+    parser.add_argument('--epochs', type=int, default=10, help='Number of training epochs')
     parser.add_argument('--batch_size', type=int, default=16, help='Training batch size')
     parser.add_argument('--lr', type=float, default=1e-4, help='Initial learning rate')
     parser.add_argument('--t_max_factor', type=float, default=1.0, help='Multiplier for CosineAnnealingLR T_max (relative to total steps)')
