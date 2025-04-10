@@ -165,3 +165,28 @@ So, we have experimented with:
 
 
 All the models were trained with same settings, ex. batch size etc.
+
+
+## Results
+
+### Single Feature
+**SegNet**
+
+| SegNet      | Performance |
+|-------------|-------------|
+| Feature     | Best IOU    |
+| box         | 0.4826      |
+| scribble    | 0.3343      |
+| point       | 0.3320      |
+
+### Hybrid Feature
+
+**SegNet**
+
+| SegNet               | Performance |
+|----------------------|-------------|
+| Feature              | Best IOU    |
+| box, point           | 0.4655      |
+| box, scribble        | 0.4630      |
+| point, scribble      | 0.3444      |
+| box, point, scribble | 0.4694      |
