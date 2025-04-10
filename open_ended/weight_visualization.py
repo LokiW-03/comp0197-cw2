@@ -14,9 +14,9 @@ import pickle # Added pickle to load weak labels
 import traceback # For detailed error reporting
 
 # Assuming your SegNet model definition is in this path
-# Make sure this import points to your actual model file
+# Make sure this import point to your actual model file
 try:
-    # Make sure this import points to your actual model file
+    # Make sure this import point to your actual model file
     # If your model class is directly in 'baseline_segnet.py':
     # from baseline_segnet import SegNet
     # If it's inside a 'model' folder relative to this script:
@@ -58,12 +58,12 @@ def denormalize(tensor, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
 
 # --- Annotation Drawing Helpers ---
 # --- MODIFIED to handle scaling ---
-def draw_points(draw_context, points_list, target_size, x_scale, y_scale, color="red", radius=3):
-    """Draws scaled points (circles) on the PIL Draw context."""
-    if not points_list: return
+def draw_point(draw_context, point_list, target_size, x_scale, y_scale, color="red", radius=3):
+    """Draws scaled point (circles) on the PIL Draw context."""
+    if not point_list: return
     target_w, target_h = target_size, target_size # Assuming square target
 
-    for y_orig, x_orig in points_list:
+    for y_orig, x_orig in point_list:
         # Scale coordinates
         # Ensure original coords are treated as numbers before scaling
         x_scaled = int(float(x_orig) * x_scale)
@@ -141,19 +141,19 @@ class SegmentationVisualizer:
             logging.info(f"Successfully loaded weak labels from: {self.weak_labels_path}")
             if self.sample_image_filename not in self.weak_labels:
                  logging.warning(f"Sample image filename '{self.sample_image_filename}' not found as a key in the loaded weak labels file '{self.weak_labels_path}'. Annotation overlays might be empty.")
-                 self.sample_image_weak_labels = {'tags': [], 'points': [], 'scribbles': [], 'boxes': []}
+                 self.sample_image_weak_labels = {'tags': [], 'point': [], 'scatter': [], 'boxes': []}
             else:
                  self.sample_image_weak_labels = self.weak_labels[self.sample_image_filename]
                  logging.info(f"Found weak labels for sample image '{self.sample_image_filename}'.")
                  # --- Convert numpy types in annotations to standard python types ---
                  # This prevents potential issues with downstream processing or scaling if coords are numpy types
-                 if 'points' in self.sample_image_weak_labels:
-                      self.sample_image_weak_labels['points'] = [
-                          (int(p[0]), int(p[1])) for p in self.sample_image_weak_labels['points']
+                 if 'point' in self.sample_image_weak_labels:
+                      self.sample_image_weak_labels['point'] = [
+                          (int(p[0]), int(p[1])) for p in self.sample_image_weak_labels['point']
                       ]
-                 if 'scribbles' in self.sample_image_weak_labels:
-                     self.sample_image_weak_labels['scribbles'] = [
-                         (int(p[0]), int(p[1])) for p in self.sample_image_weak_labels['scribbles']
+                 if 'scatter' in self.sample_image_weak_labels:
+                     self.sample_image_weak_labels['scatter'] = [
+                         (int(p[0]), int(p[1])) for p in self.sample_image_weak_labels['scatter']
                      ]
                  if 'boxes' in self.sample_image_weak_labels:
                       self.sample_image_weak_labels['boxes'] = [
@@ -314,7 +314,7 @@ class SegmentationVisualizer:
 
     # _get_model_type_from_path remains the same
     def _get_model_type_from_path(self, model_path, model_idx):
-        """Infers model type (e.g., points, scribbles, hybrid) from path."""
+        """Infers model type (e.g., point, scatter, hybrid) from path."""
         try:
             basename = os.path.basename(model_path)
             basename_no_ext, _ = os.path.splitext(basename)
@@ -327,12 +327,12 @@ class SegmentationVisualizer:
 
             if type_indicator == 'single' and len(parts) > 2:
                  annotation_type = parts[2].lower()
-                 if annotation_type in ['points', 'scribbles', 'boxes']: return annotation_type.capitalize()
+                 if annotation_type in ['point', 'scatter', 'boxes']: return annotation_type.capitalize()
                  else: raise ValueError(f"Unknown single type: {parts[2]}")
 
             elif type_indicator == 'hybrid':
                  hybrid_types = []
-                 known_types = {'points', 'scribbles', 'boxes'}
+                 known_types = {'point', 'scatter', 'boxes'}
                  for part in parts[2:]:
                       part_lower = part.lower()
                       if part_lower.startswith('run'): break
@@ -344,7 +344,7 @@ class SegmentationVisualizer:
 
             else: # Fallback for other naming conventions
                  annotation_type = parts[1].lower()
-                 if annotation_type in ['points', 'scribbles', 'boxes']: return annotation_type.capitalize()
+                 if annotation_type in ['point', 'scatter', 'boxes']: return annotation_type.capitalize()
                  else: raise ValueError(f"Could not determine type from parts: {parts}")
 
         except (IndexError, ValueError) as e:
@@ -401,7 +401,7 @@ class SegmentationVisualizer:
                 logging.info(f"Running inference for {model_type_key}...")
                 with torch.no_grad():
                      output = model(input_tensor_device)
-                     pred_mask = torch.argmax(output, dim=1).squeeze(0).cpu()
+                     pred_mask = torch.argmax(output, dim=1).squeeze(0)
                      logging.info(f"Inference complete. Output shape: {output.shape}, Pred mask shape: {pred_mask.shape}")
 
                 logging.debug(f"Removing {len(hooks)} hooks...")
@@ -474,29 +474,29 @@ class SegmentationVisualizer:
             annotated_img = self.sample_image_raw.copy()
             draw = ImageDraw.Draw(annotated_img)
 
-            points = weak_data_for_image.get('points', [])
-            scribbles = weak_data_for_image.get('scribbles', [])
+            point = weak_data_for_image.get('point', [])
+            scatter = weak_data_for_image.get('scatter', [])
             boxes = weak_data_for_image.get('boxes', [])
 
             print(f"Row {i+1} ({model_key}):")
             annotation_printed = False
 
             # --- MODIFIED calls to use scaled drawing functions ---
-            if 'points' in model_key.lower():
-                if points:
-                    print(f"  Drawing Points ({len(points)}): Original={points}")
-                    draw_points(draw, points, self.img_size, self.x_scale, self.y_scale,
+            if 'point' in model_key.lower():
+                if point:
+                    print(f"  Drawing point ({len(point)}): Original={point}")
+                    draw_point(draw, point, self.img_size, self.x_scale, self.y_scale,
                                 color="red", radius=point_radius) # Pass scales & target size
                     annotation_printed = True
-                else: print(f"  Points requested but none found for this image.")
-            if 'scribbles' in model_key.lower():
-                if scribbles:
-                    print(f"  Drawing Scribbles ({len(scribbles)}): Original={scribbles}")
-                    # Use draw_points for scribbles, just different color/data
-                    draw_points(draw, scribbles, self.img_size, self.x_scale, self.y_scale,
+                else: print(f"  point requested but none found for this image.")
+            if 'scatter' in model_key.lower():
+                if scatter:
+                    print(f"  Drawing scatter ({len(scatter)}): Original={scatter}")
+                    # Use draw_point for scatter, just different color/data
+                    draw_point(draw, scatter, self.img_size, self.x_scale, self.y_scale,
                                 color="blue", radius=point_radius) # Pass scales & target size
                     annotation_printed = True
-                else: print(f"  Scribbles requested but none found for this image.")
+                else: print(f"  scatter requested but none found for this image.")
             if 'boxes' in model_key.lower():
                  if boxes:
                      print(f"  Drawing Boxes ({len(boxes)}): Original={boxes}")
@@ -507,7 +507,7 @@ class SegmentationVisualizer:
             # --------------------------------------------------------
 
             if not annotation_printed:
-                 print(f"  No specific annotation type ('points', 'scribbles', 'boxes') identified in model key or no data found. Showing blank annotation.")
+                 print(f"  No specific annotation type ('point', 'scatter', 'boxes') identified in model key or no data found. Showing blank annotation.")
 
             ax.imshow(np.array(annotated_img))
             ax.set_xticks([]); ax.set_yticks([])
@@ -582,15 +582,15 @@ if __name__ == "__main__":
     WEAK_LABELS_PATH = os.path.join(PROJECT_ROOT, "weak_labels/weak_labels_train.pkl") # More specific path
 
     MODEL_PATHS = [
-        os.path.join(MODELS_DIR, 'segnet_single/segnet_points_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'segnet_single/segnet_scribbles_run1_best_acc.pth'),
+        os.path.join(MODELS_DIR, 'segnet_single/segnet_point_run1_best_acc.pth'),
+        os.path.join(MODELS_DIR, 'segnet_single/segnet_scatter_run1_best_acc.pth'),
         os.path.join(MODELS_DIR, 'segnet_single/segnet_boxes_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_points_scribbles_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_points_boxes_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_scribbles_boxes_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_points_scribbles_boxes_run1_best_acc.pth'),
+        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_point_scatter_run1_best_acc.pth'),
+        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_point_boxes_run1_best_acc.pth'),
+        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_scatter_boxes_run1_best_acc.pth'),
+        os.path.join(MODELS_DIR, 'segnet_hybrid/segnet_hybrid_point_scatter_boxes_run1_best_acc.pth'),
     ]
-    SAMPLE_IMAGE_PATH = os.path.join(DATA_DIR, "images/basset_hound_38.jpg")
+    SAMPLE_IMAGE_PATH = "./data/images/Abyssinian_210.jpg"
     OUTPUT_DIR = "comparison_report_with_annotations_scaled" # Changed output dir name
 
     # --- Basic Checks ---
@@ -607,7 +607,7 @@ if __name__ == "__main__":
         if not os.path.exists(norm_p): print(f"WARNING: Model file {i+1} not found: {norm_p}. Skipping.")
         else: print(f"Model file {i+1} found: {norm_p}"); models_to_run.append(norm_p); found_models +=1
 
-    if abort: print("\nERROR: Required file(s) missing. Aborting."); exit()
+    if abort: print("\nERROR: Required file(s) missing. Abortinhttps://file+.vscode-resource.vscode-cdn.net/Users/yuyu/Fork_git/comp0197-cw2/comparison_report_with_annotations_scaled/model_annotation_activation_comparison_grid.png?version%3D1744312950594g."); exit()
     elif found_models == 0: print("\nERROR: No valid model files found. Aborting."); exit()
     else: print(f"\nFound {found_models} model files and support files. Proceeding with {len(models_to_run)} models..."); MODEL_PATHS = models_to_run
     print("---------------------------------")

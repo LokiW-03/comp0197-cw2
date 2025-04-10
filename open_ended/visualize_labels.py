@@ -10,7 +10,7 @@ import numpy as np # Only needed if drawing complex shapes, PIL handles tuples
 DEFAULT_WEAK_LABEL_FILE = './weak_labels/weak_labels_train.pkl'
 DEFAULT_IMAGE_DIR = './data/images' # Path to ORIGINAL images
 DEFAULT_OUTPUT_DIR = './visualization_output'
-DEFAULT_SEED = 9 # Use same seed for reproducibility if needed
+DEFAULT_SEED = 7 # Use same seed for reproducibility if needed
 
 # --- Annotation Drawing Settings ---
 BOX_COLOR = (255, 0, 0)       # Red

@@ -8,10 +8,11 @@ from torch.nn import CrossEntropyLoss
 from open_ended.model_utils import EffUnetWrapper, SegNetWrapper
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
 from open_ended.losses import PartialCrossEntropyLoss, CombinedLoss
-import numpy as np
 import torchmetrics # Added for metric calculation
 import time
 import traceback
+from torch.utils.data import Subset
+
 
 # --- Configuration ---
 DEFAULT_DATA_DIR = './data'
@@ -330,22 +331,26 @@ def main():
     model.to(device)
 
     # --- Define Loss Function ---
-    if args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
-        loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
-    elif args.supervision_mode in ['points', 'scribbles']:
-        print("Warning: Running single weak supervision mode with hybrid script. Using PartialCrossEntropyLoss.")
-        loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    elif args.supervision_mode in ['boxes', 'full']:
-        print("Warning: Running boxes/full supervision mode with hybrid script. Using CrossEntropyLoss.")
+    if args.supervision_mode == 'full':
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     else:
-        # Should not be reachable due to argparse choices
-        raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
+        loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
+    # if args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
+    #     loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
+    # elif args.supervision_mode in ['points', 'scribbles']:
+    #     print("Warning: Running single weak supervision mode with hybrid script. Using PartialCrossEntropyLoss.")
+    #     loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    # elif args.supervision_mode in ['boxes', 'full']:
+    #     print("Warning: Running boxes/full supervision mode with hybrid script. Using CrossEntropyLoss.")
+    #     loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    # else:····
+    #     # Should not be reachable due to argparse choices
+    #     raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
     loss_fn.to(device) # Move loss function to device
 
     # --- Optimizer ---
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.lr * 0.01)
+    scheduler = optim.l·r_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.lr * 0.01)
 
 
     # --- Training Loop ---
@@ -448,7 +453,43 @@ def main():
             import traceback
             traceback.print_exc()
             break
-
+    
+    # Add after the training loop in main()
+    # --- Final Test Evaluation ---
+    print("\n\n--- Evaluating on Test Set ---")
+    
+    # Load best model
+    best_model_path = f"{checkpoint_path_base}_best_acc.pth"
+    if os.path.exists(best_model_path):
+        print(f"Loading best model from {best_model_path}")
+        checkpoint = torch.load(best_model_path, map_location=device)
+        model.load_state_dict(checkpoint['model_state_dict'])
+    else:
+        print("Warning: No best model found, using final weights")
+    
+    # Create test dataset
+    test_dataset = PetsDataset(args.data_dir, split='test', supervision_mode='full',
+                              weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=False)
+    
+    # Create test loader with same batch size as validation
+    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False,
+                            num_workers=args.num_workers, pin_memory=True if device != torch.device('cpu') else False)
+    
+    # Run evaluation
+    test_loss, test_acc, test_iou = validate_one_epoch(model, test_loader, device, args.num_classes)
+    
+    print("\n--- Final Test Results ---")
+    print(f"Test Accuracy: {test_acc:.4f}")
+    print(f"Test IoU: {test_iou:.4f}")
+    print("--------------------------")
+    
+    # Save test results
+    results_path = f"{checkpoint_path_base}_test_results.txt"
+    with open(results_path, 'w') as f:
+        f.write(f"Test Accuracy: {test_acc:.4f}\n")
+        f.write(f"Test IoU: {test_iou:.4f}\n")
+    
+    print(f"Test results saved to {results_path}")
 
     # ***** ADDED: Final time printout *****
     training_end_time = time.time()

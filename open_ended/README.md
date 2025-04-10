@@ -2,34 +2,16 @@
 # Open-Ended
 
 
-
+## Research Questions
+How does the type and potential combination of sparse weak annotations (specifically bounding boxes, simulated points, and simulated scribbles) influence the segmentation performance and learning characteristics of a weakly-supervised model trained on the Oxford-IIIT Pet Dataset, compared to using only image-level labels or full pixel-level supervision?
 
 ## Installation
 Additional installation
 ```bash
-pip install Pillow numpy scikit-image torchmetrics
+pip install torchmetrics
 ```
 
-## Expected File Structure
-```
-open_ended/
-├── data/                     
-│   ├── images/
-│   └── annotations/
-│       └── trimaps/
-├── weak_labels/              
-│   └── weak_labels_train.pkl
-├── data_utils.py             
-├── weak_label_generator.py   
-├── model.py                  
-├── losses.py                 
-├── train.py                  
-├── evaluate.py               
-└── README.md                 
-```
 ## Run
-
-
 
 Generate Weak Labels
 ```bash
@@ -92,7 +74,7 @@ python -m open_ended.evaluate \
     --data_dir ./data \
     --batch_size 8 \
     --num_workers 4 \
-    --device cuda
+    --device mps
 ```
 
 ## Plan
@@ -101,19 +83,17 @@ python -m open_ended.evaluate \
 
 
 1.  **Weak Label Generation:** 
-    *   Image-level tags (list of classes present). Tags is not a valid comparison since they need CAM, where rest is trained end2end, so I didnt include in the future experiment
     *   Points (centroid of each object mask).
-    *   Scribbles (e.g., skeletonize mask, sample a path, or erode and sample points). Aim for simplicity first.
+    *   Scatter (20 points)
     *   Bounding boxes (tightest box around mask).
 
 **Phase 2: Model Training**
 
-5.  **Training Framework:** Set up a basic PyTorch training loop (`train.py`). Include standard components: dataloader, model definition, optimizer (AdamW), loss function placeholder, basic metric calculation (e.g., pixel accuracy during training), training/validation steps, checkpoint saving.
+5.  **Training Framework:** Set up a basic PyTorch training loop. Include standard components: dataloader, model definition, optimizer (AdamW), loss function placeholder, basic metric calculation (e.g., pixel accuracy during training), training/validation steps, checkpoint saving.
 6.  **Implement WSSS Losses & Training Logic:**
     *   **Points:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels. Modify dataloader to provide point labels.
-    *   **Scribbles:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels. Modify dataloader to provide scribble labels.
+    *   **Scatter:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels.
     *   **Boxes:** Generate pseudo-masks (inside box = foreground, outside = background). Train using standard CrossEntropyLoss on these pseudo-masks. Modify dataloader to provide box labels/masks.
-    *   **Hybrid (Tags + Points):** Combine the classification loss (from Tags) and the partial CE loss (from Points). Use a simple weighted sum: `Loss_total = Loss_classification + lambda * Loss_partial_CE`. Start with `lambda=1.0`.
 7.  **Launch Training Runs:** Start training one model for each supervision type (Tags, Points, Scribbles, Boxes, Hybrid Tags+Points) on available GPUs. Use modest epochs initially (e.g., 50) and monitor validation loss/accuracy. Use consistent hyperparameters (learning rate, batch size) across runs where applicable.
 8.  **Debugging & Monitoring:** Monitor training progress (loss curves, basic validation metrics). Debug any issues (NaN losses, slow convergence, bugs in loss implementation). Adjust hyperparameters slightly if necessary (e.g., learning rate).
 
