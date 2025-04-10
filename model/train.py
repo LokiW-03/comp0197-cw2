@@ -1,5 +1,4 @@
 # Import packages
-import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -8,8 +7,6 @@ from baseline_segnet import SegNet
 from efficient_unet import EfficientUNet
 from baseline_unet import UNet
 from segnext import SegNeXt
-from loss import DiceLoss, CombinedCELDiceLoss
-from PIL import Image
 from data import trainset, testset
 from montage import visualise_fs_segmentation
 
