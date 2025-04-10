@@ -67,132 +67,6 @@ def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3,
 
         return test_metrics
 
-
-
-# Evaluating training and testing metrics simultaneously to save time 
-def train_model(
-        model,
-        trainloader,
-        trainvalloader,
-        loss_fn,
-        optimizer,
-        epochs,
-        device,
-        num_classes=3,
-        compute_test_metrics=False,
-        model_name: str='example',
-        scheduler = None,
-        verbose=False):
-    """
-    Trains a segmentation model and computes metrics: loss, accuracy, precision, recall, IoU, and Dice coefficient at each epoch.
-
-    Args:
-        model (torch.nn.Module): The segmentation model.
-        trainloader (torch.utils.data.DataLoader): DataLoader for training data.
-        trainvalloader (torch.utils.data.DataLoader): DataLoader for eval data.
-        loss_fn (torch.nn.Module): Loss function.
-        optimizer (torch.optim.Optimizer): Optimizer.
-        epochs (int): Number of training epochs.
-        device: device to use, cpu or gpu if available
-        num_classes (int): Number of segmentation classes
-        compute_test_metrics (bool): option to compute test metrics while training
-        model_name (str): model name for printing purpose
-        scheduler: optional scheduler for learning rate.
-    """
-    print("Number of train batches:", len(trainloader))
-
-    best_test_iou = 0.0
-    best_optimizer = None
-    best_model = None
-    best_message = ""
-
-    for epoch in range(1, epochs + 1):
-        print("Start epoch", epoch)
-        model.train()
-        running_loss, total_accuracy, total_precision, total_recall, total_iou, total_dice, num_samples = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        for id, (X_train, y_train) in enumerate(trainloader, 0):
-            if verbose:
-                print(f'Training batch {id}')
-
-            X_train, y_train = X_train.to(device), y_train.to(device)
-            optimizer.zero_grad()
-            y_hat = model(X_train)
-
-            y_train = y_train.squeeze(dim=1)
-            loss = loss_fn(y_hat, y_train)
-
-            loss.backward()
-            optimizer.step()
-
-            # Compute batch metrics
-            batch_metrics = compute_metrics(y_hat, y_train, loss_fn, num_classes)
-            batch_size = X_train.size(0)
-
-            # Accumulate metrics
-            running_loss += batch_metrics["loss"] * batch_size
-            total_accuracy += batch_metrics["accuracy"] * batch_size
-            total_precision += batch_metrics["precision"] * batch_size
-            total_recall += batch_metrics["recall"] * batch_size
-            total_iou += batch_metrics["iou"] * batch_size
-            total_dice += batch_metrics["dice"] * batch_size
-            num_samples += batch_size
-
-
-        # Compute average metrics for training
-        train_metrics = {
-            "loss": running_loss / num_samples,
-            "accuracy": total_accuracy / num_samples,
-            "precision": total_precision / num_samples,
-            "recall": total_recall / num_samples,
-            "iou": total_iou / num_samples,
-            "dice": total_dice / num_samples
-        }
-
-        if scheduler is not None:
-            scheduler.step()
-
-        # Print metrics for the current epoch
-        print(f"Epoch {epoch}/{epochs}")
-        print(f"Train -> {train_metrics}")
-        if compute_test_metrics:
-            test_metrics = compute_test_metrics_fn(model, trainvalloader, loss_fn, device, num_classes=3, num_eval_batches=1)
-            print(f"Test   -> {test_metrics}")
-            if test_metrics["iou"] > best_test_iou:
-                best_test_iou = test_metrics["iou"]
-                best_model = model.state_dict().copy()
-                best_optimizer = optimizer.state_dict().copy()
-                best_message = f"Best model found at epoch {epoch} with IoU {best_test_iou}\n" \
-                                f"Test -> {test_metrics} \n" \
-                                f"Train -> {train_metrics} \n"
-        print("-" * 50)
-
-        # Save model weights every 2 epochs
-        if epoch % SAVE_WEIGHTS_FREQUENCY == 0:
-            checkpoint = {
-                    'epoch': epoch,
-                    'model': model.state_dict(),
-                    'optimizer': optimizer.state_dict()}
-            if scheduler is not None:
-                checkpoint['lr_scheduler']= scheduler.load_state_dict
-            torch.save(checkpoint, f"{model_name}_epoch_{epoch}.pth")
-            print(f"Model weights, optimiser, scheduler order saved for model {model_name} at epoch {epoch}")
-        
-    if best_model is not None:
-        print(best_message)
-        # Save best model
-        checkpoint = {
-            'epoch': epoch,
-            'model': best_model,
-            'optimizer': best_optimizer
-        }
-        if scheduler is not None:
-            checkpoint['lr_scheduler']= scheduler.load_state_dict
-        torch.save(checkpoint, f"{model_name}_best.pth")
-        print(f"Best model saved for model {model_name} at epoch {epoch}")
-
-
-
 def main():
     import argparse
 
@@ -254,25 +128,37 @@ def main():
         print("Pseudo mask data loaded from", args.pseudo_path)
         print(X_train_batch.shape, y_train_batch.shape)
 
-    # test model giving correct shape
     model.eval()
-    output = model(X_train_batch)
-    print(output.shape)
+    
+    # test model giving correct shape
+    # output = model(X_train_batch)
+    # print(output.shape)
 
     # initialise optimiser & loss class
     # loss_fn = nn.CrossEntropyLoss(reduction='mean')
     # loss_fn = DiceLoss()
     # loss_fn = CombinedCELDiceLoss()
     loss_fn = nn.CrossEntropyLoss(reduction='mean')
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    # optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
 
-    # train model
-    train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = args.model, scheduler=scheduler, verbose=args.verbose)
+    model_name = 'EffUNet'
+    epoch = 10
+    checkpoint_file = f"{model_name}_epoch_{epoch}.pth"
 
-    # compute metrics on entire test set (may take a while)
+    # Load the checkpoint
+    checkpoint = torch.load(checkpoint_file)
+    # Restore states
+    model.load_state_dict(checkpoint['model'])
+    # optimizer.load_state_dict(checkpoint['optimizer'])
+
+    # # Check if lr_scheduler was saved
+    # if 'lr_scheduler' in checkpoint:
+    #     scheduler.load_state_dict(checkpoint['lr_scheduler'])
+
+    # compute metrics on entire test set
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
     print(f"Final test metrics:   -> {test_metrics}")
 
