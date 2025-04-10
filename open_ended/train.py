@@ -350,7 +350,7 @@ def main():
 
     # --- Optimizer ---
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
-    scheduler = optim.l·r_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.lr * 0.01)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.lr * 0.01)
 
 
     # --- Training Loop ---
