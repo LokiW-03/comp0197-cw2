@@ -1,0 +1,282 @@
+Using device: cuda
+Initializing dataset: split=train, mode=hybrid_points_boxes, augment=False
+Using first 5173 images for training.
+Loading weak labels from ./weak_labels/weak_labels_train.pkl
+Initializing dataset: split=val, mode=full, augment=False
+Using images 5173 to 6280 for validation.
+Initializing model in 'hybrid' mode with 2 output classes for segmentation head.
+
+Starting training run: points_boxes_run1
+Supervision: hybrid_points_boxes, Batch Size: 64, LR: 0.0002, Epochs: 25, Num Classes: 2
+
+--- Epoch 1/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.9601, Current Train Acc (GT): 0.6104, Batch Time: 0.25s, Epoch ETA: 00:00:10
+Training epoch finished. Average Loss: 0.8097, Train Acc (GT): 0.6491, Train Pet IoU (GT): 0.4240
+Starting validation epoch...
+Validation epoch finished. Average Loss: 0.9773, Val Acc: 0.6846, Val Pet IoU: 0.4268
+Epoch 1 Summary: Train Loss: 0.8097, Train Acc: 0.6491, Train Pet IoU: 0.4240 | Val Loss: 0.9773, Val Acc: 0.6846, Val Pet IoU: 0.4268 | LR: 0.000199
+Checkpoint saved: Validation IOU improved to 0.4268 (Loss: 0.9773, Pet IoU: 0.4268). Saved to ./checkpoints_hybrid/points_boxes_run1_best_acc.pth
+Epoch 1 duration: 00:00:26
+Estimated time remaining: 00:10:32
+
+--- Epoch 2/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.4369, Current Train Acc (GT): 0.7113, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.4235, Train Acc (GT): 0.7120, Train Pet IoU (GT): 0.4737
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.0294, Val Acc: 0.6944, Val Pet IoU: 0.4375
+Epoch 2 Summary: Train Loss: 0.4235, Train Acc: 0.7120, Train Pet IoU: 0.4737 | Val Loss: 1.0294, Val Acc: 0.6944, Val Pet IoU: 0.4375 | LR: 0.000197
+Checkpoint saved: Validation IOU improved to 0.4375 (Loss: 1.0294, Pet IoU: 0.4375). Saved to ./checkpoints_hybrid/points_boxes_run1_best_acc.pth
+Epoch 2 duration: 00:00:24
+Estimated time remaining: 00:09:37
+
+--- Epoch 3/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.3332, Current Train Acc (GT): 0.7102, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.3256, Train Acc (GT): 0.7119, Train Pet IoU (GT): 0.4725
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.1208, Val Acc: 0.7072, Val Pet IoU: 0.4503
+Epoch 3 Summary: Train Loss: 0.3256, Train Acc: 0.7119, Train Pet IoU: 0.4725 | Val Loss: 1.1208, Val Acc: 0.7072, Val Pet IoU: 0.4503 | LR: 0.000193
+Checkpoint saved: Validation IOU improved to 0.4503 (Loss: 1.1208, Pet IoU: 0.4503). Saved to ./checkpoints_hybrid/points_boxes_run1_best_acc.pth
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_2.pth
+Epoch 3 duration: 00:00:24
+Estimated time remaining: 00:09:06
+
+--- Epoch 4/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.2811, Current Train Acc (GT): 0.7122, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.2843, Train Acc (GT): 0.7126, Train Pet IoU (GT): 0.4729
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.2709, Val Acc: 0.7250, Val Pet IoU: 0.4701
+Epoch 4 Summary: Train Loss: 0.2843, Train Acc: 0.7126, Train Pet IoU: 0.4729 | Val Loss: 1.2709, Val Acc: 0.7250, Val Pet IoU: 0.4701 | LR: 0.000188
+Checkpoint saved: Validation IOU improved to 0.4701 (Loss: 1.2709, Pet IoU: 0.4701). Saved to ./checkpoints_hybrid/points_boxes_run1_best_acc.pth
+Epoch 4 duration: 00:00:24
+Estimated time remaining: 00:08:39
+
+--- Epoch 5/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.2451, Current Train Acc (GT): 0.7121, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.2482, Train Acc (GT): 0.7120, Train Pet IoU (GT): 0.4716
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.0956, Val Acc: 0.7303, Val Pet IoU: 0.4760
+Epoch 5 Summary: Train Loss: 0.2482, Train Acc: 0.7120, Train Pet IoU: 0.4716 | Val Loss: 1.0956, Val Acc: 0.7303, Val Pet IoU: 0.4760 | LR: 0.000181
+Checkpoint saved: Validation IOU improved to 0.4760 (Loss: 1.0956, Pet IoU: 0.4760). Saved to ./checkpoints_hybrid/points_boxes_run1_best_acc.pth
+Epoch 5 duration: 00:00:24
+Estimated time remaining: 00:08:13
+
+--- Epoch 6/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.2201, Current Train Acc (GT): 0.7130, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.2207, Train Acc (GT): 0.7121, Train Pet IoU (GT): 0.4715
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.2223, Val Acc: 0.7281, Val Pet IoU: 0.4731
+Epoch 6 Summary: Train Loss: 0.2207, Train Acc: 0.7121, Train Pet IoU: 0.4715 | Val Loss: 1.2223, Val Acc: 0.7281, Val Pet IoU: 0.4731 | LR: 0.000173
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_5.pth
+Epoch 6 duration: 00:00:24
+Estimated time remaining: 00:07:47
+
+--- Epoch 7/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.2075, Current Train Acc (GT): 0.7119, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.2058, Train Acc (GT): 0.7115, Train Pet IoU (GT): 0.4707
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.3592, Val Acc: 0.7218, Val Pet IoU: 0.4663
+Epoch 7 Summary: Train Loss: 0.2058, Train Acc: 0.7115, Train Pet IoU: 0.4707 | Val Loss: 1.3592, Val Acc: 0.7218, Val Pet IoU: 0.4663 | LR: 0.000164
+Epoch 7 duration: 00:00:24
+Estimated time remaining: 00:07:21
+
+--- Epoch 8/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1896, Current Train Acc (GT): 0.7135, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1892, Train Acc (GT): 0.7123, Train Pet IoU (GT): 0.4712
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.3507, Val Acc: 0.7168, Val Pet IoU: 0.4601
+Epoch 8 Summary: Train Loss: 0.1892, Train Acc: 0.7123, Train Pet IoU: 0.4712 | Val Loss: 1.3507, Val Acc: 0.7168, Val Pet IoU: 0.4601 | LR: 0.000154
+Epoch 8 duration: 00:00:24
+Estimated time remaining: 00:06:54
+
+--- Epoch 9/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1738, Current Train Acc (GT): 0.7125, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1736, Train Acc (GT): 0.7126, Train Pet IoU (GT): 0.4716
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.3535, Val Acc: 0.7178, Val Pet IoU: 0.4619
+Epoch 9 Summary: Train Loss: 0.1736, Train Acc: 0.7126, Train Pet IoU: 0.4716 | Val Loss: 1.3535, Val Acc: 0.7178, Val Pet IoU: 0.4619 | LR: 0.000143
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_8.pth
+Epoch 9 duration: 00:00:24
+Estimated time remaining: 00:06:30
+
+--- Epoch 10/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1706, Current Train Acc (GT): 0.7135, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1682, Train Acc (GT): 0.7129, Train Pet IoU (GT): 0.4718
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.4624, Val Acc: 0.7166, Val Pet IoU: 0.4606
+Epoch 10 Summary: Train Loss: 0.1682, Train Acc: 0.7129, Train Pet IoU: 0.4718 | Val Loss: 1.4624, Val Acc: 0.7166, Val Pet IoU: 0.4606 | LR: 0.000132
+Epoch 10 duration: 00:00:24
+Estimated time remaining: 00:06:04
+
+--- Epoch 11/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1542, Current Train Acc (GT): 0.7147, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1560, Train Acc (GT): 0.7131, Train Pet IoU (GT): 0.4719
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.4895, Val Acc: 0.7140, Val Pet IoU: 0.4569
+Epoch 11 Summary: Train Loss: 0.1560, Train Acc: 0.7131, Train Pet IoU: 0.4719 | Val Loss: 1.4895, Val Acc: 0.7140, Val Pet IoU: 0.4569 | LR: 0.000120
+Epoch 11 duration: 00:00:24
+Estimated time remaining: 00:05:39
+
+--- Epoch 12/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1474, Current Train Acc (GT): 0.7133, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1522, Train Acc (GT): 0.7134, Train Pet IoU (GT): 0.4722
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6391, Val Acc: 0.7195, Val Pet IoU: 0.4638
+Epoch 12 Summary: Train Loss: 0.1522, Train Acc: 0.7134, Train Pet IoU: 0.4722 | Val Loss: 1.6391, Val Acc: 0.7195, Val Pet IoU: 0.4638 | LR: 0.000107
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_11.pth
+Epoch 12 duration: 00:00:24
+Estimated time remaining: 00:05:15
+
+--- Epoch 13/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1449, Current Train Acc (GT): 0.7136, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1454, Train Acc (GT): 0.7126, Train Pet IoU (GT): 0.4712
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6553, Val Acc: 0.7195, Val Pet IoU: 0.4636
+Epoch 13 Summary: Train Loss: 0.1454, Train Acc: 0.7126, Train Pet IoU: 0.4712 | Val Loss: 1.6553, Val Acc: 0.7195, Val Pet IoU: 0.4636 | LR: 0.000095
+Epoch 13 duration: 00:00:24
+Estimated time remaining: 00:04:50
+
+--- Epoch 14/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1387, Current Train Acc (GT): 0.7127, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1389, Train Acc (GT): 0.7133, Train Pet IoU (GT): 0.4718
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.5134, Val Acc: 0.7220, Val Pet IoU: 0.4663
+Epoch 14 Summary: Train Loss: 0.1389, Train Acc: 0.7133, Train Pet IoU: 0.4718 | Val Loss: 1.5134, Val Acc: 0.7220, Val Pet IoU: 0.4663 | LR: 0.000082
+Epoch 14 duration: 00:00:24
+Estimated time remaining: 00:04:25
+
+--- Epoch 15/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1331, Current Train Acc (GT): 0.7137, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1320, Train Acc (GT): 0.7131, Train Pet IoU (GT): 0.4715
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.5391, Val Acc: 0.7211, Val Pet IoU: 0.4651
+Epoch 15 Summary: Train Loss: 0.1320, Train Acc: 0.7131, Train Pet IoU: 0.4715 | Val Loss: 1.5391, Val Acc: 0.7211, Val Pet IoU: 0.4651 | LR: 0.000070
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_14.pth
+Epoch 15 duration: 00:00:24
+Estimated time remaining: 00:04:01
+
+--- Epoch 16/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1284, Current Train Acc (GT): 0.7106, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1285, Train Acc (GT): 0.7137, Train Pet IoU (GT): 0.4722
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.5723, Val Acc: 0.7184, Val Pet IoU: 0.4618
+Epoch 16 Summary: Train Loss: 0.1285, Train Acc: 0.7137, Train Pet IoU: 0.4722 | Val Loss: 1.5723, Val Acc: 0.7184, Val Pet IoU: 0.4618 | LR: 0.000059
+Epoch 16 duration: 00:00:23
+Estimated time remaining: 00:03:37
+
+--- Epoch 17/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1238, Current Train Acc (GT): 0.7143, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1232, Train Acc (GT): 0.7133, Train Pet IoU (GT): 0.4718
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6012, Val Acc: 0.7218, Val Pet IoU: 0.4662
+Epoch 17 Summary: Train Loss: 0.1232, Train Acc: 0.7133, Train Pet IoU: 0.4718 | Val Loss: 1.6012, Val Acc: 0.7218, Val Pet IoU: 0.4662 | LR: 0.000048
+Epoch 17 duration: 00:00:24
+Estimated time remaining: 00:03:13
+
+--- Epoch 18/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1221, Current Train Acc (GT): 0.7107, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1229, Train Acc (GT): 0.7130, Train Pet IoU (GT): 0.4714
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.5888, Val Acc: 0.7227, Val Pet IoU: 0.4668
+Epoch 18 Summary: Train Loss: 0.1229, Train Acc: 0.7130, Train Pet IoU: 0.4714 | Val Loss: 1.5888, Val Acc: 0.7227, Val Pet IoU: 0.4668 | LR: 0.000038
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_17.pth
+Epoch 18 duration: 00:00:24
+Estimated time remaining: 00:02:48
+
+--- Epoch 19/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1193, Current Train Acc (GT): 0.7127, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1187, Train Acc (GT): 0.7134, Train Pet IoU (GT): 0.4719
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6412, Val Acc: 0.7203, Val Pet IoU: 0.4642
+Epoch 19 Summary: Train Loss: 0.1187, Train Acc: 0.7134, Train Pet IoU: 0.4719 | Val Loss: 1.6412, Val Acc: 0.7203, Val Pet IoU: 0.4642 | LR: 0.000029
+Epoch 19 duration: 00:00:24
+Estimated time remaining: 00:02:24
+
+--- Epoch 20/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1144, Current Train Acc (GT): 0.7138, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1147, Train Acc (GT): 0.7139, Train Pet IoU (GT): 0.4724
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6482, Val Acc: 0.7198, Val Pet IoU: 0.4636
+Epoch 20 Summary: Train Loss: 0.1147, Train Acc: 0.7139, Train Pet IoU: 0.4724 | Val Loss: 1.6482, Val Acc: 0.7198, Val Pet IoU: 0.4636 | LR: 0.000021
+Epoch 20 duration: 00:00:24
+Estimated time remaining: 00:02:00
+
+--- Epoch 21/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1196, Current Train Acc (GT): 0.7108, Batch Time: 0.25s, Epoch ETA: 00:00:08
+Training epoch finished. Average Loss: 0.1171, Train Acc (GT): 0.7133, Train Pet IoU (GT): 0.4717
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6520, Val Acc: 0.7202, Val Pet IoU: 0.4641
+Epoch 21 Summary: Train Loss: 0.1171, Train Acc: 0.7133, Train Pet IoU: 0.4717 | Val Loss: 1.6520, Val Acc: 0.7202, Val Pet IoU: 0.4641 | LR: 0.000014
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_20.pth
+Epoch 21 duration: 00:00:24
+Estimated time remaining: 00:01:36
+
+--- Epoch 22/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1110, Current Train Acc (GT): 0.7142, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1121, Train Acc (GT): 0.7138, Train Pet IoU (GT): 0.4722
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6499, Val Acc: 0.7209, Val Pet IoU: 0.4650
+Epoch 22 Summary: Train Loss: 0.1121, Train Acc: 0.7138, Train Pet IoU: 0.4722 | Val Loss: 1.6499, Val Acc: 0.7209, Val Pet IoU: 0.4650 | LR: 0.000009
+Epoch 22 duration: 00:00:24
+Estimated time remaining: 00:01:12
+
+--- Epoch 23/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1104, Current Train Acc (GT): 0.7132, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1105, Train Acc (GT): 0.7139, Train Pet IoU (GT): 0.4724
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6730, Val Acc: 0.7200, Val Pet IoU: 0.4638
+Epoch 23 Summary: Train Loss: 0.1105, Train Acc: 0.7139, Train Pet IoU: 0.4724 | Val Loss: 1.6730, Val Acc: 0.7200, Val Pet IoU: 0.4638 | LR: 0.000005
+Epoch 23 duration: 00:00:24
+Estimated time remaining: 00:00:48
+
+--- Epoch 24/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1103, Current Train Acc (GT): 0.7127, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1117, Train Acc (GT): 0.7131, Train Pet IoU (GT): 0.4714
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6499, Val Acc: 0.7208, Val Pet IoU: 0.4646
+Epoch 24 Summary: Train Loss: 0.1117, Train Acc: 0.7131, Train Pet IoU: 0.4714 | Val Loss: 1.6499, Val Acc: 0.7208, Val Pet IoU: 0.4646 | LR: 0.000003
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_23.pth
+Epoch 24 duration: 00:00:24
+Estimated time remaining: 00:00:24
+
+--- Epoch 25/25 ---
+Starting training epoch (metrics calculated against GT)...
+  Train Batch 50/81, Loss: 0.1076, Current Train Acc (GT): 0.7155, Batch Time: 0.25s, Epoch ETA: 00:00:09
+Training epoch finished. Average Loss: 0.1095, Train Acc (GT): 0.7142, Train Pet IoU (GT): 0.4727
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6697, Val Acc: 0.7199, Val Pet IoU: 0.4637
+Epoch 25 Summary: Train Loss: 0.1095, Train Acc: 0.7142, Train Pet IoU: 0.4727 | Val Loss: 1.6697, Val Acc: 0.7199, Val Pet IoU: 0.4637 | LR: 0.000002
+Latest checkpoint saved to ./checkpoints_hybrid/points_boxes_run1_24.pth
+Epoch 25 duration: 00:00:24
+
+------------------------------------
+Training finished.
+Total Training Time: 00:10:00
+Best Validation IOU achieved: 0.4760
+Best model saved to: ./checkpoints_hybrid/points_boxes_run1_best_acc.pth (if accuracy improved)
+Latest model saved to: ./checkpoints_hybrid/points_boxes_run1_latest.pth
+
+RECOMMENDATION: Load the '_best_acc.pth' checkpoint and evaluate it on the separate TEST set for final performance.
