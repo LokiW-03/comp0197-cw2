@@ -226,10 +226,10 @@ if __name__ == "__main__":
 
     # --- Infrastructure Arguments ---
     parser.add_argument('--save_dir', type=str, default='./saved_models_wsss', help='Directory to save trained models')
-    parser.add_argument('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help='Device to use for training')
     parser.add_argument('--eval_interval', type=int, default=20, help='Frequency (in batches) to print training progress')
 
     args = parser.parse_args()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
 
     train_segmentation_model(
         encoder_name=args.encoder_name,
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         lr=args.lr,
         t_max_factor=args.t_max_factor,
         eta_min=args.eta_min,
-        device_str=args.device,
+        device=args.device,
         eval_interval=args.eval_interval,
     )
     
