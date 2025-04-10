@@ -241,7 +241,7 @@ if __name__ == "__main__":
         lr=args.lr,
         t_max_factor=args.t_max_factor,
         eta_min=args.eta_min,
-        device=args.device,
+        device=device,
         eval_interval=args.eval_interval,
     )
     
