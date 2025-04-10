@@ -27,18 +27,18 @@ def train_segmentation_model(
     pseudo_mask_path="cam/saved_models/resnet50_pet_cam_pseudo.pt",
     data_root='./data',
     save_dir='./saved_models_wsss',
-    epochs=50,
+    epochs=10,
     batch_size=16,
     lr=1e-4,
     t_max_factor=1.0, # Multiplier for T_MAX calculation (1.0 = standard)
     eta_min=1e-6,
     device: torch.device = torch.device('cpu'),
-    eval_interval=5, # How often to print batch progress
 ):
     """
     Trains the FPN segmentation model using pseudo-masks.
 
     Args:
+        seg_model_name (str): Name of the segmentation model ('fpn', 'segnext', 'segnet', 'unet').
         encoder_name (str): Backbone encoder for FPN ('resnet34', 'resnet50', etc.).
         pseudo_mask_path (str): Path to the .pt file containing pseudo mask dataloader info.
         data_root (str): Root directory for the OxfordIIITPet dataset.
@@ -49,7 +49,6 @@ def train_segmentation_model(
         t_max_factor (float): Multiplier for CosineAnnealingLR T_MAX.
         eta_min (float): Minimum learning rate for CosineAnnealingLR.
         device: Auto-detect/manually specify device ('cuda', 'mps', 'cpu').
-        eval_interval (int): Print training progress every N batches.
     """
 
     # --- Create Save Directory ---
@@ -142,10 +141,6 @@ def train_segmentation_model(
             train_loss_accum += loss.item() * images.size(0)
             processed_samples += images.size(0)
 
-            if (i + 1) % eval_interval == 0 or (i + 1) == len(pseudo_loader):
-                current_lr = scheduler.get_last_lr()[0]
-                print(f"  Batch {i+1}/{len(pseudo_loader)} | Train Loss (Batch): {loss.item():.4f} | LR: {current_lr:.1e}")
-
         avg_train_loss_epoch = train_loss_accum / processed_samples
         print(f"Epoch {epoch+1} Average Training Loss (Pseudo Masks): {avg_train_loss_epoch:.4f}")
 
@@ -226,7 +221,6 @@ if __name__ == "__main__":
 
     # --- Infrastructure Arguments ---
     parser.add_argument('--save_dir', type=str, default='./saved_models_wsss', help='Directory to save trained models')
-    parser.add_argument('--eval_interval', type=int, default=20, help='Frequency (in batches) to print training progress')
 
     args = parser.parse_args()
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
@@ -242,6 +236,5 @@ if __name__ == "__main__":
         t_max_factor=args.t_max_factor,
         eta_min=args.eta_min,
         device=device,
-        eval_interval=args.eval_interval,
     )
     
