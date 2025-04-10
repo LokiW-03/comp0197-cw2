@@ -13,58 +13,118 @@ pip install torchmetrics
 
 ## Run
 
-Generate Weak Labels
-```bash
-python weak_label_generator.py --data_dir ./data --output_file ./weak_labels/weak_labels_train.pkl --log_level DEBUG
 ```
+!cd comp0197-cw2/ && python open_ended/download_data.py
 
-```bash
-python open_ended/weak_label_generator.py --data_dir ./data --output_file ./open_ended/weak_labels/weak_labels_train.pkl --log_level WARNING
-```
+!cd comp0197-cw2/ && python open_ended/weak_label_generator.py --data_dir ./data --output_file ./weak_labels/weak_labels_train.pkl
 
-Train models
-```bash
 
-# Example of Points
-!python train_single_feature.py \
+!cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode points \
-    --run_name points_run1 \
-    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --run_name segnet_points_run1 \
     --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
     --batch_size 64 \
     --lr 2e-4 \
-    --epochs 75 \
+    --epochs 25 \
     --num_workers 8 \
     --img_size 256 \
-    --checkpoint_dir ./checkpoints_a100
+    --checkpoint_dir ./checkpoints_single \
+    --augment
+
+!cd comp0197-cw2/  && python -m open_ended.train \
+    --supervision_mode scribbles \
+    --run_name segnet_scribbles_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 25 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_single \
+    --augment
+
+!cd comp0197-cw2/  && python -m open_ended.train \
+    --supervision_mode boxes \
+    --run_name segnet_boxes_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 25 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_single \
+    --augment
 
 
+!cd comp0197-cw2/  && python -m open_ended.train \
+    --supervision_mode hybrid_points_scribbles \
+    --run_name segnet_hybrid_points_scribbles_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 25 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_hybrid \
+    --augment
+
+!cd comp0197-cw2/  && python -m open_ended.train \
+    --supervision_mode hybrid_points_boxes \
+    --run_name segnet_hybrid_points_boxes_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 25 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir comp0197/checkpoints_hybrid \
+    --augment
+
+!cd comp0197-cw2/  && python -m open_ended.train \
+    --supervision_mode hybrid_scribbles_boxes \
+    --run_name segnet_hybrid_scribbles_boxes_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 25 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_hybrid \
+    --augment
+
+!cd comp0197-cw2/  && python -m open_ended.train \
+    --supervision_mode hybrid_points_scribbles_boxes \
+    --run_name segnet_hybrid_points_scribbles_boxes_run1 \
+    --data_dir ./data \
+    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --batch_size 64 \
+    --lr 2e-4 \
+    --epochs 25 \
+    --num_workers 8 \
+    --img_size 256 \
+    --checkpoint_dir ./checkpoints_hybrid \
+    --augment
 ```
 
 ## Visualization
 
+
+Visualize labels
 ```
-python visualize.py
+python -m open_ended.visualize_labels    
 ```
 
-
-## Colab Run script
-
+Visualize weights
 ```
-!pip install Pillow numpy scikit-image segmentation-models-pytorch torchmetrics
-!python download_data.py
-!python train_single_feature.py \
-    --supervision_mode points \
-    --run_name points_run1 \
-    --weak_label_path ./weak_labels/weak_labels_train.pkl \
-    --data_dir ./data \
-    --batch_size 64 \
-    --lr 2e-4 \
-    --epochs 75 \
-    --num_workers 8 \
-    --img_size 256 \
-    --checkpoint_dir ./checkpoints_a100
+python -m open_ended.weight_visualization
 ```
+
 
 
 ## Evaluate
@@ -84,7 +144,7 @@ python -m open_ended.evaluate \
 
 1.  **Weak Label Generation:** 
     *   Points (centroid of each object mask).
-    *   Scatter (20 points)
+    *   Scribbles (freehand stroke per object and background)
     *   Bounding boxes (tightest box around mask).
 
 **Phase 2: Model Training**
@@ -92,7 +152,7 @@ python -m open_ended.evaluate \
 5.  **Training Framework:** Set up a basic PyTorch training loop. Include standard components: dataloader, model definition, optimizer (AdamW), loss function placeholder, basic metric calculation (e.g., pixel accuracy during training), training/validation steps, checkpoint saving.
 6.  **Implement WSSS Losses & Training Logic:**
     *   **Points:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels. Modify dataloader to provide point labels.
-    *   **Scatter:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels.
+    *   **Scribbles:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels.
     *   **Boxes:** Generate pseudo-masks (inside box = foreground, outside = background). Train using standard CrossEntropyLoss on these pseudo-masks. Modify dataloader to provide box labels/masks.
 7.  **Launch Training Runs:** Start training one model for each supervision type (Tags, Points, Scribbles, Boxes, Hybrid Tags+Points) on available GPUs. Use modest epochs initially (e.g., 50) and monitor validation loss/accuracy. Use consistent hyperparameters (learning rate, batch size) across runs where applicable.
 8.  **Debugging & Monitoring:** Monitor training progress (loss curves, basic validation metrics). Debug any issues (NaN losses, slow convergence, bugs in loss implementation). Adjust hyperparameters slightly if necessary (e.g., learning rate).
@@ -168,7 +228,7 @@ All the models were trained with same settings, ex. batch size etc.
 |---------|--------------|---------------|-----------|---------------|
 | Feature | Best Val IOU | Best Test IOU | Test Loss | Test Accuracy |
 | box     | 0.4826       | 0.5338        | 0.5696    | 0.7295        |
-| scatter | 0.3343       | 0.3307        | 3.0825    | 0.5080        |
+| Scribbles | 0.3343       | 0.3307        | 3.0825    | 0.5080        |
 | point   | 0.3320       | 0.1522        | 4.5684    | 0.5000        |
 
 ### Hybrid Feature
@@ -179,6 +239,6 @@ All the models were trained with same settings, ex. batch size etc.
 |---------------------|--------------|---------------|-----------|---------------|
 | Feature             | Best Val IOU | Best Test IOU | Test Loss | Test Accuracy |
 | box, point          | 0.4655       | 0.4793        | 0.9793    | 0.7018        |
-| box, scatter        | 0.4630       | 0.4737        | 1.0722    | 0.7144        |
-| point, scatter      | 0.3444       | 0.2027        | 0.3929    | 0.5344        |
-| box, point, scatter | 0.4694       | 0.4705        | 1.2276    | 0.7185        |
+| box, Scribbles        | 0.4630       | 0.4737        | 1.0722    | 0.7144        |
+| point, Scribbles      | 0.3444       | 0.2027        | 0.3929    | 0.5344        |
+| box, point, Scribbles | 0.4694       | 0.4705        | 1.2276    | 0.7185        |
