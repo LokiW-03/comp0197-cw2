@@ -151,6 +151,7 @@ class PetsDataset(Dataset):
                  coords = item_labels.get(key, [])
                  # Assuming points/scribbles always mark the Pet class (index 1)
                  pet_class_index = 1
+                 print(coords)
                  for y, x in coords:
                       y_clamped = max(0, min(y, self.img_size[0] - 1))
                       x_clamped = max(0, min(x, self.img_size[1] - 1))
