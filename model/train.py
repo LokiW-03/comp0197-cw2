@@ -10,7 +10,7 @@ from baseline_unet import UNet
 from segnext import SegNeXt
 from PIL import Image
 from data import trainset, testset
-from visualise import visualise_fs_segmentation
+from montage import visualise_fs_segmentation
 
 SAVE_WEIGHTS_FREQUENCY = 2 # save weights to a file every {num} epochs
 EPOCHS = 1
