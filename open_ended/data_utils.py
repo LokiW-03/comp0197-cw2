@@ -146,17 +146,31 @@ class PetsDataset(Dataset):
 
         for key in required_keys:
             if key in ['points', 'scribbles']:
-                 # Expecting list of (y, x) coordinates for the foreground class (1)
-                 sparse_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
-                 coords = item_labels.get(key, [])
-                 # Assuming points/scribbles always mark the Pet class (index 1)
-                 pet_class_index = 1
-                 print(coords)
-                 for y, x in coords:
-                      y_clamped = max(0, min(y, self.img_size[0] - 1))
-                      x_clamped = max(0, min(x, self.img_size[1] - 1))
-                      sparse_mask[y_clamped, x_clamped] = pet_class_index # Label points as Pet class
-                 weak_data[key] = sparse_mask # HxW tensor
+                sparse_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
+                
+                if key == 'points':
+                    # Handle points (single class)
+                    coords = item_labels.get(key, [])
+                    for y, x in coords:
+                        y = max(0, min(y, self.img_size[0] - 1))
+                        x = max(0, min(x, self.img_size[1] - 1))
+                        sparse_mask[y, x] = 1  # Pet class
+
+                elif key == 'scribbles':
+                    # Handle scribbles (both foreground and background)
+                    scribbles = item_labels.get(key, {})
+                    # Foreground scribbles (class 1)
+                    for y, x in scribbles.get('foreground', []):
+                        y = max(0, min(y, self.img_size[0] - 1))
+                        x = max(0, min(x, self.img_size[1] - 1))
+                        sparse_mask[y, x] = 1
+                    # Background scribbles (class 0)
+                    for y, x in scribbles.get('background', []):
+                        y = max(0, min(y, self.img_size[0] - 1))
+                        x = max(0, min(x, self.img_size[1] - 1))
+                        sparse_mask[y, x] = 0
+
+                weak_data[key] = sparse_mask
 
             elif key == 'boxes':
                  # Expecting list of boxes (ymin, xmin, ymax, xmax)
