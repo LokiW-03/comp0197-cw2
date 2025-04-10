@@ -816,6 +816,826 @@ Train -> {'loss': 52641964.995898075, 'accuracy': 0.5981874459463618, 'precision
 
 Best model saved for model unet at epoch 10
 
+Trial 0:
+Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
+Downloading: "https://download.pytorch.org/models/resnet50-0676ba61.pth" to /root/.cache/torch/hub/checkpoints/resnet50-0676ba61.pth
+100% 97.8M/97.8M [00:00<00:00, 227MB/s]
+/usr/local/lib/python3.11/dist-packages/torch/autograd/graph.py:823: UserWarning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (Triggered internally at /pytorch/aten/src/ATen/cuda/CublasHandlePool.cpp:180.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 230
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.767905249543812, 'accuracy': 0.435252673600031, 'precision': 0.7715533673763275, 'recall': 0.33807913907196213, 'iou': 0.1501589350078417, 'dice': 0.20725185735070187}
+Test   -> {'loss': 0.8541368246078491, 'accuracy': 0.29981961846351624, 'precision': 0.7666065692901611, 'recall': 0.3333333432674408, 'iou': 0.09993988275527954, 'dice': 0.15377500653266907}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.8346850649170253, 'accuracy': 0.33497447604718417, 'precision': 0.7783248442670573, 'recall': 0.3333333432674408, 'iou': 0.11165816288279451, 'dice': 0.16715809813012247}
+Test   -> {'loss': 0.8492814302444458, 'accuracy': 0.32884371280670166, 'precision': 0.7762812376022339, 'recall': 0.3333333432674408, 'iou': 0.10961457341909409, 'dice': 0.16497737169265747}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.8346850664719291, 'accuracy': 0.3349744755288829, 'precision': 0.7783248502275218, 'recall': 0.3333333432674408, 'iou': 0.11165816304476364, 'dice': 0.16717331059600996}
+Test   -> {'loss': 0.8443641662597656, 'accuracy': 0.33744344115257263, 'precision': 0.7791478037834167, 'recall': 0.3333333432674408, 'iou': 0.11248114705085754, 'dice': 0.1682032197713852}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.8346850656944772, 'accuracy': 0.33497447488100635, 'precision': 0.7783248486726181, 'recall': 0.3333333432674408, 'iou': 0.11165816317433896, 'dice': 0.16715917056021484}
+Test   -> {'loss': 0.8769839406013489, 'accuracy': 0.2487892508506775, 'precision': 0.7495964765548706, 'recall': 0.3333333432674408, 'iou': 0.08292976021766663, 'dice': 0.13281625509262085}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.8346850654353266, 'accuracy': 0.334974474751431, 'precision': 0.778324850745823, 'recall': 0.3333333432674408, 'iou': 0.1116581635630649, 'dice': 0.167163408709609}
+Test   -> {'loss': 0.8620405793190002, 'accuracy': 0.2768268287181854, 'precision': 0.7589423060417175, 'recall': 0.3333333432674408, 'iou': 0.09227561205625534, 'dice': 0.1445389688014984}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.8346850667310798, 'accuracy': 0.3349744757880335, 'precision': 0.778324846599413, 'recall': 0.3333333432674408, 'iou': 0.11165816304476364, 'dice': 0.16713676031516947}
+Test   -> {'loss': 0.8513988256454468, 'accuracy': 0.30238932371139526, 'precision': 0.7674631476402283, 'recall': 0.3333333432674408, 'iou': 0.10079645365476608, 'dice': 0.15478697419166565}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.8346850698408873, 'accuracy': 0.3349744753993076, 'precision': 0.7783248484134674, 'recall': 0.3333333432674408, 'iou': 0.11165816301236982, 'dice': 0.16715848510679993}
+Test   -> {'loss': 0.8535040020942688, 'accuracy': 0.2982713282108307, 'precision': 0.7660903930664062, 'recall': 0.3333333432674408, 'iou': 0.09942378103733063, 'dice': 0.15316332876682281}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.8346850698408873, 'accuracy': 0.3349744755288829, 'precision': 0.7783248453036599, 'recall': 0.3333333432674408, 'iou': 0.11165816333630811, 'dice': 0.16714642779982608}
+Test   -> {'loss': 0.8673049211502075, 'accuracy': 0.27059125900268555, 'precision': 0.7568637728691101, 'recall': 0.3333333432674408, 'iou': 0.09019708633422852, 'dice': 0.14197656512260437}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.8346850703591886, 'accuracy': 0.33497447423312976, 'precision': 0.7783248471177142, 'recall': 0.3333333432674408, 'iou': 0.11165816327152045, 'dice': 0.1671521342318991}
+Test   -> {'loss': 0.850042462348938, 'accuracy': 0.31167539954185486, 'precision': 0.7705585360527039, 'recall': 0.3333333432674408, 'iou': 0.10389180481433868, 'dice': 0.15841084718704224}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.834685065176176, 'accuracy': 0.3349744757880335, 'precision': 0.7783248504866724, 'recall': 0.3333333432674408, 'iou': 0.11165816323912663, 'dice': 0.16715573662001154}
+Test   -> {'loss': 0.8672064542770386, 'accuracy': 0.2621472477912903, 'precision': 0.7540490627288818, 'recall': 0.3333333432674408, 'iou': 0.08738242089748383, 'dice': 0.13846628367900848}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 3 with IoU 0.11248114705085754
+Test -> {'loss': 0.8443641662597656, 'accuracy': 0.33744344115257263, 'precision': 0.7791478037834167, 'recall': 0.3333333432674408, 'iou': 0.11248114705085754, 'dice': 0.1682032197713852} 
+Train -> {'loss': 0.8346850664719291, 'accuracy': 0.3349744755288829, 'precision': 0.7783248502275218, 'recall': 0.3333333432674408, 'iou': 0.11165816304476364, 'dice': 0.16717331059600996} 
+
+Best model saved for model unet at epoch 10
+
+Trial 1:
+Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 58
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.6639908738758253, 'accuracy': 0.5859548699596654, 'precision': 0.8318701557491137, 'recall': 0.36240531568941864, 'iou': 0.21852512304549632, 'dice': 0.28355993278648545}
+Test   -> {'loss': 0.7632716298103333, 'accuracy': 0.57856684923172, 'precision': 0.8595223426818848, 'recall': 0.3333333432674408, 'iou': 0.19285564124584198, 'dice': 0.24434268474578857}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.4836948591729869, 'accuracy': 0.721852357491203, 'precision': 0.6033083195271699, 'recall': 0.5286066262618355, 'iou': 0.405400385286497, 'dice': 0.5091712505921073}
+Test   -> {'loss': 0.7408798336982727, 'accuracy': 0.5738509893417358, 'precision': 0.44844794273376465, 'recall': 0.3423396050930023, 'iou': 0.20810005068778992, 'dice': 0.2736751437187195}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.4397404079851897, 'accuracy': 0.7227117813151815, 'precision': 0.5715127519939257, 'recall': 0.5667431193849315, 'iou': 0.444426343233689, 'dice': 0.561504776581474}
+Test   -> {'loss': 0.5455913543701172, 'accuracy': 0.6200038194656372, 'precision': 0.5121663808822632, 'recall': 0.4650833010673523, 'iou': 0.34374257922172546, 'dice': 0.47046470642089844}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.4396553915479909, 'accuracy': 0.7232562666353972, 'precision': 0.571759295463562, 'recall': 0.5668519916741744, 'iou': 0.44456795765006024, 'dice': 0.5615755288497262}
+Test   -> {'loss': 0.6092078685760498, 'accuracy': 0.6180217266082764, 'precision': 0.4728727340698242, 'recall': 0.41066426038742065, 'iou': 0.29505810141563416, 'dice': 0.40531450510025024}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.4395918467770452, 'accuracy': 0.724207253559776, 'precision': 0.5707272653994353, 'recall': 0.5670473948768947, 'iou': 0.4447976249715556, 'dice': 0.5616092474564262}
+Test   -> {'loss': 0.7105174660682678, 'accuracy': 0.5697373151779175, 'precision': 0.44049280881881714, 'recall': 0.35327214002609253, 'iou': 0.22427970170974731, 'dice': 0.30139413475990295}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.43742791155110233, 'accuracy': 0.7249947475350421, 'precision': 0.573617378525112, 'recall': 0.5688383475593899, 'iou': 0.44675673039063163, 'dice': 0.5637014269828796}
+Test   -> {'loss': 0.6483393907546997, 'accuracy': 0.6243668794631958, 'precision': 0.5174300670623779, 'recall': 0.397878497838974, 'iou': 0.2784755825996399, 'dice': 0.3758189082145691}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.44025036563044007, 'accuracy': 0.7238005192383475, 'precision': 0.5715716517489889, 'recall': 0.5665903355764306, 'iou': 0.44450727442036503, 'dice': 0.5612769950991091}
+Test   -> {'loss': 0.5841457843780518, 'accuracy': 0.6228419542312622, 'precision': 0.5185309648513794, 'recall': 0.4391322135925293, 'iou': 0.31701749563217163, 'dice': 0.43537458777427673}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.4408387329267419, 'accuracy': 0.7255035141239996, 'precision': 0.5700484747472017, 'recall': 0.5644520153170046, 'iou': 0.44372986555099486, 'dice': 0.560297331602677}
+Test   -> {'loss': 0.5542309880256653, 'accuracy': 0.6151369214057922, 'precision': 0.524103045463562, 'recall': 0.4634234309196472, 'iou': 0.33569276332855225, 'dice': 0.4616423547267914}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.43756637210431304, 'accuracy': 0.7241774921831877, 'precision': 0.5735430981801903, 'recall': 0.5690901155057161, 'iou': 0.44645228230434914, 'dice': 0.5635323130566141}
+Test   -> {'loss': 0.6254023313522339, 'accuracy': 0.5657064914703369, 'precision': 0.49509018659591675, 'recall': 0.4129687249660492, 'iou': 0.2767711579799652, 'dice': 0.38511979579925537}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.4377919736115829, 'accuracy': 0.7256432600643323, 'precision': 0.5732397722161334, 'recall': 0.5685471545095029, 'iou': 0.4465553713881451, 'dice': 0.5633462040320687}
+Test   -> {'loss': 0.7291125059127808, 'accuracy': 0.6107130646705627, 'precision': 0.4992181658744812, 'recall': 0.34532880783081055, 'iou': 0.22211425006389618, 'dice': 0.28516316413879395}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 3 with IoU 0.34374257922172546
+Test -> {'loss': 0.5455913543701172, 'accuracy': 0.6200038194656372, 'precision': 0.5121663808822632, 'recall': 0.4650833010673523, 'iou': 0.34374257922172546, 'dice': 0.47046470642089844} 
+Train -> {'loss': 0.4397404079851897, 'accuracy': 0.7227117813151815, 'precision': 0.5715127519939257, 'recall': 0.5667431193849315, 'iou': 0.444426343233689, 'dice': 0.561504776581474} 
+
+Best model saved for model unet at epoch 10
+
+Trial 2:
+Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 230
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7518865323585012, 'accuracy': 0.5977141749599706, 'precision': 0.8659047476623369, 'recall': 0.3333333432674408, 'iou': 0.19923806699073832, 'dice': 0.24922183803890063}
+Test   -> {'loss': 0.7543631792068481, 'accuracy': 0.6113206148147583, 'precision': 0.8704402446746826, 'recall': 0.3333333432674408, 'iou': 0.20377355813980103, 'dice': 0.25292739272117615}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.7519902737244316, 'accuracy': 0.599170105094495, 'precision': 0.8663900606010271, 'recall': 0.3333333432674408, 'iou': 0.19972337665765183, 'dice': 0.249672555340373}
+Test   -> {'loss': 0.7581710815429688, 'accuracy': 0.5858590006828308, 'precision': 0.8619530200958252, 'recall': 0.3333333432674408, 'iou': 0.1952863335609436, 'dice': 0.2462846338748932}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7519902721695279, 'accuracy': 0.5991701061310976, 'precision': 0.866390058527822, 'recall': 0.3333333432674408, 'iou': 0.19972337711116542, 'dice': 0.24968193451995435}
+Test   -> {'loss': 0.7578982710838318, 'accuracy': 0.5984920263290405, 'precision': 0.8661640882492065, 'recall': 0.3333333432674408, 'iou': 0.19949737191200256, 'dice': 0.2496069371700287}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7519902700963228, 'accuracy': 0.5991701061310976, 'precision': 0.8663900554180145, 'recall': 0.3333333432674408, 'iou': 0.19972337691680245, 'dice': 0.24968749148690184}
+Test   -> {'loss': 0.7443337440490723, 'accuracy': 0.6341714262962341, 'precision': 0.8780571818351746, 'recall': 0.3333333432674408, 'iou': 0.21139049530029297, 'dice': 0.2587127685546875}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7519902690597202, 'accuracy': 0.5991701048353444, 'precision': 0.8663900569729183, 'recall': 0.3333333432674408, 'iou': 0.19972337756467903, 'dice': 0.2496772354711657}
+Test   -> {'loss': 0.7700446248054504, 'accuracy': 0.5480919480323792, 'precision': 0.8493639826774597, 'recall': 0.3333333432674408, 'iou': 0.1826973259449005, 'dice': 0.2360290288925171}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7519902724286784, 'accuracy': 0.5991701053536457, 'precision': 0.866390061378479, 'recall': 0.3333333432674408, 'iou': 0.1997233778886173, 'dice': 0.24968086856862773}
+Test   -> {'loss': 0.7829720377922058, 'accuracy': 0.49834954738616943, 'precision': 0.8327832221984863, 'recall': 0.3333333432674408, 'iou': 0.16611652076244354, 'dice': 0.22173266112804413}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7519902732061303, 'accuracy': 0.5991701052240703, 'precision': 0.8663900561954664, 'recall': 0.3333333432674408, 'iou': 0.19972337672243948, 'dice': 0.2496675703836524}
+Test   -> {'loss': 0.7529787421226501, 'accuracy': 0.6080833077430725, 'precision': 0.8693611025810242, 'recall': 0.3333333432674408, 'iou': 0.20269444584846497, 'dice': 0.25209444761276245}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7519902724286784, 'accuracy': 0.5991701032804406, 'precision': 0.8663900564546171, 'recall': 0.3333333432674408, 'iou': 0.1997233765280765, 'dice': 0.24967390603345374}
+Test   -> {'loss': 0.7623929977416992, 'accuracy': 0.5776528716087341, 'precision': 0.859217643737793, 'recall': 0.3333333432674408, 'iou': 0.19255098700523376, 'dice': 0.2440980076789856}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7519902700963228, 'accuracy': 0.5991701037987419, 'precision': 0.8663900546405626, 'recall': 0.3333333432674408, 'iou': 0.19972337724074074, 'dice': 0.2496761971193811}
+Test   -> {'loss': 0.7614514827728271, 'accuracy': 0.5909261703491211, 'precision': 0.8636420965194702, 'recall': 0.3333333432674408, 'iou': 0.19697539508342743, 'dice': 0.24762354791164398}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7519902708737747, 'accuracy': 0.5991701048353444, 'precision': 0.8663900598235752, 'recall': 0.3333333432674408, 'iou': 0.1997233768520148, 'dice': 0.24969140673461168}
+Test   -> {'loss': 0.7490592002868652, 'accuracy': 0.6341228485107422, 'precision': 0.8780409693717957, 'recall': 0.3333333432674408, 'iou': 0.21137431263923645, 'dice': 0.2587006092071533}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 4 with IoU 0.21139049530029297
+Test -> {'loss': 0.7443337440490723, 'accuracy': 0.6341714262962341, 'precision': 0.8780571818351746, 'recall': 0.3333333432674408, 'iou': 0.21139049530029297, 'dice': 0.2587127685546875} 
+Train -> {'loss': 0.7519902700963228, 'accuracy': 0.5991701061310976, 'precision': 0.8663900554180145, 'recall': 0.3333333432674408, 'iou': 0.19972337691680245, 'dice': 0.24968749148690184} 
+
+Best model saved for model unet at epoch 10
+
+Trial 3:
+Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 58
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7511882781982422, 'accuracy': 0.5991663937983306, 'precision': 0.8663888205652651, 'recall': 0.3333333432674408, 'iou': 0.19972214102745056, 'dice': 0.2497579717117807}
+Test   -> {'loss': 0.7545381784439087, 'accuracy': 0.5999117493629456, 'precision': 0.8666372299194336, 'recall': 0.3333333432674408, 'iou': 0.19997058808803558, 'dice': 0.2499770224094391}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.751991305662238, 'accuracy': 0.5991663969081381, 'precision': 0.8663888205652651, 'recall': 0.3333333432674408, 'iou': 0.19972213908382083, 'dice': 0.2497530644354613}
+Test   -> {'loss': 0.7638576626777649, 'accuracy': 0.5674684643745422, 'precision': 0.8558228015899658, 'recall': 0.3333333432674408, 'iou': 0.1891561597585678, 'dice': 0.24135242402553558}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.751991303589033, 'accuracy': 0.5991663958715356, 'precision': 0.866388828339784, 'recall': 0.3333333432674408, 'iou': 0.19972214024999868, 'dice': 0.24975460508595343}
+Test   -> {'loss': 0.7626819014549255, 'accuracy': 0.5739067196846008, 'precision': 0.8579689264297485, 'recall': 0.3333333432674408, 'iou': 0.19130223989486694, 'dice': 0.24309222400188446}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7519912999609243, 'accuracy': 0.5991663963898368, 'precision': 0.8663888216018677, 'recall': 0.3333333432674408, 'iou': 0.19972214024999868, 'dice': 0.24975738058919492}
+Test   -> {'loss': 0.7660350203514099, 'accuracy': 0.5617255568504333, 'precision': 0.8539085388183594, 'recall': 0.3333333432674408, 'iou': 0.18724185228347778, 'dice': 0.23978841304779053}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7519912978877192, 'accuracy': 0.5991663953532343, 'precision': 0.8663888236750728, 'recall': 0.3333333432674408, 'iou': 0.19972214128660118, 'dice': 0.24974575483280678}
+Test   -> {'loss': 0.7590116858482361, 'accuracy': 0.5857549905776978, 'precision': 0.8619183301925659, 'recall': 0.3333333432674408, 'iou': 0.1952516734600067, 'dice': 0.24625705182552338}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7519912989243217, 'accuracy': 0.5991663948349331, 'precision': 0.8663888257482778, 'recall': 0.3333333432674408, 'iou': 0.19972213973169742, 'dice': 0.24975447447403618}
+Test   -> {'loss': 0.7519512176513672, 'accuracy': 0.6171180605888367, 'precision': 0.8723727464675903, 'recall': 0.3333333432674408, 'iou': 0.20570603013038635, 'dice': 0.25441065430641174}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7519912989243217, 'accuracy': 0.5991663922434268, 'precision': 0.8663888330044953, 'recall': 0.3333333432674408, 'iou': 0.1997221396021221, 'dice': 0.24975805800894033}
+Test   -> {'loss': 0.7648110389709473, 'accuracy': 0.5760394930839539, 'precision': 0.8586798906326294, 'recall': 0.3333333432674408, 'iou': 0.1920131891965866, 'dice': 0.2436654418706894}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7519913041073343, 'accuracy': 0.5991663937983306, 'precision': 0.8663888195286626, 'recall': 0.3333333432674408, 'iou': 0.1997221405091493, 'dice': 0.24976013147312662}
+Test   -> {'loss': 0.7561068534851074, 'accuracy': 0.5969200730323792, 'precision': 0.8656400442123413, 'recall': 0.3333333432674408, 'iou': 0.19897335767745972, 'dice': 0.249196395277977}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7519913051439369, 'accuracy': 0.5991663937983306, 'precision': 0.8663888236750728, 'recall': 0.3333333432674408, 'iou': 0.1997221423232037, 'dice': 0.24975524855696637}
+Test   -> {'loss': 0.7532424330711365, 'accuracy': 0.6074697971343994, 'precision': 0.8691565990447998, 'recall': 0.3333333432674408, 'iou': 0.2024899572134018, 'dice': 0.25193625688552856}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7519913025524305, 'accuracy': 0.5991663922434268, 'precision': 0.866388828339784, 'recall': 0.3333333432674408, 'iou': 0.19972214128660118, 'dice': 0.24975376103235328}
+Test   -> {'loss': 0.7546097636222839, 'accuracy': 0.5995302796363831, 'precision': 0.8665100932121277, 'recall': 0.3333333432674408, 'iou': 0.19984343647956848, 'dice': 0.24987763166427612}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 6 with IoU 0.20570603013038635
+Test -> {'loss': 0.7519512176513672, 'accuracy': 0.6171180605888367, 'precision': 0.8723727464675903, 'recall': 0.3333333432674408, 'iou': 0.20570603013038635, 'dice': 0.25441065430641174} 
+Train -> {'loss': 0.7519912989243217, 'accuracy': 0.5991663948349331, 'precision': 0.8663888257482778, 'recall': 0.3333333432674408, 'iou': 0.19972213973169742, 'dice': 0.24975447447403618} 
+
+Best model saved for model unet at epoch 10
+
+Trial 4:
+Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 230
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7165763782418293, 'accuracy': 0.6333903433188148, 'precision': 0.8520930457374324, 'recall': 0.33581871144149616, 'iou': 0.2130794149863979, 'dice': 0.2609276264258053}
+Test   -> {'loss': 0.7758429646492004, 'accuracy': 0.5329552292823792, 'precision': 0.8443183898925781, 'recall': 0.3333333432674408, 'iou': 0.17765174806118011, 'dice': 0.23177683353424072}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.7401415322137915, 'accuracy': 0.6442452448865642, 'precision': 0.8814151053843291, 'recall': 0.3333333432674408, 'iou': 0.2147484232550082, 'dice': 0.26112468009409695}
+Test   -> {'loss': 0.7689940929412842, 'accuracy': 0.55059814453125, 'precision': 0.8501994013786316, 'recall': 0.3333333432674408, 'iou': 0.18353271484375, 'dice': 0.2367250621318817}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7401415298814359, 'accuracy': 0.6442452420359073, 'precision': 0.8814151027928228, 'recall': 0.3333333432674408, 'iou': 0.21474842306064523, 'dice': 0.2611281835514566}
+Test   -> {'loss': 0.7737101912498474, 'accuracy': 0.5530781745910645, 'precision': 0.8510260581970215, 'recall': 0.3333333432674408, 'iou': 0.18435940146446228, 'dice': 0.23741160333156586}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7401415314363397, 'accuracy': 0.6442452417767566, 'precision': 0.8814151046068772, 'recall': 0.3333333432674408, 'iou': 0.21474842396767244, 'dice': 0.2611345530852028}
+Test   -> {'loss': 0.7746981382369995, 'accuracy': 0.5275380611419678, 'precision': 0.8425127267837524, 'recall': 0.3333333432674408, 'iou': 0.17584602534770966, 'dice': 0.2302345484495163}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7401415301405865, 'accuracy': 0.6442452438499616, 'precision': 0.8814151040885759, 'recall': 0.3333333432674408, 'iou': 0.21474842390288476, 'dice': 0.26114646552697474}
+Test   -> {'loss': 0.7566030025482178, 'accuracy': 0.6072761416435242, 'precision': 0.8690921068191528, 'recall': 0.3333333432674408, 'iou': 0.20242539048194885, 'dice': 0.251886248588562}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7401415298814359, 'accuracy': 0.6442452430725097, 'precision': 0.8814151071983835, 'recall': 0.3333333432674408, 'iou': 0.21474842377330947, 'dice': 0.2611349690867507}
+Test   -> {'loss': 0.7658641934394836, 'accuracy': 0.5575549006462097, 'precision': 0.8525183200836182, 'recall': 0.3333333432674408, 'iou': 0.18585163354873657, 'dice': 0.23864537477493286}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7401415314363397, 'accuracy': 0.6442452420359073, 'precision': 0.8814151097898898, 'recall': 0.3333333432674408, 'iou': 0.21474842390288476, 'dice': 0.2611441955618236}
+Test   -> {'loss': 0.7671930193901062, 'accuracy': 0.55352783203125, 'precision': 0.8511759638786316, 'recall': 0.3333333432674408, 'iou': 0.18450927734375, 'dice': 0.23753586411476135}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7401415298814359, 'accuracy': 0.6442452433316604, 'precision': 0.8814151069392329, 'recall': 0.3333333432674408, 'iou': 0.21474842344937117, 'dice': 0.26113832878029863}
+Test   -> {'loss': 0.7776631116867065, 'accuracy': 0.5300217866897583, 'precision': 0.8433406352996826, 'recall': 0.3333333432674408, 'iou': 0.17667394876480103, 'dice': 0.23094305396080017}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7401415324729422, 'accuracy': 0.6442452433316604, 'precision': 0.8814151048660278, 'recall': 0.3333333432674408, 'iou': 0.2147484237085218, 'dice': 0.2611316905721374}
+Test   -> {'loss': 0.7552082538604736, 'accuracy': 0.5928269624710083, 'precision': 0.8642756938934326, 'recall': 0.3333333432674408, 'iou': 0.19760900735855103, 'dice': 0.2481236308813095}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7401415311771891, 'accuracy': 0.6442452446274135, 'precision': 0.8814151059026304, 'recall': 0.3333333432674408, 'iou': 0.21474842396767244, 'dice': 0.26113202986509904}
+Test   -> {'loss': 0.7432252168655396, 'accuracy': 0.6442846059799194, 'precision': 0.8814282417297363, 'recall': 0.3333333432674408, 'iou': 0.21476154029369354, 'dice': 0.26122185587882996}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 10 with IoU 0.21476154029369354
+Test -> {'loss': 0.7432252168655396, 'accuracy': 0.6442846059799194, 'precision': 0.8814282417297363, 'recall': 0.3333333432674408, 'iou': 0.21476154029369354, 'dice': 0.26122185587882996} 
+Train -> {'loss': 0.7401415311771891, 'accuracy': 0.6442452446274135, 'precision': 0.8814151059026304, 'recall': 0.3333333432674408, 'iou': 0.21474842396767244, 'dice': 0.26113202986509904} 
+
+Best model saved for model unet at epoch 10
+
+Trial 5:
+Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 58
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.6732680481413137, 'accuracy': 0.5938282191753388, 'precision': 0.7465687808783158, 'recall': 0.34749286200689233, 'iou': 0.2137655109167099, 'dice': 0.27428309139998064}
+Test   -> {'loss': 0.7572770118713379, 'accuracy': 0.5986816883087158, 'precision': 0.8662272691726685, 'recall': 0.3333333432674408, 'iou': 0.19956056773662567, 'dice': 0.24965642392635345}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.740143292883168, 'accuracy': 0.6442384600639344, 'precision': 0.8814128440359364, 'recall': 0.3333333432674408, 'iou': 0.2147461625544921, 'dice': 0.2611899756866953}
+Test   -> {'loss': 0.7522532939910889, 'accuracy': 0.6152082085609436, 'precision': 0.8717360496520996, 'recall': 0.3333333432674408, 'iou': 0.2050694078207016, 'dice': 0.2539231777191162}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7401432965112769, 'accuracy': 0.6442384636920432, 'precision': 0.8814128435176352, 'recall': 0.3333333432674408, 'iou': 0.21474616242491681, 'dice': 0.2611939279929451}
+Test   -> {'loss': 0.760590672492981, 'accuracy': 0.5849170088768005, 'precision': 0.8616390228271484, 'recall': 0.3333333432674408, 'iou': 0.19497233629226685, 'dice': 0.24603477120399475}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7401432996210845, 'accuracy': 0.6442384642103444, 'precision': 0.8814128461091415, 'recall': 0.3333333432674408, 'iou': 0.2147461634615193, 'dice': 0.2611969152222509}
+Test   -> {'loss': 0.7517555952072144, 'accuracy': 0.6106863021850586, 'precision': 0.8702287673950195, 'recall': 0.3333333432674408, 'iou': 0.20356211066246033, 'dice': 0.25276443362236023}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7401432991027832, 'accuracy': 0.6442384616188381, 'precision': 0.8814128440359364, 'recall': 0.3333333432674408, 'iou': 0.2147461632023687, 'dice': 0.26119375669437905}
+Test   -> {'loss': 0.763530969619751, 'accuracy': 0.5764574408531189, 'precision': 0.8588191866874695, 'recall': 0.3333333432674408, 'iou': 0.1921524852514267, 'dice': 0.2437775731086731}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7401432939197706, 'accuracy': 0.6442384636920432, 'precision': 0.8814128450725389, 'recall': 0.3333333432674408, 'iou': 0.21474616540514904, 'dice': 0.26119944556899694}
+Test   -> {'loss': 0.7549920082092285, 'accuracy': 0.6075579524040222, 'precision': 0.8691860437393188, 'recall': 0.3333333432674408, 'iou': 0.20251932740211487, 'dice': 0.251958966255188}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7401432965112769, 'accuracy': 0.6442384611005368, 'precision': 0.8814128398895263, 'recall': 0.3333333432674408, 'iou': 0.21474616294321808, 'dice': 0.2611881362355274}
+Test   -> {'loss': 0.7607617378234863, 'accuracy': 0.5797707438468933, 'precision': 0.8599236011505127, 'recall': 0.3333333432674408, 'iou': 0.1932569146156311, 'dice': 0.2446645200252533}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7401432965112769, 'accuracy': 0.644238465246947, 'precision': 0.8814128409261289, 'recall': 0.3333333432674408, 'iou': 0.21474616190661555, 'dice': 0.26119108251903367}
+Test   -> {'loss': 0.7505161762237549, 'accuracy': 0.6179373264312744, 'precision': 0.8726457953453064, 'recall': 0.3333333432674408, 'iou': 0.2059791386127472, 'dice': 0.25461941957473755}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7401432954746744, 'accuracy': 0.644238465246947, 'precision': 0.8814128414444301, 'recall': 0.3333333432674408, 'iou': 0.2147461616474649, 'dice': 0.2611958711043648}
+Test   -> {'loss': 0.7440475225448608, 'accuracy': 0.641608715057373, 'precision': 0.8805362582206726, 'recall': 0.3333333432674408, 'iou': 0.21386957168579102, 'dice': 0.2605609893798828}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7401433001393857, 'accuracy': 0.6442384642103444, 'precision': 0.8814128461091415, 'recall': 0.3333333432674408, 'iou': 0.2147461634615193, 'dice': 0.26119421927825265}
+Test   -> {'loss': 0.7648078203201294, 'accuracy': 0.5625828504562378, 'precision': 0.8541943430900574, 'recall': 0.3333333432674408, 'iou': 0.1875276267528534, 'dice': 0.24002262949943542}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 9 with IoU 0.21386957168579102
+Test -> {'loss': 0.7440475225448608, 'accuracy': 0.641608715057373, 'precision': 0.8805362582206726, 'recall': 0.3333333432674408, 'iou': 0.21386957168579102, 'dice': 0.2605609893798828} 
+Train -> {'loss': 0.7401432954746744, 'accuracy': 0.644238465246947, 'precision': 0.8814128414444301, 'recall': 0.3333333432674408, 'iou': 0.2147461616474649, 'dice': 0.2611958711043648} 
+
+Best model saved for model unet at epoch 10
+
+Trial 6:
+Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 230
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7399522465208302, 'accuracy': 0.6421452503165473, 'precision': 0.8807151058445806, 'recall': 0.3333333432674408, 'iou': 0.21404842643634134, 'dice': 0.26034943513248276}
+Test   -> {'loss': 0.7463233470916748, 'accuracy': 0.626375138759613, 'precision': 0.8754584193229675, 'recall': 0.3333333432674408, 'iou': 0.20879171788692474, 'dice': 0.25675714015960693}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.7401412826517354, 'accuracy': 0.6442460233750551, 'precision': 0.8814153653124105, 'recall': 0.3333333432674408, 'iou': 0.21474868318308954, 'dice': 0.2611412786271261}
+Test   -> {'loss': 0.7578462362289429, 'accuracy': 0.5950142741203308, 'precision': 0.8650047779083252, 'recall': 0.3333333432674408, 'iou': 0.1983380913734436, 'dice': 0.24869757890701294}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7401412808376809, 'accuracy': 0.6442460233750551, 'precision': 0.8814153660898624, 'recall': 0.3333333432674408, 'iou': 0.2147486837013908, 'dice': 0.2611382946372032}
+Test   -> {'loss': 0.744094729423523, 'accuracy': 0.639668345451355, 'precision': 0.8798894882202148, 'recall': 0.3333333432674408, 'iou': 0.21322278678417206, 'dice': 0.26008039712905884}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7401412831700367, 'accuracy': 0.6442460236342057, 'precision': 0.8814153647941092, 'recall': 0.3333333432674408, 'iou': 0.21474868396054145, 'dice': 0.26114359517460284}
+Test   -> {'loss': 0.7543185949325562, 'accuracy': 0.6104462146759033, 'precision': 0.870148777961731, 'recall': 0.3333333432674408, 'iou': 0.20348207652568817, 'dice': 0.2527027428150177}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7401412823925848, 'accuracy': 0.6442460207835488, 'precision': 0.8814153632392054, 'recall': 0.3333333432674408, 'iou': 0.2147486840253291, 'dice': 0.26113041606934173}
+Test   -> {'loss': 0.758543848991394, 'accuracy': 0.5852947235107422, 'precision': 0.8617649078369141, 'recall': 0.3333333432674408, 'iou': 0.19509826600551605, 'dice': 0.24613499641418457}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7401412839474886, 'accuracy': 0.6442460238933563, 'precision': 0.8814153640166573, 'recall': 0.3333333432674408, 'iou': 0.21474868350702783, 'dice': 0.26114189009303634}
+Test   -> {'loss': 0.7500337362289429, 'accuracy': 0.6353386044502258, 'precision': 0.8784462213516235, 'recall': 0.3333333432674408, 'iou': 0.21177953481674194, 'dice': 0.2590039074420929}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7401412834291873, 'accuracy': 0.6442460225976032, 'precision': 0.8814153629800547, 'recall': 0.3333333432674408, 'iou': 0.2147486837013908, 'dice': 0.2611300211885701}
+Test   -> {'loss': 0.7403494715690613, 'accuracy': 0.6539978981018066, 'precision': 0.8846659660339355, 'recall': 0.3333333432674408, 'iou': 0.21799930930137634, 'dice': 0.2636028826236725}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7401412839474886, 'accuracy': 0.644246024152507, 'precision': 0.8814153668673143, 'recall': 0.3333333432674408, 'iou': 0.2147486833774525, 'dice': 0.26112363636493685}
+Test   -> {'loss': 0.7502861618995667, 'accuracy': 0.6274189949035645, 'precision': 0.8758063316345215, 'recall': 0.3333333432674408, 'iou': 0.20913967490196228, 'dice': 0.2570200562477112}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7401412813559822, 'accuracy': 0.6442460231159044, 'precision': 0.8814153686813686, 'recall': 0.3333333432674408, 'iou': 0.21474868389575377, 'dice': 0.26113162273946017}
+Test   -> {'loss': 0.7797954678535461, 'accuracy': 0.5103361010551453, 'precision': 0.8367787599563599, 'recall': 0.3333333432674408, 'iou': 0.17011204361915588, 'dice': 0.2252638190984726}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7401412839474886, 'accuracy': 0.6442460220793019, 'precision': 0.881415361425151, 'recall': 0.3333333432674408, 'iou': 0.21474868363660315, 'dice': 0.26112357455751173}
+Test   -> {'loss': 0.7453382015228271, 'accuracy': 0.6441824436187744, 'precision': 0.8813941478729248, 'recall': 0.3333333432674408, 'iou': 0.2147275060415268, 'dice': 0.26119667291641235}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 7 with IoU 0.21799930930137634
+Test -> {'loss': 0.7403494715690613, 'accuracy': 0.6539978981018066, 'precision': 0.8846659660339355, 'recall': 0.3333333432674408, 'iou': 0.21799930930137634, 'dice': 0.2636028826236725} 
+Train -> {'loss': 0.7401412834291873, 'accuracy': 0.6442460225976032, 'precision': 0.8814153629800547, 'recall': 0.3333333432674408, 'iou': 0.2147486837013908, 'dice': 0.2611300211885701} 
+
+Best model saved for model unet at epoch 10
+
+Trial 7:
+Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 58
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7395995399226313, 'accuracy': 0.6351027723239816, 'precision': 0.8783676043800686, 'recall': 0.3333333432674408, 'iou': 0.21170093106186907, 'dice': 0.257830097882644}
+Test   -> {'loss': 0.7693387269973755, 'accuracy': 0.5511431097984314, 'precision': 0.850381076335907, 'recall': 0.3333333432674408, 'iou': 0.1837143748998642, 'dice': 0.23687611520290375}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.7401411092799642, 'accuracy': 0.6442469156306723, 'precision': 0.8814156594483749, 'recall': 0.3333333432674408, 'iou': 0.21474898081758748, 'dice': 0.26119893633801006}
+Test   -> {'loss': 0.7572777271270752, 'accuracy': 0.598451554775238, 'precision': 0.8661505579948425, 'recall': 0.3333333432674408, 'iou': 0.19948385655879974, 'dice': 0.24959638714790344}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7401411087616631, 'accuracy': 0.644246917185576, 'precision': 0.8814156625581824, 'recall': 0.3333333432674408, 'iou': 0.21474898237249126, 'dice': 0.26119707615479176}
+Test   -> {'loss': 0.7611047029495239, 'accuracy': 0.5829452276229858, 'precision': 0.860981822013855, 'recall': 0.3333333432674408, 'iou': 0.1943150758743286, 'dice': 0.24551080167293549}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7401411087616631, 'accuracy': 0.6442469156306723, 'precision': 0.8814156615215799, 'recall': 0.3333333432674408, 'iou': 0.21474898133588874, 'dice': 0.26119040509928826}
+Test   -> {'loss': 0.7600690126419067, 'accuracy': 0.5838707089424133, 'precision': 0.8612902164459229, 'recall': 0.3333333432674408, 'iou': 0.19462357461452484, 'dice': 0.24575689435005188}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7401411092799642, 'accuracy': 0.6442469202953837, 'precision': 0.8814156630764837, 'recall': 0.3333333432674408, 'iou': 0.21474898120631342, 'dice': 0.2611879053323165}
+Test   -> {'loss': 0.7605146169662476, 'accuracy': 0.5824581980705261, 'precision': 0.8608194589614868, 'recall': 0.3333333432674408, 'iou': 0.19415274262428284, 'dice': 0.2453811764717102}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.740141104615253, 'accuracy': 0.6442469156306723, 'precision': 0.8814156594483749, 'recall': 0.3333333432674408, 'iou': 0.21474898042886154, 'dice': 0.2611907282601232}
+Test   -> {'loss': 0.7682834267616272, 'accuracy': 0.5593168139457703, 'precision': 0.8531056642532349, 'recall': 0.3333333432674408, 'iou': 0.18643894791603088, 'dice': 0.23912900686264038}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7401411118714706, 'accuracy': 0.644246915112371, 'precision': 0.8814156584117724, 'recall': 0.3333333432674408, 'iou': 0.21474898198376532, 'dice': 0.2611944395562877}
+Test   -> {'loss': 0.771875262260437, 'accuracy': 0.5446251034736633, 'precision': 0.8482083678245544, 'recall': 0.3333333432674408, 'iou': 0.18154171109199524, 'dice': 0.23506247997283936}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7401411092799642, 'accuracy': 0.644246917185576, 'precision': 0.8814156625581824, 'recall': 0.3333333432674408, 'iou': 0.21474898211334062, 'dice': 0.2611962683822798}
+Test   -> {'loss': 0.7714420557022095, 'accuracy': 0.5462802052497864, 'precision': 0.8487600684165955, 'recall': 0.3333333432674408, 'iou': 0.18209341168403625, 'dice': 0.23552446067333221}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7401411108348681, 'accuracy': 0.6442469166672748, 'precision': 0.8814156630764837, 'recall': 0.3333333432674408, 'iou': 0.21474898263164188, 'dice': 0.2611915578012881}
+Test   -> {'loss': 0.7637553811073303, 'accuracy': 0.5766791105270386, 'precision': 0.858893096446991, 'recall': 0.3333333432674408, 'iou': 0.19222639501094818, 'dice': 0.24383704364299774}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7401411056518554, 'accuracy': 0.6442469192587811, 'precision': 0.8814156604849774, 'recall': 0.3333333432674408, 'iou': 0.21474898172461468, 'dice': 0.26119722542555435}
+Test   -> {'loss': 0.7567638158798218, 'accuracy': 0.59699946641922, 'precision': 0.8656665682792664, 'recall': 0.3333333432674408, 'iou': 0.19899985194206238, 'dice': 0.24921715259552002}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 2 with IoU 0.19948385655879974
+Test -> {'loss': 0.7572777271270752, 'accuracy': 0.598451554775238, 'precision': 0.8661505579948425, 'recall': 0.3333333432674408, 'iou': 0.19948385655879974, 'dice': 0.24959638714790344} 
+Train -> {'loss': 0.7401411092799642, 'accuracy': 0.6442469156306723, 'precision': 0.8814156594483749, 'recall': 0.3333333432674408, 'iou': 0.21474898081758748, 'dice': 0.26119893633801006} 
+
+Best model saved for model unet at epoch 10
+
+Trial 8:
+Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 230
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7408933188604272, 'accuracy': 0.5606424124344536, 'precision': 0.8446438721988512, 'recall': 0.3420168515132821, 'iou': 0.19426100461379342, 'dice': 0.2510842967292537}
+Test   -> {'loss': 0.7272909283638, 'accuracy': 0.7011706233024597, 'precision': 0.9003902673721313, 'recall': 0.3333333432674408, 'iou': 0.23372355103492737, 'dice': 0.27477967739105225}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.763149526067402, 'accuracy': 0.5589916475441145, 'precision': 0.8529972431452378, 'recall': 0.3333333432674408, 'iou': 0.18633055732302042, 'dice': 0.23890954450420712}
+Test   -> {'loss': 0.7498621344566345, 'accuracy': 0.6280317902565002, 'precision': 0.8760105967521667, 'recall': 0.3333333432674408, 'iou': 0.20934395492076874, 'dice': 0.2571742534637451}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7631495271040045, 'accuracy': 0.5589916479328404, 'precision': 0.8529972397762796, 'recall': 0.3333333432674408, 'iou': 0.18633055835962295, 'dice': 0.23892712133086247}
+Test   -> {'loss': 0.7470239400863647, 'accuracy': 0.6343732476234436, 'precision': 0.8781244158744812, 'recall': 0.3333333432674408, 'iou': 0.211457759141922, 'dice': 0.2587631344795227}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7631495242533477, 'accuracy': 0.5589916468962379, 'precision': 0.8529972382213759, 'recall': 0.3333333432674408, 'iou': 0.18633055855398592, 'dice': 0.23888922618783037}
+Test   -> {'loss': 0.76408451795578, 'accuracy': 0.5697581768035889, 'precision': 0.8565860986709595, 'recall': 0.3333333432674408, 'iou': 0.1899193972349167, 'dice': 0.24197280406951904}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7631495247716489, 'accuracy': 0.558991648580717, 'precision': 0.8529972397762796, 'recall': 0.3333333432674408, 'iou': 0.1863305588779242, 'dice': 0.23891448456308115}
+Test   -> {'loss': 0.7360934019088745, 'accuracy': 0.6654961705207825, 'precision': 0.8884987831115723, 'recall': 0.3333333432674408, 'iou': 0.22183208167552948, 'dice': 0.266385555267334}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7631495252899502, 'accuracy': 0.5589916501356208, 'precision': 0.852997243663539, 'recall': 0.3333333432674408, 'iou': 0.1863305582948353, 'dice': 0.23892760030601334}
+Test   -> {'loss': 0.7618255615234375, 'accuracy': 0.587373673915863, 'precision': 0.8624579310417175, 'recall': 0.3333333432674408, 'iou': 0.19579122960567474, 'dice': 0.24668574333190918}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7631495250307996, 'accuracy': 0.5589916475441145, 'precision': 0.8529972413311834, 'recall': 0.3333333432674408, 'iou': 0.18633055842441062, 'dice': 0.23892480841149455}
+Test   -> {'loss': 0.7645115256309509, 'accuracy': 0.5620877146720886, 'precision': 0.8540292978286743, 'recall': 0.3333333432674408, 'iou': 0.18736258149147034, 'dice': 0.23988738656044006}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7631495245124983, 'accuracy': 0.5589916492285936, 'precision': 0.8529972400354302, 'recall': 0.3333333432674408, 'iou': 0.18633055803568466, 'dice': 0.2389183147445969}
+Test   -> {'loss': 0.7525049448013306, 'accuracy': 0.6039952039718628, 'precision': 0.867998480796814, 'recall': 0.3333333432674408, 'iou': 0.2013317346572876, 'dice': 0.2510378360748291}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7631495242533477, 'accuracy': 0.5589916490990182, 'precision': 0.8529972377030746, 'recall': 0.3333333432674408, 'iou': 0.1863305582948353, 'dice': 0.2389170938859815}
+Test   -> {'loss': 0.768721342086792, 'accuracy': 0.5551695227622986, 'precision': 0.8517231941223145, 'recall': 0.3333333432674408, 'iou': 0.18505653738975525, 'dice': 0.23798887431621552}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.763149528918059, 'accuracy': 0.5589916467666626, 'precision': 0.8529972382213759, 'recall': 0.3333333432674408, 'iou': 0.18633055699908216, 'dice': 0.23890605627194694}
+Test   -> {'loss': 0.7597041130065918, 'accuracy': 0.5852524042129517, 'precision': 0.8617507815361023, 'recall': 0.3333333432674408, 'iou': 0.19508413970470428, 'dice': 0.2461237609386444}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 1 with IoU 0.23372355103492737
+Test -> {'loss': 0.7272909283638, 'accuracy': 0.7011706233024597, 'precision': 0.9003902673721313, 'recall': 0.3333333432674408, 'iou': 0.23372355103492737, 'dice': 0.27477967739105225} 
+Train -> {'loss': 0.7408933188604272, 'accuracy': 0.5606424124344536, 'precision': 0.8446438721988512, 'recall': 0.3420168515132821, 'iou': 0.19426100461379342, 'dice': 0.2510842967292537} 
+
+Best model saved for model unet at epoch 10
+
+Trial 9:
+Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 58
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.6744459971137668, 'accuracy': 0.5435047481371009, 'precision': 0.7691797059515249, 'recall': 0.33946639247562577, 'iou': 0.1880406920676646, 'dice': 0.2455198909925378}
+Test   -> {'loss': 0.7346606254577637, 'accuracy': 0.5931215882301331, 'precision': 0.7144936323165894, 'recall': 0.341919869184494, 'iou': 0.20945248007774353, 'dice': 0.272472620010376}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.6663461229075556, 'accuracy': 0.5511141694110373, 'precision': 0.7609289091566335, 'recall': 0.3480849952801414, 'iou': 0.20049357466075732, 'dice': 0.26669147701367085}
+Test   -> {'loss': 0.7471043467521667, 'accuracy': 0.6006161570549011, 'precision': 0.8668713569641113, 'recall': 0.3333390951156616, 'iou': 0.20021048188209534, 'dice': 0.250171422958374}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.6423449350439984, 'accuracy': 0.552182894685994, 'precision': 0.6892437774202098, 'recall': 0.4084581100422403, 'iou': 0.2591479884541553, 'dice': 0.3594502293545267}
+Test   -> {'loss': 0.5788480043411255, 'accuracy': 0.6505522131919861, 'precision': 0.7429000735282898, 'recall': 0.4627772569656372, 'iou': 0.3289145231246948, 'dice': 0.4343324601650238}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.554443185225777, 'accuracy': 0.6818977812062139, 'precision': 0.7851994379707005, 'recall': 0.4924192008764847, 'iou': 0.3556316332972568, 'dice': 0.44841854053994884}
+Test   -> {'loss': 0.7546296119689941, 'accuracy': 0.6006843447685242, 'precision': 0.6227344274520874, 'recall': 0.33320701122283936, 'iou': 0.20061293244361877, 'dice': 0.2510066032409668}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7631482824035313, 'accuracy': 0.5589923412903496, 'precision': 0.8490698337554932, 'recall': 0.3333335904971413, 'iou': 0.18633130568525066, 'dice': 0.23901008846967117}
+Test   -> {'loss': 0.7683274149894714, 'accuracy': 0.5557774305343628, 'precision': 0.8519258499145508, 'recall': 0.3333333432674408, 'iou': 0.185259148478508, 'dice': 0.23815636336803436}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7631493272988693, 'accuracy': 0.5589922303738801, 'precision': 0.8529974284379379, 'recall': 0.3333333432674408, 'iou': 0.18633075071417768, 'dice': 0.23900662816089133}
+Test   -> {'loss': 0.7648547291755676, 'accuracy': 0.5687075257301331, 'precision': 0.8562358617782593, 'recall': 0.3333333432674408, 'iou': 0.18956917524337769, 'dice': 0.24168835580348969}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.763149324707363, 'accuracy': 0.5589922246725663, 'precision': 0.8529974325843479, 'recall': 0.3333333432674408, 'iou': 0.18633075032545174, 'dice': 0.23900135820326598}
+Test   -> {'loss': 0.7588979005813599, 'accuracy': 0.5884713530540466, 'precision': 0.8628238439559937, 'recall': 0.3333333432674408, 'iou': 0.19615714251995087, 'dice': 0.24697598814964294}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.763149326780568, 'accuracy': 0.5589922298555788, 'precision': 0.8529974289562391, 'recall': 0.3333333432674408, 'iou': 0.18633075045502703, 'dice': 0.23899274559124656}
+Test   -> {'loss': 0.7489866018295288, 'accuracy': 0.6248349547386169, 'precision': 0.8749450445175171, 'recall': 0.3333333432674408, 'iou': 0.2082783281803131, 'dice': 0.25636857748031616}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7631493293720742, 'accuracy': 0.5589922293372777, 'precision': 0.8529974263647329, 'recall': 0.3333333432674408, 'iou': 0.18633075213950615, 'dice': 0.2390257682489312}
+Test   -> {'loss': 0.7704275846481323, 'accuracy': 0.5455845594406128, 'precision': 0.848528265953064, 'recall': 0.3333333432674408, 'iou': 0.1818615198135376, 'dice': 0.23533040285110474}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7631493298903755, 'accuracy': 0.5589922241542651, 'precision': 0.8529974289562391, 'recall': 0.3333333432674408, 'iou': 0.18633075071417768, 'dice': 0.23899818853191707}
+Test   -> {'loss': 0.7803264260292053, 'accuracy': 0.5127488374710083, 'precision': 0.8375830054283142, 'recall': 0.3333333432674408, 'iou': 0.17091630399227142, 'dice': 0.22596782445907593}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 3 with IoU 0.3289145231246948
+Test -> {'loss': 0.5788480043411255, 'accuracy': 0.6505522131919861, 'precision': 0.7429000735282898, 'recall': 0.4627772569656372, 'iou': 0.3289145231246948, 'dice': 0.4343324601650238} 
+Train -> {'loss': 0.6423449350439984, 'accuracy': 0.552182894685994, 'precision': 0.6892437774202098, 'recall': 0.4084581100422403, 'iou': 0.2591479884541553, 'dice': 0.3594502293545267} 
+
+Best model saved for model unet at epoch 10
+
+Trial 10:
+Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 230
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7628373247125875, 'accuracy': 0.5589849858180337, 'precision': 0.8529950196328371, 'recall': 0.3333333432674408, 'iou': 0.1863283383457557, 'dice': 0.2389103603751763}
+Test   -> {'loss': 0.7762607336044312, 'accuracy': 0.5276501774787903, 'precision': 0.8425500392913818, 'recall': 0.3333333432674408, 'iou': 0.17588339745998383, 'dice': 0.23026657104492188}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.7631513639636661, 'accuracy': 0.5589849872433621, 'precision': 0.8529950209285901, 'recall': 0.3333333432674408, 'iou': 0.18632833737394083, 'dice': 0.23891568851211797}
+Test   -> {'loss': 0.7741618752479553, 'accuracy': 0.5458884835243225, 'precision': 0.8486294746398926, 'recall': 0.3333333432674408, 'iou': 0.18196283280849457, 'dice': 0.23541520535945892}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7631513626679131, 'accuracy': 0.5589849871137867, 'precision': 0.8529950191145358, 'recall': 0.3333333432674408, 'iou': 0.1863283374387285, 'dice': 0.23890038268721622}
+Test   -> {'loss': 0.7963014245033264, 'accuracy': 0.4619302451610565, 'precision': 0.820643424987793, 'recall': 0.3333333432674408, 'iou': 0.15397675335407257, 'dice': 0.2106485664844513}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.7631513644819674, 'accuracy': 0.5589849875025127, 'precision': 0.852995022483494, 'recall': 0.3333333432674408, 'iou': 0.18632833841054336, 'dice': 0.23891205904276475}
+Test   -> {'loss': 0.800240159034729, 'accuracy': 0.45159661769866943, 'precision': 0.8171989321708679, 'recall': 0.3333333432674408, 'iou': 0.15053221583366394, 'dice': 0.20740225911140442}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7631513647411181, 'accuracy': 0.5589849862067596, 'precision': 0.8529950183370839, 'recall': 0.3333333432674408, 'iou': 0.18632833815139274, 'dice': 0.23890577055837797}
+Test   -> {'loss': 0.7455496788024902, 'accuracy': 0.6362640857696533, 'precision': 0.878754734992981, 'recall': 0.3333333432674408, 'iou': 0.21208803355693817, 'dice': 0.2592344880104065}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7631513637045155, 'accuracy': 0.5589849873729374, 'precision': 0.8529950173004813, 'recall': 0.3333333432674408, 'iou': 0.18632833711479022, 'dice': 0.23890832183153732}
+Test   -> {'loss': 0.7699658274650574, 'accuracy': 0.5395058989524841, 'precision': 0.8465020060539246, 'recall': 0.3333333432674408, 'iou': 0.17983531951904297, 'dice': 0.2336273044347763}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.7631513637045155, 'accuracy': 0.5589849841335546, 'precision': 0.8529950196328371, 'recall': 0.3333333432674408, 'iou': 0.18632833724436554, 'dice': 0.23889300492794618}
+Test   -> {'loss': 0.7586284875869751, 'accuracy': 0.5877311825752258, 'precision': 0.8625770807266235, 'recall': 0.3333333432674408, 'iou': 0.19591039419174194, 'dice': 0.24678032100200653}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7631513647411181, 'accuracy': 0.5589849881503893, 'precision': 0.852995017559632, 'recall': 0.3333333432674408, 'iou': 0.18632833802181742, 'dice': 0.23892703924490058}
+Test   -> {'loss': 0.748877763748169, 'accuracy': 0.6190110445022583, 'precision': 0.8730037212371826, 'recall': 0.3333333432674408, 'iou': 0.20633703470230103, 'dice': 0.2548926770687103}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7631513639636661, 'accuracy': 0.5589849852997324, 'precision': 0.8529950162638789, 'recall': 0.3333333432674408, 'iou': 0.18632833763309148, 'dice': 0.238913475624893}
+Test   -> {'loss': 0.7412586212158203, 'accuracy': 0.6558240056037903, 'precision': 0.8852746486663818, 'recall': 0.3333333432674408, 'iou': 0.21860800683498383, 'dice': 0.26404738426208496}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7631513642228168, 'accuracy': 0.558984985170157, 'precision': 0.8529950217060421, 'recall': 0.3333333432674408, 'iou': 0.18632833730915319, 'dice': 0.23889611810445785}
+Test   -> {'loss': 0.7588541507720947, 'accuracy': 0.5793431997299194, 'precision': 0.8597811460494995, 'recall': 0.3333333432674408, 'iou': 0.19311439990997314, 'dice': 0.24455027282238007}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 9 with IoU 0.21860800683498383
+Test -> {'loss': 0.7412586212158203, 'accuracy': 0.6558240056037903, 'precision': 0.8852746486663818, 'recall': 0.3333333432674408, 'iou': 0.21860800683498383, 'dice': 0.26404738426208496} 
+Train -> {'loss': 0.7631513639636661, 'accuracy': 0.5589849852997324, 'precision': 0.8529950162638789, 'recall': 0.3333333432674408, 'iou': 0.18632833763309148, 'dice': 0.238913475624893} 
+
+Best model saved for model unet at epoch 10
+
+Trial 11:
+Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
+Generated 3680 pseudo masks
+Input images: 3680
+tensor(2) tensor(0)
+Generated 3680 pseudo masks saved at cam/saved_models/resnet50_gradcampp_trial_pseudo.pt
+Number of train batches: 58
+Start epoch 1
+Epoch 1/10
+Train -> {'loss': 0.7619780685590661, 'accuracy': 0.5589964125467384, 'precision': 0.8529988226683244, 'recall': 0.3333333432674408, 'iou': 0.18633214649946794, 'dice': 0.2390168652586315}
+Test   -> {'loss': 0.7470017075538635, 'accuracy': 0.6338189244270325, 'precision': 0.8779397010803223, 'recall': 0.3333333432674408, 'iou': 0.21127299964427948, 'dice': 0.25862473249435425}
+--------------------------------------------------
+Start epoch 2
+Epoch 2/10
+Train -> {'loss': 0.7631481336510699, 'accuracy': 0.5589964109918345, 'precision': 0.852998827851337, 'recall': 0.3333333432674408, 'iou': 0.18633214598116668, 'dice': 0.2390136101971502}
+Test   -> {'loss': 0.7555336952209473, 'accuracy': 0.6078410148620605, 'precision': 0.8692803382873535, 'recall': 0.3333333432674408, 'iou': 0.2026136815547943, 'dice': 0.25203198194503784}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 2
+Start epoch 3
+Epoch 3/10
+Train -> {'loss': 0.7631481274314549, 'accuracy': 0.5589964141016421, 'precision': 0.8529988247415293, 'recall': 0.3333333432674408, 'iou': 0.18633214727691982, 'dice': 0.23899776054465252}
+Test   -> {'loss': 0.7569414377212524, 'accuracy': 0.5910055637359619, 'precision': 0.8636685609817505, 'recall': 0.3333333432674408, 'iou': 0.1970018744468689, 'dice': 0.24764446914196014}
+--------------------------------------------------
+Start epoch 4
+Epoch 4/10
+Train -> {'loss': 0.763148135724275, 'accuracy': 0.5589964135833408, 'precision': 0.8529988231866256, 'recall': 0.3333333432674408, 'iou': 0.1863321462403173, 'dice': 0.23900608964588332}
+Test   -> {'loss': 0.7554551959037781, 'accuracy': 0.5986602306365967, 'precision': 0.8662201166152954, 'recall': 0.3333333432674408, 'iou': 0.19955341517925262, 'dice': 0.24965080618858337}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 4
+Start epoch 5
+Epoch 5/10
+Train -> {'loss': 0.7631481295046599, 'accuracy': 0.5589964135833408, 'precision': 0.8529988257781319, 'recall': 0.3333333432674408, 'iou': 0.18633214701776918, 'dice': 0.239015545534051}
+Test   -> {'loss': 0.7697368264198303, 'accuracy': 0.5539647340774536, 'precision': 0.8513215780258179, 'recall': 0.3333333432674408, 'iou': 0.18465492129325867, 'dice': 0.23765650391578674}
+--------------------------------------------------
+Start epoch 6
+Epoch 6/10
+Train -> {'loss': 0.7631481279497562, 'accuracy': 0.5589964115101358, 'precision': 0.8529988216317218, 'recall': 0.3333333432674408, 'iou': 0.18633214520371477, 'dice': 0.23901847497276638}
+Test   -> {'loss': 0.7582795023918152, 'accuracy': 0.5939218997955322, 'precision': 0.8646406531333923, 'recall': 0.3333333432674408, 'iou': 0.19797396659851074, 'dice': 0.2484111189842224}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 6
+Start epoch 7
+Epoch 7/10
+Train -> {'loss': 0.763148131577865, 'accuracy': 0.5589964141016421, 'precision': 0.8529988288879394, 'recall': 0.3333333432674408, 'iou': 0.18633214636989262, 'dice': 0.23900960450587067}
+Test   -> {'loss': 0.7577104568481445, 'accuracy': 0.5878828167915344, 'precision': 0.8626276254653931, 'recall': 0.3333333432674408, 'iou': 0.19596093893051147, 'dice': 0.24682042002677917}
+--------------------------------------------------
+Start epoch 8
+Epoch 8/10
+Train -> {'loss': 0.7631481295046599, 'accuracy': 0.5589964104735333, 'precision': 0.8529988325160482, 'recall': 0.3333333432674408, 'iou': 0.18633214585159136, 'dice': 0.23901090259137361}
+Test   -> {'loss': 0.7712780833244324, 'accuracy': 0.5453366637229919, 'precision': 0.8484455943107605, 'recall': 0.3333333432674408, 'iou': 0.1817788928747177, 'dice': 0.2352612316608429}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 8
+Start epoch 9
+Epoch 9/10
+Train -> {'loss': 0.7631481336510699, 'accuracy': 0.5589964104735333, 'precision': 0.8529988237049269, 'recall': 0.3333333432674408, 'iou': 0.18633214675861856, 'dice': 0.2390079176944235}
+Test   -> {'loss': 0.7613703608512878, 'accuracy': 0.5836016535758972, 'precision': 0.8612005710601807, 'recall': 0.3333333432674408, 'iou': 0.19453388452529907, 'dice': 0.2456853836774826}
+--------------------------------------------------
+Start epoch 10
+Epoch 10/10
+Train -> {'loss': 0.7631481336510699, 'accuracy': 0.5589964135833408, 'precision': 0.8529988262964332, 'recall': 0.3333333432674408, 'iou': 0.18633214753607044, 'dice': 0.23900818202806556}
+Test   -> {'loss': 0.7623676061630249, 'accuracy': 0.5738590955734253, 'precision': 0.8579530715942383, 'recall': 0.3333333432674408, 'iou': 0.1912863701581955, 'dice': 0.24307940900325775}
+--------------------------------------------------
+Model weights, optimiser, scheduler order saved for model unet at epoch 10
+Best model found at epoch 1 with IoU 0.21127299964427948
+Test -> {'loss': 0.7470017075538635, 'accuracy': 0.6338189244270325, 'precision': 0.8779397010803223, 'recall': 0.3333333432674408, 'iou': 0.21127299964427948, 'dice': 0.25862473249435425} 
+Train -> {'loss': 0.7619780685590661, 'accuracy': 0.5589964125467384, 'precision': 0.8529988226683244, 'recall': 0.3333333432674408, 'iou': 0.18633214649946794, 'dice': 0.2390168652586315} 
+
+Best model saved for model unet at epoch 10
+
 Best parameters:
 Best parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'ce_mean', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
 Max IoU: 0.3306
