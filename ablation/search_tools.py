@@ -12,6 +12,7 @@ def save_results_to_csv(results, filename="grid_search_results.csv"):
         all_fields.discard("thresholds")
         all_fields.update(res["metrics"].keys())
         all_fields.add("iou")
+
     ordered_fields = [
         "threshold_low",
         "threshold_high",

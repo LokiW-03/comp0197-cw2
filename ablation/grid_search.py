@@ -12,9 +12,8 @@ from model.segnext import SegNeXt
 from model.baseline_unet import UNet
 from model.train import train_model, compute_test_metrics_fn
 import itertools
-from ablation.search_space import generate_refined_cam_threshold_space
 from ablation.search_tools import save_results_to_csv
-from model.loss import DiceLoss, CombinedCELDiceLoss
+from model.loss import DiceLoss
 
 
 def search(seg_model_name, # Segmentation model
