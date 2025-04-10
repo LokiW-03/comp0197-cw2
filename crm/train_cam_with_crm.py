@@ -169,27 +169,11 @@ def train(model_name: str = 'resnet',
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_eff.pth")
 
-    import matplotlib.pyplot as plt
-
-    plt.figure(figsize=(10, 6))
-    epochs = range(1, len(loss_history["cls"]) + 1)
-
-    plt.plot(epochs, loss_history["cls"], label="CLS Loss")
-    plt.plot(epochs, loss_history["rec"], label="REC Loss")
-    plt.plot(epochs, loss_history["total"], label="Total Loss", linestyle="--")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Loss Curves")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.xticks(ticks=epochs)
-
     graph_dir = "./graph"
     os.makedirs(graph_dir, exist_ok=True)
-    filename = os.path.join(graph_dir, f"crm_loss_curve_{model_name}.png")
-    plt.savefig(filename)
-    print(f"Saved total loss curve to {filename}")
+    filename = os.path.join(graph_dir, f"{model_name}_loss_history.pt")
+    torch.save(loss_history, filename)
+    print("Saved loss history to ./graph/{model_name}_loss_history.pt")
 
     print("Training complete. Models saved.")
 
