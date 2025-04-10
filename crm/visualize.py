@@ -2,7 +2,7 @@ from torchvision.utils import make_grid
 import torchvision.transforms.functional as TF
 import torch
 
-def visualize_recon_grid(originals: torch.Tensor, reconstructions: torch.Tensor, path: str, nrow=1, ncol=5):
+def visualize_recon_grid(originals: torch.Tensor, reconstructions: torch.Tensor, path: str, nrow=1):
 
     recon = (reconstructions + 1) / 2.0  # [-1,1] → [0,1]
     orig = originals.clone()
