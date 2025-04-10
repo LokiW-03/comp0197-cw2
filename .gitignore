@@ -7,6 +7,7 @@ cam/output/grid.jpg
 
 **/data/
 **/__pycache__/
+**/.DS_Store
 
 data/
 crm_models/
@@ -16,3 +17,9 @@ cam/.DS_Store
 .DS_Store
 open_ended/checkpoints/points_run1_best.pth
 open_ended/models
+
+output/
+
+lightning_logs/
+
+debug_validation_output/

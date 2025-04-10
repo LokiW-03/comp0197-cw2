@@ -6,7 +6,7 @@ import torch.optim as optim
 
 from resnet_gradcampp import ResNet50_CAM
 from dataset.oxfordpet import download_pet_dataset
-from __init__ import *
+from common import *
 
 
 # -------------------- Fine-tuning Function --------------------
@@ -79,4 +79,7 @@ def fine_tune_model():
 
 # -------------------- Execute Training --------------------
 if __name__ == "__main__":
+    import os
+    if not os.path.exists(MODEL_SAVE_PATH):
+        os.makedirs(MODEL_SAVE_PATH)
     fine_tune_model()
