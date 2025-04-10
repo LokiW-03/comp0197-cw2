@@ -184,21 +184,21 @@ All the models were trained with same settings, ex. batch size etc.
 ### Single Feature
 **SegNet**
 
-| SegNet      | Performance  |
-|-------------|--------------|
-| Feature     | Best Val IOU |
-| box         | 0.4826       |
-| scribble    | 0.3343       |
-| point       | 0.3320       |
+| SegNet  | Performance  |               |           |               |
+|---------|--------------|---------------|-----------|---------------|
+| Feature | Best Val IOU | Best Test IOU | Test Loss | Test Accuracy |
+| box     | 0.4826       | 0.5338        | 0.5696    | 0.7295        |
+| scatter | 0.3343       | 0.3307        | 3.0825    | 0.5080        |
+| point   | 0.3320       | 0.1522        | 4.5684    | 0.5000        |
 
 ### Hybrid Feature
 
 **SegNet**
 
-| SegNet               | Performance  |
-|----------------------|--------------|
-| Feature              | Best Val IOU |
-| box, point           | 0.4655       |
-| box, scribble        | 0.4630       |
-| point, scribble      | 0.3444       |
-| box, point, scribble | 0.4694       |
+| SegNet              | Performance  |               |           |               |
+|---------------------|--------------|---------------|-----------|---------------|
+| Feature             | Best Val IOU | Best Test IOU | Test Loss | Test Accuracy |
+| box, point          | 0.4655       | 0.4793        | 0.9793    | 0.7018        |
+| box, scatter        | 0.4630       | 0.4737        | 1.0722    | 0.7144        |
+| point, scatter      | 0.3444       | 0.2027        | 0.3929    | 0.5344        |
+| box, point, scatter | 0.4694       | 0.4705        | 1.2276    | 0.7185        |
