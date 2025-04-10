@@ -7,7 +7,7 @@
 ## Installation
 Additional installation
 ```bash
-pip install Pillow numpy scikit-image segmentation-models-pytorch torchmetrics
+pip install Pillow numpy scikit-image torchmetrics
 ```
 
 ## Expected File Structure
@@ -30,13 +30,14 @@ open_ended/
 ## Run
 
 
-```bash
-cd open_ended/
-```
 
 Generate Weak Labels
 ```bash
-python weak_label_generator.py --data_dir ./data --output_file ./weak_labels/weak_labels_train.pkl
+python weak_label_generator.py --data_dir ./data --output_file ./weak_labels/weak_labels_train.pkl --log_level DEBUG
+```
+
+```bash
+python open_ended/weak_label_generator.py --data_dir ./data --output_file ./open_ended/weak_labels/weak_labels_train.pkl --log_level WARNING
 ```
 
 Train models
@@ -81,6 +82,17 @@ python visualize.py
     --num_workers 8 \
     --img_size 256 \
     --checkpoint_dir ./checkpoints_a100
+```
+
+
+## Evaluate
+
+```
+python -m open_ended.evaluate \
+    --data_dir ./data \
+    --batch_size 8 \
+    --num_workers 4 \
+    --device cuda
 ```
 
 ## Plan
