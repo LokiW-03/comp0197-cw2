@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
 from cam.dataset.oxfordpet_paths import OxfordIIITPetWithPaths
-from cam.efficientnet_scorecam import EfficientNetB4_CAM, ScoreCAM
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from cam.resnet_drs import ResNet50_CAM_DRS
 
@@ -24,7 +23,7 @@ from model.data import ImageTransform
 def train(model_name: str = 'resnet', 
           cls_lr: float = CLS_LR,
           rec_lr: float = 2e-3,
-          vgg_weight: float = 2,
+          vgg_weight: float = 0.3,
           align_weight: float = 0.3,
           num_epochs: int = NUM_EPOCHS):
 
@@ -77,16 +76,6 @@ def train(model_name: str = 'resnet',
         for name, param in model.named_parameters():
             if "resnet.layer4" not in name and "resnet.fc" not in name:
                 param.requires_grad = False  
-
-    else:
-        model = EfficientNetB4_CAM(NUM_CLASSES).to(device)
-        cam_generator = ScoreCAM(model)
-        # Freeze all feature blocks except the last one
-        # Assuming model.effnet.features is a nn.Sequential, freeze all blocks except the last
-        for i, block in enumerate(model.effnet.features):
-            if i < len(model.effnet.features) - 1:
-                for param in block.parameters():
-                    param.requires_grad = False
 
     recon_net = ReconstructNet(input_channel=NUM_CLASSES).to(device)
 
@@ -159,16 +148,18 @@ def train(model_name: str = 'resnet',
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet_drs.pth")
 
-    else:
-        torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth")
-        torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_eff.pth")
+    # graph_dir = "./graph"
+    # os.makedirs(graph_dir, exist_ok=True)
+    # filename = os.path.join(graph_dir, f"{model_name}_loss_history.pt")
+    # torch.save(loss_history, filename)
+    # print("Saved loss history to ./graph/{model_name}_loss_history.pt")
 
     print("Training complete. Models saved.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'efficientnet', 'resnet_drs'])
+    parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'resnet_drs'])
     parser.add_argument('--cls_lr', type=float, default=CLS_LR, help="Classifier learning rate")
     parser.add_argument('--rec_lr', type=float, default=REC_LR, help="Reconstruction network learning rate")
     parser.add_argument('--vgg_weight', type=float, default=0.3, help="Weight for VGG loss")
