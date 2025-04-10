@@ -31,9 +31,6 @@ class SegNetWrapper(nn.Module):
         if self.mode == 'single':
             return seg_logits
         elif self.mode == 'hybrid':
-            # Return dict with key 'segmentation', so training code that does:
-            #    outputs['segmentation']
-            # will still work
-            return {'segmentation': seg_logits}
+            return seg_logits
         else:
             raise ValueError(f"Unknown mode {self.mode}, must be 'single' or 'hybrid'.")

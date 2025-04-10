@@ -86,11 +86,11 @@ class CombinedLoss(nn.Module):
         for key in required_keys:
             if key in ['points', 'scribbles']:
                 # Segmentation Loss (Points)
-                seg_logits = model_output['segmentation'] # Shape (B, C, H, W)
+                seg_logits = model_output # Shape (B, C, H, W)
                 key_targets = targets[key] # Shape (B, H, W), long with ignore_index
                 loss_list.append(self.segmentation_loss_fn(seg_logits, key_targets))
             elif key == "boxes":
-                seg_logits = model_output['segmentation']
+                seg_logits = model_output
                 key_targets = targets[key]
                 loss_list.append(self.cross_entropy_loss_fn(seg_logits, key_targets))
             else:
