@@ -169,11 +169,11 @@ def train(model_name: str = 'resnet',
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_eff.pth")
 
-    graph_dir = "./graph"
+    graph_dir = "loss"
     os.makedirs(graph_dir, exist_ok=True)
     filename = os.path.join(graph_dir, f"{model_name}_loss_history.pt")
     torch.save(loss_history, filename)
-    print("Saved loss history to ./graph/{model_name}_loss_history.pt")
+    print("Saved loss history to loss/{model_name}_loss_history.pt")
 
     print("Training complete. Models saved.")
 

@@ -4,11 +4,11 @@ import os
 import matplotlib.pyplot as plt
 
 def plot_loss(model_name, file_format):
-    history_path = f"./graph/{model_name}_loss_history.pt"
-    if not os.path.exists(history_path):
-        raise FileNotFoundError(f"Loss history file not found: {history_path}")
+    loss_path = f"loss/{model_name}_loss_history.pt"
+    if not os.path.exists(loss_path):
+        raise FileNotFoundError(f"Loss history file not found: {loss_path}")
 
-    loss_history = torch.load(history_path)
+    loss_history = torch.load(loss_path)
     epochs = range(1, len(loss_history["total"]) + 1)
 
     plt.figure(figsize=(10, 6))
@@ -24,15 +24,15 @@ def plot_loss(model_name, file_format):
     plt.tight_layout()
     plt.xticks(ticks=epochs)
 
-    os.makedirs("./graph", exist_ok=True)
+    os.makedirs("./visuals/crm_graph", exist_ok=True)
 
     if file_format == "both":
         for ext in ["png", "eps"]:
-            out_path = f"./graph/{model_name}_crm_loss_curve.{ext}"
+            out_path = f"./visuals/crm_graph/{model_name}_crm_loss_curve.{ext}"
             plt.savefig(out_path, format=ext)
             print(f"Saved loss curve to {out_path}")
     else:
-        out_path = f"./graph/{model_name}_crm_loss_curve.{file_format}"
+        out_path = f"./visuals/crm_graph/{model_name}_crm_loss_curve.{file_format}"
         plt.savefig(out_path, format=file_format)
         print(f"Saved loss curve to {out_path}")
 
