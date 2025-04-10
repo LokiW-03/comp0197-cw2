@@ -22,10 +22,18 @@ from crm.gen_superpixel import generate_superpixels
 
 def train(model_name: str = 'resnet', 
           cls_lr: float = CLS_LR,
-          rec_lr: float = REC_LR,
-          vgg_weight: float = 0.3,
+          rec_lr: float = 2e-3,
+          vgg_weight: float = 2,
           align_weight: float = 0.3,
           num_epochs: int = NUM_EPOCHS):
+
+    loss_history = {
+        "cls": [],
+        "rec": [],
+        "align": [],
+        "total": [],
+        "acc": []
+    }
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -87,8 +95,6 @@ def train(model_name: str = 'resnet',
 
     recon_net = ReconstructNet(input_channel=NUM_CLASSES).to(device)
 
-
-
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=cls_lr)
 
     rec_optimizer = optim.Adam(list(recon_net.parameters()), lr=rec_lr)
@@ -141,8 +147,15 @@ def train(model_name: str = 'resnet',
         print(f"[Epoch {epoch+1:02}/{num_epochs}] "
               f"CLS Loss: {avg_cls_loss:.4f} | "
               f"REC Loss: {avg_rec_loss:.4f} | "
-              f"ALIGN Loss: {avg_align_loss:.4f} | "
+              # f"ALIGN Loss: {avg_align_loss:.4f} | "
               f"Train Acc: {train_acc:.2f}%")
+
+        total_loss = avg_cls_loss + avg_rec_loss + align_weight * avg_align_loss
+        loss_history["cls"].append(avg_cls_loss)
+        loss_history["rec"].append(avg_rec_loss)
+        loss_history["align"].append(avg_align_loss)
+        loss_history["total"].append(total_loss)
+        loss_history["acc"].append(train_acc)
 
     if model_name == 'resnet':
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/resnet_pet_gradcampp_crm.pth")
@@ -155,6 +168,28 @@ def train(model_name: str = 'resnet',
     else:
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/efficientnet_pet_scorecam_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_eff.pth")
+
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(10, 6))
+    epochs = range(1, len(loss_history["cls"]) + 1)
+
+    plt.plot(epochs, loss_history["cls"], label="CLS Loss")
+    plt.plot(epochs, loss_history["rec"], label="REC Loss")
+    plt.plot(epochs, loss_history["total"], label="Total Loss", linestyle="--")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Loss Curves")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.xticks(ticks=epochs)
+
+    graph_dir = "./graph"
+    os.makedirs(graph_dir, exist_ok=True)
+    filename = os.path.join(graph_dir, f"crm_loss_curve_{model_name}.png")
+    plt.savefig(filename)
+    print(f"Saved total loss curve to {filename}")
 
     print("Training complete. Models saved.")
 
