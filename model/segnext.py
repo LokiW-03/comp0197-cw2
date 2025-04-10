@@ -22,6 +22,7 @@ class ConvFeedForward(nn.Module):
         self.act = nn.GELU()
         self.fc2 = nn.Conv2d(hidden_dim, dim, kernel_size=1)
         self.drop = nn.Dropout(drop)
+
     def forward(self, x):
         x = self.fc1(x)
         x = self.act(x)
@@ -44,6 +45,7 @@ class LargeKernelAttention(nn.Module):
         self.dw_conv21_1 = nn.Conv2d(dim, dim, kernel_size=(1,21), padding=(0,10), groups=dim) # 21x21 via strips
         self.dw_conv21_2 = nn.Conv2d(dim, dim, kernel_size=(21,1), padding=(10,0), groups=dim)
         self.point_conv = nn.Conv2d(dim, dim, kernel_size=1)  # 1x1 conv to mix channels after spatial conv
+
     def forward(self, x):
         # x: [B, C, H, W]
         identity = x
@@ -73,6 +75,7 @@ class MSCABlock(nn.Module):
         # Layer scale (learnable rescaling for stability)
         self.layer_scale_1 = nn.Parameter(1e-2 * torch.ones(dim), requires_grad=True)
         self.layer_scale_2 = nn.Parameter(1e-2 * torch.ones(dim), requires_grad=True)
+
     def forward(self, x):
         # x shape [B, C, H, W]
         # Attention branch with residual
@@ -86,6 +89,7 @@ class DropPath(nn.Module):
     def __init__(self, drop_prob=0.):
         super().__init__()
         self.drop_prob = drop_prob
+
     def forward(self, x):
         if self.drop_prob == 0. or not self.training:
             return x
@@ -139,6 +143,7 @@ class MSCAN_Backbone(nn.Module):
                 current_block_idx += 1
             # Combine all parts for this stage into a Sequential module
             self.stages.append(nn.Sequential(*stage_blocks))
+
     def forward(self, x):
         features = []
         # Stage 0 (stem)
@@ -163,6 +168,7 @@ class SegNeXt(nn.Module):
         fusion_in_channels = sum(backbone_dims)  # total channels when all features are concatenated
         self.fusion_conv = nn.Conv2d(fusion_in_channels, 256, kernel_size=1)  # reduce fused channels
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)  # output segmentation logits
+
     def forward(self, x):
         B, C, H, W = x.shape
         feats = self.backbone(x)  # list of feature maps from 4 stages
