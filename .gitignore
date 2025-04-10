@@ -7,8 +7,15 @@ cam/output/grid.jpg
 
 **/data/
 **/__pycache__/
+**/.DS_Store
 
 data/
 crm_models/
 
 superpixels/
+
+output/
+
+lightning_logs/
+
+debug_validation_output/
