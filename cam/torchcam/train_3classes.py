@@ -7,6 +7,8 @@ import segmentation_models_pytorch as smp
 import pytorch_lightning as pl
 from torch.utils.data import Dataset, DataLoader
 
+from model.fpn import FPN
+
 # copied from https://github.com/qubvel-org/segmentation_models.pytorch/blob/main/examples/camvid_segmentation_multiclass.ipynb
 
 class PetModel(pl.LightningModule):
@@ -14,19 +16,40 @@ class PetModel(pl.LightningModule):
         super().__init__()
         #Save input hyperparameters
         self.save_hyperparameters()
-        self.model = smp.create_model(
-            arch,
-            encoder_name=encoder_name,
-            in_channels=in_channels,
-            classes=out_classes,
-            **kwargs,
-        )
-
-        # Preprocessing parameters for image normalization
-        params = smp.encoders.get_preprocessing_params(encoder_name)
         self.number_of_classes = out_classes
-        self.register_buffer("std", torch.tensor(params["std"]).view(1, 3, 1, 1))
-        self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
+        
+        if arch.lower() == "fpn":
+            use_pretrained = True
+            if in_channels != 3 and use_pretrained:
+                print(f"Warning: Custom FPN with pretrained=True expects in_channels=3. Received {in_channels}. Forcing pretrained=False.")
+                use_pretrained = False
+                
+            self.model = FPN(
+                encoder_name=encoder_name,
+                in_channels=in_channels,
+                classes=out_classes,
+                pretrained=use_pretrained,
+                pyramid_channels=kwargs.get('fpn_pyramid_channels', 256),
+                segmentation_channels=kwargs.get('fpn_segmentation_channels', 128),
+                dropout=kwargs.get('fpn_dropout', 0.2)
+            )
+            # Set normalization for standard ImageNet pretraining
+            print("Setting normalization to ImageNet defaults for custom FPN.")
+            self.register_buffer("mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)) # resnet34
+            self.register_buffer("std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)) # resnet34
+
+        else:
+            self.model = smp.create_model(
+                arch,
+                encoder_name=encoder_name,
+                in_channels=in_channels,
+                classes=out_classes,
+                **kwargs,
+            )
+            # Preprocessing parameters for image normalization
+            params = smp.encoders.get_preprocessing_params(encoder_name)
+            self.register_buffer("std", torch.tensor(params["std"]).view(1, 3, 1, 1))
+            self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
 
         # Loss function for multi-class segmentation
         self.loss_fn = smp.losses.DiceLoss(smp.losses.MULTICLASS_MODE, from_logits=True)
