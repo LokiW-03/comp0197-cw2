@@ -59,9 +59,9 @@ class CombinedLoss(nn.Module):
         self.lambda_seg = lambda_seg # Weight for the segmentation loss
         self.mode = mode
         self.mode_to_key = {
-            'points': 'points',
-            'scribbles': 'scribbles',
-            'boxes': 'boxes',  # Special case
+            'points': ['points'],
+            'scribbles': ['scribbles'],
+            'boxes': ['boxes'],
             'hybrid_points_scribbles': ['scribbles', 'points'],
             'hybrid_points_boxes': ['points', 'boxes'],
             'hybrid_scribbles_boxes': ['scribbles', 'boxes'],
