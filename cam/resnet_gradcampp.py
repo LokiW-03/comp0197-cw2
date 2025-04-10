@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.models as models
 import torch.nn.functional as F
 from torchvision.transforms import Resize, InterpolationMode
-from cam import IMAGE_SIZE
+from common import IMAGE_SIZE
 
 class ResNet50_CAM(nn.Module):
     """
