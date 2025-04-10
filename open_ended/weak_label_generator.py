@@ -131,7 +131,7 @@ def main(args):
 
     weak_labels = {}
     
-    for img_path in tqdm(image_files[:int(len(image_files)*0.001)], desc="Processing"):
+    for img_path in tqdm(image_files[:int(len(image_files)*0.7)], desc="Processing"):
         img_name = os.path.basename(img_path)
         trimap_path = os.path.join(args.data_dir, 'annotations', 'trimaps', 
                                  img_name.replace('.jpg', '.png'))
