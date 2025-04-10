@@ -1,11 +1,8 @@
-import os
 import torch
-import torch.nn.functional as F
-import torch.nn as nn
 import torch.optim.lr_scheduler as lr_scheduler
 import segmentation_models_pytorch as smp
 import pytorch_lightning as pl
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 
 from model.fpn import FPN
 
@@ -175,9 +172,8 @@ class PetModel(pl.LightningModule):
         }
 
 if __name__ == "__main__":
-    from cam.load_pseudo import load_pseudo_dataset,load_pseudo
+    from cam.load_pseudo import load_pseudo
     from model.data import testset
-    from torch.utils.data import DataLoader
 
     device = torch.device('cuda' if torch.cuda.is_available()
                         else 'mps' if torch.backends.mps.is_available()                          
@@ -189,8 +185,7 @@ if __name__ == "__main__":
                                 shuffle=True,
                                 device=device)
     test_loader = DataLoader(testset, batch_size=64, shuffle=False)
-
-
+    
     EPOCHS = 10
     T_MAX = EPOCHS * len(pseudo_loader)
     OUT_CLASSES = 3
@@ -208,9 +203,6 @@ if __name__ == "__main__":
         train_dataloaders=pseudo_loader,
         val_dataloaders=test_loader,
     )
-
-    valid_metrics = trainer.validate(model, dataloaders=test_loader, verbose=False)
-    print(valid_metrics)
 
     test_metrics = trainer.test(model, dataloaders=test_loader, verbose=False)
     print(test_metrics)
