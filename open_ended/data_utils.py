@@ -164,9 +164,9 @@ class PetsDataset(Dataset):
                 # log.debug(f"Applying {len(coords)} points for {img_filename}")
                 for point_item in coords:
                     # --- Check point format and unpack ---
-                    if not isinstance(point_item, (list, tuple)) or len(point_item) != 2:
-                        log.warning(f"Skipping invalid point format {point_item} in {img_filename}")
-                        continue
+                    # if not isinstance(point_item, (list, tuple)) or len(point_item) != 2:
+                    #     log.warning(f"Skipping invalid point format {point_item} in {img_filename}")
+                    #     continue
                     # Assuming format from weak_label_generator is (x, y)
                     x, y = point_item
                     # --- End Check ---
@@ -236,17 +236,17 @@ class PetsDataset(Dataset):
         elif self.supervision_mode == "full":
              # This function shouldn't normally be called in 'full' mode,
              # but return ignore mask as a fallback.
-             log.warning(f"Called _get_weak_supervision in 'full' mode for {img_filename}.")
+            #  log.warning(f"Called _get_weak_supervision in 'full' mode for {img_filename}.")
              return torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
         
-        else:
-             log.warning(f"Unsupported supervision mode '{self.supervision_mode}' in _get_weak_supervision for {img_filename}.")
+        # else:
+        #      log.warning(f"Unsupported supervision mode '{self.supervision_mode}' in _get_weak_supervision for {img_filename}.")
              # Returns the ignore mask by default
 
 
         # --- Apply Default Centroid Logic (ONLY for 'points' mode if no labels were applied) ---
         if not weak_label_applied and self.supervision_mode == 'points':
-            log.warning(f"Weak label points missing or empty for {img_filename}. Using image center point as default.")
+            # log.warning(f"Weak label points missing or empty for {img_filename}. Using image center point as default.")
             y_center = height // 2
             x_center = width // 2
             # Ensure center is within bounds (should always be if img_size > 0)
