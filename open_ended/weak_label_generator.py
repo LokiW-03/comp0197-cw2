@@ -10,7 +10,7 @@ import random
 import logging
 
 # --- Configuration ---
-DEFAULT_NUM_POINT_PER_OBJ = 20
+DEFAULT_NUM_POINT_PER_OBJ = 30
 RANDOM_SEED = 42
 # --- End Configuration ---
 
