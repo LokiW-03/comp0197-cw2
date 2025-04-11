@@ -40,7 +40,7 @@ class PetsDataset(Dataset):
         self.img_size = img_size
         self.augment = augment and split == 'train'
         
-        data = 'weak_labels/weak_labels_train_before.pkl'
+        data = './open_ended/weak_labels/weak_labels_train.pkl'
 
         # Open the file in binary read mode ('rb')
         with open(data, 'rb') as f:
