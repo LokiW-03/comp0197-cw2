@@ -1,0 +1,233 @@
+Using device: cuda
+Initializing dataset: split=train, mode=points, augment=True
+Using first 5173 images for training.
+Loading weak labels from ./weak_labels/weak_labels_train.pkl
+Initializing dataset: split=val, mode=full, augment=False
+Using images 5173 to 6280 for validation.
+Initializing model with 2 output classes.
+
+Starting training run: segnet_points_run1
+Supervision: points, Batch Size: 64, LR: 0.0002, Epochs: 25, Num Classes: 2
+
+--- Epoch 1/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.2362
+Training epoch finished. Avg Loss: 0.1547, Train Acc (GT): 0.4826, Train Pet IoU (GT): 0.3308
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6155, Val Acc: 0.4991, Val Pet IoU: 0.3312
+Epoch 1 Summary: Train Loss: 0.1547, Train Acc: 0.4826, Train Pet IoU: 0.3308 | Val Loss: 2.6155, Val Acc: 0.4991, Val Pet IoU: 0.3312 | LR: 0.000199
+Checkpoint saved: Validation IOU improved to 0.3312. Saved to ./checkpoints_single/segnet_points_run1_best_acc.pth
+
+--- Epoch 2/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0114
+Training epoch finished. Avg Loss: 0.0098, Train Acc (GT): 0.4999, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 3.2913, Val Acc: 0.5000, Val Pet IoU: 0.3319
+Epoch 2 Summary: Train Loss: 0.0098, Train Acc: 0.4999, Train Pet IoU: 0.3494 | Val Loss: 3.2913, Val Acc: 0.5000, Val Pet IoU: 0.3319 | LR: 0.000197
+Checkpoint saved: Validation IOU improved to 0.3319. Saved to ./checkpoints_single/segnet_points_run1_best_acc.pth
+
+--- Epoch 3/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0049
+Training epoch finished. Avg Loss: 0.0045, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 3.6531, Val Acc: 0.5000, Val Pet IoU: 0.3319
+Epoch 3 Summary: Train Loss: 0.0045, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 3.6531, Val Acc: 0.5000, Val Pet IoU: 0.3319 | LR: 0.000193
+Checkpoint saved: Validation IOU improved to 0.3319. Saved to ./checkpoints_single/segnet_points_run1_best_acc.pth
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_2.pth
+
+--- Epoch 4/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0029
+Training epoch finished. Avg Loss: 0.0026, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 3.9217, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 4 Summary: Train Loss: 0.0026, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 3.9217, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000188
+Checkpoint saved: Validation IOU improved to 0.3320. Saved to ./checkpoints_single/segnet_points_run1_best_acc.pth
+
+--- Epoch 5/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0019
+Training epoch finished. Avg Loss: 0.0018, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.1244, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 5 Summary: Train Loss: 0.0018, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.1244, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000181
+Checkpoint saved: Validation IOU improved to 0.3320. Saved to ./checkpoints_single/segnet_points_run1_best_acc.pth
+
+--- Epoch 6/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0014
+Training epoch finished. Avg Loss: 0.0013, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.2788, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 6 Summary: Train Loss: 0.0013, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.2788, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000173
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_5.pth
+
+--- Epoch 7/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0011
+Training epoch finished. Avg Loss: 0.0011, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.4232, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 7 Summary: Train Loss: 0.0011, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.4232, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000164
+Checkpoint saved: Validation IOU improved to 0.3320. Saved to ./checkpoints_single/segnet_points_run1_best_acc.pth
+
+--- Epoch 8/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0009
+Training epoch finished. Avg Loss: 0.0008, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.5255, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 8 Summary: Train Loss: 0.0008, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.5255, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000154
+
+--- Epoch 9/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0007
+Training epoch finished. Avg Loss: 0.0007, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.6292, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 9 Summary: Train Loss: 0.0007, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.6292, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000143
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_8.pth
+
+--- Epoch 10/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0006
+Training epoch finished. Avg Loss: 0.0006, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.7113, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 10 Summary: Train Loss: 0.0006, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.7113, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000132
+
+--- Epoch 11/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0006
+Training epoch finished. Avg Loss: 0.0005, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.7804, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 11 Summary: Train Loss: 0.0005, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.7804, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000120
+
+--- Epoch 12/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0005
+Training epoch finished. Avg Loss: 0.0005, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.8391, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 12 Summary: Train Loss: 0.0005, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.8391, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000107
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_11.pth
+
+--- Epoch 13/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0004
+Training epoch finished. Avg Loss: 0.0004, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.9058, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 13 Summary: Train Loss: 0.0004, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.9058, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000095
+
+--- Epoch 14/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0004
+Training epoch finished. Avg Loss: 0.0004, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.9398, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 14 Summary: Train Loss: 0.0004, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.9398, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000082
+
+--- Epoch 15/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0004
+Training epoch finished. Avg Loss: 0.0004, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 4.9832, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 15 Summary: Train Loss: 0.0004, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 4.9832, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000070
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_14.pth
+
+--- Epoch 16/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0004
+Training epoch finished. Avg Loss: 0.0004, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.0147, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 16 Summary: Train Loss: 0.0004, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.0147, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000059
+
+--- Epoch 17/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.0479, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 17 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.0479, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000048
+
+--- Epoch 18/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.0660, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 18 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.0660, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000038
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_17.pth
+
+--- Epoch 19/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.0875, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 19 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.0875, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000029
+
+--- Epoch 20/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.1053, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 20 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.1053, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000021
+
+--- Epoch 21/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.1108, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 21 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.1108, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000014
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_20.pth
+
+--- Epoch 22/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.1189, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 22 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.1189, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000009
+
+--- Epoch 23/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.1197, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 23 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.1197, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000005
+
+--- Epoch 24/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.1281, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 24 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.1281, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000003
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_23.pth
+
+--- Epoch 25/25 ---
+Starting training epoch (Metrics calculated against GT)...
+  Batch 50/81, Current Avg Loss: 0.0003
+Training epoch finished. Avg Loss: 0.0003, Train Acc (GT): 0.5000, Train Pet IoU (GT): 0.3494
+Starting validation epoch...
+Validation epoch finished. Average Loss: 5.1199, Val Acc: 0.5000, Val Pet IoU: 0.3320
+Epoch 25 Summary: Train Loss: 0.0003, Train Acc: 0.5000, Train Pet IoU: 0.3494 | Val Loss: 5.1199, Val Acc: 0.5000, Val Pet IoU: 0.3320 | LR: 0.000002
+Latest checkpoint saved to ./checkpoints_single/segnet_points_run1_24.pth
+
+------------------------------------
+Training finished.
+Best Validation IOU achieved: 0.3320
+Best model saved to: ./checkpoints_single/segnet_points_run1_best_acc.pth (if accuracy improved)
+Latest model saved to: ./checkpoints_single/segnet_points_run1_latest.pth
+
+RECOMMENDATION: Load the '_best_acc.pth' checkpoint and evaluate it on the separate TEST set for final performance.
