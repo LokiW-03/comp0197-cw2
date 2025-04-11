@@ -1,6 +1,5 @@
 # data_utils.py
 
-from logging import log
 import os
 import glob
 from PIL import Image
@@ -39,10 +38,6 @@ class PetsDataset(Dataset):
         self.split = split
         self.supervision_mode = supervision_mode
         self.img_size = img_size
-        
-        self.mask_transform = T.Compose([
-            T.Resize(img_size, interpolation=T.InterpolationMode.NEAREST),
-        ])
         self.augment = augment and split == 'train'
         # ****************************
 
@@ -96,14 +91,17 @@ class PetsDataset(Dataset):
         self.base_transform = T.Compose([
             T.Resize(img_size),
             T.ToTensor(),
+            T.Normalize(mean=MEAN, std=STD)
         ])
-
+        self.mask_transform = T.Compose([
+            T.Resize(img_size, interpolation=T.InterpolationMode.NEAREST), # Use NEAREST for masks
+        ])
+        # Augmentations (optional)
         self.augmentation_transform = T.Compose([
             T.RandomHorizontalFlip(p=0.5),
             T.RandomRotation(degrees=15),
+            # Add more augmentations if needed (e.g., ColorJitter)
         ])
-
-        self.normalize = T.Normalize(mean=MEAN, std=STD)
 
         # Map supervision mode to required weak label keys
         self.mode_to_key = {
@@ -134,325 +132,93 @@ class PetsDataset(Dataset):
         return torch.from_numpy(mask) # Return as HxW tensor
 
     def _get_weak_supervision(self, index):
-        """
-        Prepares weak supervision mask based on mode.
-        Returns a dictionary mapping supervision type(s) to HxW tensor masks.
-        Returns None if the item should be skipped.
-        """
+        """ Prepares weak supervision signals based on mode. """
         img_filename = os.path.basename(self.image_files[index])
-        height, width = self.img_size
-        item_labels = self.weak_labels.get(img_filename) if self.weak_labels else None
+        if self.weak_labels is None or img_filename not in self.weak_labels:
+            raise ValueError(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
 
-        supervision_dict = {} # Initialize empty dictionary
-        weak_label_applied = False
+        item_labels = self.weak_labels[img_filename]
+        weak_data = {}
 
-        # --- Determine keys based on supervision_mode ---
-        required_keys = []
-        if self.supervision_mode in self.mode_to_key:
-            keys = self.mode_to_key[self.supervision_mode]
-            required_keys = keys if isinstance(keys, list) else [keys]
-        elif self.supervision_mode == 'full': # Should not happen here ideally
-            return torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64) # Or handle error
-        else:
-            print(f"Warning: Unsupported supervision mode '{self.supervision_mode}' in _get_weak_supervision")
-            return torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64) # Return ignore mask
+        required_keys = self.mode_to_key.get(self.supervision_mode, [])
+        if not isinstance(required_keys, list):
+            required_keys = [required_keys]
 
-        # --- Generate masks for each required key ---
         for key in required_keys:
-            key_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
-            applied_for_key = False
-
-            if item_labels:
+            if key in ['points', 'scribbles']:
+                sparse_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
+                
                 if key == 'points':
-                    coords = item_labels.get('points', [])
-                    if coords:
-                        for x, y in coords: # Assuming (x, y)
-                            y_c = max(0, min(int(y), height - 1))
-                            x_c = max(0, min(int(x), width - 1))
-                            key_mask[y_c, x_c] = 1 # Pet class
-                            applied_for_key = True
-                    # Default center logic (if needed specifically for points key)
-                    if not applied_for_key:
-                        y_center, x_center = height // 2, width // 2
-                        if 0 <= y_center < height and 0 <= x_center < width:
-                            key_mask[y_center, x_center] = 1
-                            applied_for_key = True # Mark default as applied
+                    # Handle points (single class)
+                    coords = item_labels.get(key, [])
+                    for y, x in coords:
+                        y = max(0, min(y, self.img_size[0] - 1))
+                        x = max(0, min(x, self.img_size[1] - 1))
+                        sparse_mask[y, x] = 1  # Pet class
 
                 elif key == 'scribbles':
-                    scribbles_dict = item_labels.get('scribbles', {})
-                    fg = scribbles_dict.get('foreground', [])
-                    bg = scribbles_dict.get('background', [])
-                    if fg:
-                        for x,y in fg:
-                            y_c = max(0, min(int(y), height - 1)); x_c = max(0, min(int(x), width - 1))
-                            key_mask[y_c, x_c] = 1 # FG
-                            applied_for_key = True
-                    if bg:
-                        for x,y in bg:
-                            y_c = max(0, min(int(y), height - 1)); x_c = max(0, min(int(x), width - 1))
-                            key_mask[y_c, x_c] = 0 # BG
-                            applied_for_key = True # Mark BG scribbles as applied too
+                    # Handle scribbles (both foreground and background)
+                    scribbles = item_labels.get(key, {})
+                    # Foreground scribbles (class 1)
+                    for y, x in scribbles.get('foreground', []):
+                        y = max(0, min(y, self.img_size[0] - 1))
+                        x = max(0, min(x, self.img_size[1] - 1))
+                        sparse_mask[y, x] = 1
+                    # Background scribbles (class 0)
+                    for y, x in scribbles.get('background', []):
+                        y = max(0, min(y, self.img_size[0] - 1))
+                        x = max(0, min(x, self.img_size[1] - 1))
+                        sparse_mask[y, x] = 0
 
-                elif key == 'boxes':
-                    boxes = item_labels.get('boxes', [])
-                    if boxes:
-                        for xmin, ymin, xmax, ymax in boxes:
-                            ymin_c = max(0, min(int(ymin), height - 1))
-                            xmin_c = max(0, min(int(xmin), width - 1))
-                            ymax_c = max(0, min(int(ymax), height - 1))
-                            xmax_c = max(0, min(int(xmax), width - 1))
-                            if ymax_c > ymin_c and xmax_c > xmin_c:
-                                key_mask[ymin_c:ymax_c, xmin_c:xmax_c] = 1 # Pet class inside box
-                                applied_for_key = True
+                weak_data[key] = sparse_mask
 
-                # --- Add logic for other weak label types ---
+            elif key == 'boxes':
+                 # Expecting list of boxes (ymin, xmin, ymax, xmax)
+                 # Generate pseudo-mask: Inside box=1 (Foreground), Outside=0 (Background)
+                 # Assuming box marks the Pet class (index 1), outside is Background (index 0)
+                 pet_class_index = 1
+                 bg_class_index = 0
+                 box_pseudo_mask = torch.full(self.img_size, bg_class_index, dtype=torch.int64) # Start with background
+                 boxes = item_labels.get('boxes', [])
+                 for box in boxes:
+                      ymin, xmin, ymax, xmax = box
+                      ymin_c = max(0, min(ymin, self.img_size[0] - 1))
+                      xmin_c = max(0, min(xmin, self.img_size[1] - 1))
+                      ymax_c = max(0, min(ymax, self.img_size[0] - 1))
+                      xmax_c = max(0, min(xmax, self.img_size[1] - 1))
+                      if ymax_c > ymin_c and xmax_c > xmin_c:
+                          box_pseudo_mask[ymin_c:ymax_c, xmin_c:xmax_c] = pet_class_index # Mark inside as Pet
+                 weak_data['boxes'] = box_pseudo_mask # HxW tensor
 
-            if applied_for_key:
-                supervision_dict[key] = key_mask
-                weak_label_applied = True # Mark that at least one type of label was processed
-
-        # Decide whether to return the dict or skip (e.g., if no labels found at all)
-        # This logic might need refinement based on your requirements
-        if not weak_label_applied and self.supervision_mode != 'full':
-            print(f"Warning: No weak labels found or applied for {img_filename} in mode {self.supervision_mode}. Returning empty dict (loss might be zero).")
-            # Or you could return None here to have the collate_fn skip it, but need a custom collate_fn.
-            # Returning an empty dict is simpler for now, CombinedLoss must handle it.
-            return {}
-            # Alternative: Return a default ignore mask if no labels are ever found
-            # return {'segmentation': torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)}
-
-        return supervision_dict
+        # Return appropriate format based on mode
+        if self.supervision_mode == "full":
+            return torch.zeros(self.img_size, dtype=torch.int64) + IGNORE_INDEX
+        else:
+            return weak_data
 
     def __getitem__(self, index):
         img_path = self.image_files[index]
         trimap_path = self.trimap_files[index]
 
         image = Image.open(img_path).convert('RGB')
-        target_mask = self._load_and_transform_mask(trimap_path)  # HxW GT mask
+        target_mask = self._load_and_transform_mask(trimap_path) # HxW GT mask
 
-        # Track augmentation parameters
-        aug_params = {}  # Stores flip/rotation info
-
-        # Apply base transform first (resize, ToTensor)
+        # Apply base transform (resize, ToTensor, Normalize)
         image_tensor = self.base_transform(image)
 
         # Apply augmentation if enabled
         if self.augment:
-            # Random Horizontal Flip
-            if torch.rand(1) < 0.5:
-                image_tensor = T.functional.hflip(image_tensor)
-                aug_params['hflip'] = True
+            image_tensor = self.augmentation_transform(image_tensor)
+            # NOTE: Augmenting sparse labels/masks correctly requires more complex implementation
+            #       if geometric transforms are applied to them. Omitted for simplicity.
 
-            # Random Rotation (example: 15 degrees)
-            angle = float(torch.randint(-15, 15, (1,)).item())
-            image_tensor = T.functional.rotate(image_tensor, angle)
-            aug_params['rotation'] = angle
-
-        # Normalize after augmentation
-        image_tensor = T.functional.normalize(image_tensor, MEAN, STD)
-
-        # --- Prepare Supervision Target for Loss ---
-        supervision_target = None # Initialize
+        # Prepare supervision target based on mode
         if self.split == 'train':
             if self.supervision_mode == 'full':
-                supervision_target = target_mask # Use GT mask (Tensor)
+                supervision_target = target_mask # Use GT mask directly
             else:
-                # Get weak supervision dictionary
                 supervision_target = self._get_weak_supervision(index)
-                # Handle potential skip case if _get_weak_supervision returns None or empty dict
-                if not supervision_target: # Checks for None or {}
-                    # Handle skip - needs custom collate_fn or return dummy data
-                    print(f"Skipping item {index} due to missing weak labels.")
-                    # Returning None often requires a custom collate_fn in DataLoader
-                    # For simplicity, might return dummy data or raise error earlier
-                    # Let's assume for now _get_weak_supervision returns at least {}
-                    pass # DataLoader will handle the dict collation
+        else: # For val/test, always use the GT mask for evaluation
+             supervision_target = target_mask
 
-        else: # Validation/Test
-            supervision_target = target_mask # Tensor
-
-        return image_tensor, supervision_target, target_mask # supervision_target is now Tensor OR Dict
-    
-    def _augment_weak_labels(self, weak_data, aug_params):
-        """Applies geometric augmentations to weak labels."""
-        img_size = (self.img_size[0], self.img_size[1])  # (height, width)
-        
-        if 'hflip' in aug_params and aug_params['hflip']:
-            # Flip augmentation
-            if 'points' in weak_data:
-                weak_data['points'] = self._augment_points(
-                    weak_data['points'], img_size, flip='h'
-                )
-            if 'scribbles' in weak_data:
-                weak_data['scribbles'] = self._augment_scribbles(
-                    weak_data['scribbles'], img_size, flip='h'
-                )
-            if 'boxes' in weak_data:
-                weak_data['boxes'] = self._augment_boxes(
-                    weak_data['boxes'], img_size, flip='h'
-                )
-
-        if 'rotation' in aug_params:
-            angle = aug_params['rotation']
-            if 'points' in weak_data:
-                weak_data['points'] = self._augment_points(
-                    weak_data['points'], img_size, rotate=angle
-                )
-            if 'scribbles' in weak_data:
-                weak_data['scribbles'] = self._augment_scribbles(
-                    weak_data['scribbles'], img_size, rotate=angle
-                )
-            if 'boxes' in weak_data:
-                weak_data['boxes'] = self._augment_boxes(
-                    weak_data['boxes'], img_size, rotate=angle
-                )
-
-        return weak_data
-        
-    def _augment_points(self, points, img_size, flip=None, rotate=None):
-        """Adjust point coordinates for flips/rotations."""
-        h, w = img_size
-        new_points = []
-        print(points)
-        for y, x in points:
-            # Horizontal Flip
-            if flip == 'h':
-                x = w - x - 1  # Mirror x-coordinate
-
-            # Rotation (example: 15 degrees)
-            if rotate is not None:
-                # Convert to image center coordinates
-                cx, cy = w // 2, h // 2
-                # Rotate point (simplified example)
-                # For precise rotation, use rotation matrix
-                theta = np.radians(rotate)
-                x_new = (x - cx) * np.cos(theta) - (y - cy) * np.sin(theta) + cx
-                y_new = (x - cx) * np.sin(theta) + (y - cy) * np.cos(theta) + cy
-                x, y = int(x_new), int(y_new)
-
-            # Clamp to valid coordinates
-            x = max(0, min(x, w - 1))
-            y = max(0, min(y, h - 1))
-            new_points.append((y, x))
-
-        return new_points
-    
-    def _augment_scribbles(self, scribbles_data, img_size, flip=None, rotate=None):
-        """
-        Applies geometric transformations to scribble coordinates.
-        Args:
-            scribbles_data: Dictionary with 'foreground' and 'background' keys
-            img_size: (height, width) tuple
-            flip: None or 'h' (horizontal flip)
-            rotate: Rotation angle in degrees (positive = counter-clockwise)
-        Returns:
-            Augmented scribbles dictionary
-        """
-        h, w = img_size
-        augmented_scribbles = {'foreground': [], 'background': []}
-        
-        # Process both foreground and background scribbles
-        for category in ['foreground', 'background']:
-            if category not in scribbles_data:
-                continue
-                
-            for y, x in scribbles_data[category]:
-                # Original coordinates (assuming they're in [0, h-1] x [0, w-1])
-                orig_y, orig_x = y, x
-                
-                # Apply horizontal flip
-                if flip == 'h':
-                    orig_x = w - orig_x - 1  # Mirror x-coordinate
-
-                # Apply rotation
-                if rotate is not None:
-                    # Convert to image center coordinates
-                    cx, cy = w // 2, h // 2
-                    x_centered = orig_x - cx
-                    y_centered = orig_y - cy
-                    
-                    # Convert angle to radians
-                    theta = np.radians(rotate)
-                    
-                    # Rotation matrix
-                    new_x = x_centered * np.cos(theta) - y_centered * np.sin(theta)
-                    new_y = x_centered * np.sin(theta) + y_centered * np.cos(theta)
-                    
-                    # Convert back to image coordinates
-                    orig_x = new_x + cx
-                    orig_y = new_y + cy
-
-                # Clamp coordinates to valid range
-                final_x = int(np.clip(orig_x, 0, w-1))
-                final_y = int(np.clip(orig_y, 0, h-1))
-                
-                augmented_scribbles[category].append((final_y, final_x))
-
-        return augmented_scribbles
-
-    def _augment_boxes(self, boxes, img_size, flip=None, rotate=None):
-        """
-        Applies geometric transformations to bounding boxes.
-        Args:
-            boxes: List of (ymin, xmin, ymax, xmax) tuples
-            img_size: (height, width) tuple
-            flip: None or 'h' (horizontal flip)
-            rotate: Rotation angle in degrees
-        Returns:
-            List of augmented bounding boxes
-        """
-        h, w = img_size
-        augmented_boxes = []
-        
-        for box in boxes:
-            ymin, xmin, ymax, xmax = box
-            
-            # Create four corners of the box
-            corners = np.array([
-                [ymin, xmin],
-                [ymin, xmax],
-                [ymax, xmin],
-                [ymax, xmax]
-            ], dtype=np.float32)
-
-            # Apply horizontal flip
-            if flip == 'h':
-                corners[:, 1] = w - corners[:, 1] - 1  # Flip x-coordinates
-
-            # Apply rotation
-            if rotate is not None:
-                # Convert to image center coordinates
-                cx, cy = w // 2, h // 2
-                corners[:, 1] -= cx  # x coordinates
-                corners[:, 0] -= cy  # y coordinates
-                
-                # Convert angle to radians
-                theta = np.radians(rotate)
-                
-                # Rotation matrix
-                rot_matrix = np.array([
-                    [np.cos(theta), -np.sin(theta)],
-                    [np.sin(theta), np.cos(theta)]
-                ])
-                
-                # Apply rotation to all corners
-                rotated = np.dot(corners[:, [1, 0]], rot_matrix.T)  # Swap x,y for rotation
-                
-                # Convert back to original coordinate system
-                corners[:, 1] = rotated[:, 0] + cx  # x coordinates
-                corners[:, 0] = rotated[:, 1] + cy  # y coordinates
-
-            # Find new bounding box coordinates
-            new_ymin = np.clip(corners[:, 0].min(), 0, h-1)
-            new_ymax = np.clip(corners[:, 0].max(), 0, h-1)
-            new_xmin = np.clip(corners[:, 1].min(), 0, w-1)
-            new_xmax = np.clip(corners[:, 1].max(), 0, w-1)
-
-            # Only keep valid boxes
-            if new_ymax > new_ymin and new_xmax > new_xmin:
-                augmented_boxes.append((
-                    int(new_ymin), int(new_xmin),
-                    int(new_ymax), int(new_xmax)
-                ))
-
-        return augmented_boxes
+        return image_tensor, supervision_target, target_mask # Return GT mask always for eval

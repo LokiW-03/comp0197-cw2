@@ -45,183 +45,59 @@ class PartialCrossEntropyLoss(nn.Module):
         return mean_loss
 
 
-# losses.py
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import CrossEntropyLoss
-
 class CombinedLoss(nn.Module):
     """
-    Calculates loss for segmentation tasks using various supervision types.
-    Handles:
-    - Full supervision (standard CrossEntropy).
-    - Weak supervision (points, scribbles, boxes) by applying CrossEntropy
-      only on labeled pixels provided in a target dictionary.
-    - Hybrid supervision by summing weighted losses from multiple weak types.
+    Combines Classification Loss (BCE) and Partial Segmentation Loss (Partial CE).
     """
-    def __init__(self, lambda_seg=1.0, ignore_index=255, mode='full'):
-        """
-        Args:
-            lambda_seg (float): Default weight for segmentation loss components.
-                                 Can be overridden by specific weights per mode if needed.
-            ignore_index (int): Index in the target mask to ignore during loss calculation.
-            mode (str): The supervision mode (e.g., 'full', 'points', 'hybrid_points_boxes').
-                        Used to determine which keys to expect/process in the target dict.
-        """
+    def __init__(self, mode, lambda_seg=1.0, ignore_index=255):
         super().__init__()
-        self.ignore_index = ignore_index
+        # For binary classification (pet present/absent) or multi-label
+        self.classification_loss_fn = nn.BCEWithLogitsLoss()
+        # For sparse segmentation labels (points)
+        self.segmentation_loss_fn = PartialCrossEntropyLoss(ignore_index=ignore_index)
+        self.cross_entropy_loss_fn = nn.CrossEntropyLoss(ignore_index=ignore_index)
+        self.lambda_seg = lambda_seg # Weight for the segmentation loss
         self.mode = mode
-        self.lambda_seg = lambda_seg # Base weight
+        self.mode_to_key = {
+            'points': ['points'],
+            'scribbles': ['scribbles'],
+            'boxes': ['boxes'],
+            'hybrid_points_scribbles': ['scribbles', 'points'],
+            'hybrid_points_boxes': ['points', 'boxes'],
+            'hybrid_scribbles_boxes': ['scribbles', 'boxes'],
+            'hybrid_points_scribbles_boxes': ['points', 'scribbles', 'boxes']
+        }
+        self.ignore_index = ignore_index
 
-        # --- Determine which loss components are active based on mode ---
-        self.active_modes = []
-        if mode == 'full':
-            self.active_modes = ['segmentation'] # Expect a single tensor target
-        elif mode == 'points':
-            self.active_modes = ['points']
-        elif mode == 'scribbles':
-            self.active_modes = ['scribbles']
-        elif mode == 'boxes':
-            self.active_modes = ['boxes']
-        elif mode == 'hybrid_points_scribbles':
-            self.active_modes = ['points', 'scribbles']
-        elif mode == 'hybrid_points_boxes':
-            self.active_modes = ['points', 'boxes']
-        elif mode == 'hybrid_scribbles_boxes':
-            self.active_modes = ['scribbles', 'boxes']
-        elif mode == 'hybrid_points_scribbles_boxes':
-            self.active_modes = ['points', 'scribbles', 'boxes']
-        else:
-            raise ValueError(f"Unsupported supervision mode for CombinedLoss: {mode}")
-
-        # --- Define the base loss criterion ---
-        # We use ONE CrossEntropyLoss instance for all segmentation-based losses.
-        # It inherently handles ignoring unlabeled pixels via ignore_index.
-        self.segmentation_criterion = CrossEntropyLoss(ignore_index=self.ignore_index)
-
-        # --- Optional: Define weights per component if needed ---
-        # For now, use the single lambda_seg for all components.
-        self.loss_weights = {key: self.lambda_seg for key in self.active_modes}
-        # Example for different weights:
-        # self.loss_weights = {'points': 1.0, 'boxes': 0.8}.get(key, self.lambda_seg)
-
-        print(f"Initialized CombinedLoss for mode '{mode}'. Active components: {self.active_modes} with weights {self.loss_weights}")
-
-
-    def forward(self, outputs, targets):
+    def forward(self, model_output, targets):
         """
-        Calculates the combined loss.
-
         Args:
-            outputs (torch.Tensor or dict): Model outputs. Expected to contain segmentation logits.
-                                             If dict, assumes key 'segmentation'.
-            targets (torch.Tensor or dict): Ground truth or weak supervision targets.
-                                            - Tensor (B, H, W) for 'full' mode.
-                                            - Dict {key: Tensor(B, H, W)} for weak/hybrid modes.
-
-        Returns:
-            torch.Tensor: The calculated total loss.
+            model_output (dict): {'segmentation': logits_seg, 'classification': logits_cls}
+            targets (dict): {'tags': target_tags, 'points': target_points_sparse}
         """
-        total_loss = 0.0
-        num_loss_components = 0
+        # Classification Loss (Tags)
+        #cls_logits = model_output['classification'] # Shape (B, C)
+        #tag_targets = targets['tags'] # Shape (B, C), float for BCE
+        #loss_cls = self.classification_loss_fn(cls_logits, tag_targets)
 
-        # --- Get Segmentation Logits ---
-        # Assumes model output is either the logits tensor directly
-        # or a dict containing logits under the key 'segmentation'.
-        if isinstance(outputs, dict):
-            seg_logits = outputs.get('segmentation')
-            if seg_logits is None:
-                raise ValueError("Model output dictionary does not contain 'segmentation' key.")
-        elif isinstance(outputs, torch.Tensor):
-            seg_logits = outputs
-        else:
-            raise TypeError(f"Unsupported model output type: {type(outputs)}")
+        required_keys = self.mode_to_key.get(self.mode, [])
+        loss_list = []
 
-        # --- Calculate Loss based on Target Type ---
-        if isinstance(targets, dict):
-            # --- Weak / Hybrid Supervision Mode ---
-            for key in self.active_modes:
-                if key in targets:
-                    key_targets = targets[key] # Shape (B, H, W), long with ignore_index
+        for key in required_keys:
+            if key in ['points', 'scribbles']:
+                # Segmentation Loss (Points)
+                seg_logits = model_output # Shape (B, C, H, W)
+                key_targets = targets[key] # Shape (B, H, W), long with ignore_index
+                loss_list.append(self.segmentation_loss_fn(seg_logits, key_targets))
+            elif key == "boxes":
+                seg_logits = model_output
+                key_targets = targets[key]
+                loss_list.append(self.cross_entropy_loss_fn(seg_logits, key_targets))
+            else:
+                raise ValueError("Invalid key.")
 
-                    # Ensure target is LongTensor for CrossEntropyLoss
-                    if key_targets.dtype != torch.long:
-                        key_targets = key_targets.long()
+        # Combine losses
+        total_loss = sum([loss * self.lambda_seg for loss in loss_list])
 
-                    # --- Calculate loss for this component ---
-                    # We use the SAME criterion for points, scribbles, boxes, etc.
-                    # because the target mask itself defines which pixels contribute.
-                    try:
-                        # Ensure logits and targets have compatible shapes B,C,H,W and B,H,W
-                        if seg_logits.ndim != 4 or key_targets.ndim != 3:
-                             raise ValueError(f"Dimension mismatch: Logits {seg_logits.shape}, Targets {key_targets.shape}")
-                        if seg_logits.shape[0] != key_targets.shape[0] or \
-                           seg_logits.shape[2:] != key_targets.shape[1:]:
-                             raise ValueError(f"Shape mismatch: Logits {seg_logits.shape}, Targets {key_targets.shape}")
-
-                        # Calculate the standard CrossEntropyLoss using the specific weak mask
-                        loss_component = self.segmentation_criterion(seg_logits, key_targets)
-
-                        # Check for NaN/Inf loss
-                        if not torch.isnan(loss_component) and not torch.isinf(loss_component):
-                            weight = self.loss_weights.get(key, self.lambda_seg) # Get weight for this key
-                            total_loss += loss_component * weight
-                            num_loss_components += 1
-                            # print(f"  Loss component '{key}': {loss_component.item():.4f} (Weight: {weight})") # Debug print
-                        else:
-                            print(f"Warning: NaN or Inf loss detected for component '{key}'. Skipping.")
-
-                    except Exception as e:
-                         print(f"Error calculating loss for component '{key}': {e}")
-                         print(f"Logits shape: {seg_logits.shape}, dtype: {seg_logits.dtype}")
-                         print(f"Targets ('{key}') shape: {key_targets.shape}, dtype: {key_targets.dtype}")
-                         # Optionally re-raise or continue
-                         continue
-
-            if num_loss_components == 0 and targets: # Dict wasn't empty, but no keys matched/valid loss calculated
-                print(f"Warning: No valid loss components were calculated for non-empty target dictionary in mode '{self.mode}'. Target keys: {list(targets.keys())}. Returning zero loss.")
-                # Return a zero loss tensor that requires gradients if necessary
-                return torch.tensor(0.0, device=seg_logits.device, requires_grad=True)
-
-
-        elif isinstance(targets, torch.Tensor):
-            # --- Full Supervision Mode ---
-            # Ensure target is LongTensor
-            if targets.dtype != torch.long:
-                targets = targets.long()
-
-            try:
-                 if seg_logits.ndim != 4 or targets.ndim != 3:
-                      raise ValueError(f"Dimension mismatch: Logits {seg_logits.shape}, Targets {targets.shape}")
-                 if seg_logits.shape[0] != targets.shape[0] or \
-                    seg_logits.shape[2:] != targets.shape[1:]:
-                      raise ValueError(f"Shape mismatch: Logits {seg_logits.shape}, Targets {targets.shape}")
-
-                 loss_component = self.segmentation_criterion(seg_logits, targets)
-
-                 if not torch.isnan(loss_component) and not torch.isinf(loss_component):
-                      total_loss = loss_component * self.loss_weights.get('segmentation', self.lambda_seg) # Use 'segmentation' weight or default
-                      num_loss_components += 1
-                 else:
-                      print("Warning: NaN or Inf loss detected for full supervision loss. Returning zero loss.")
-                      return torch.tensor(0.0, device=seg_logits.device, requires_grad=True)
-
-            except Exception as e:
-                 print(f"Error calculating loss for full supervision: {e}")
-                 print(f"Logits shape: {seg_logits.shape}, dtype: {seg_logits.dtype}")
-                 print(f"Targets shape: {targets.shape}, dtype: {targets.dtype}")
-                 # Return zero loss tensor
-                 return torch.tensor(0.0, device=seg_logits.device, requires_grad=True)
-
-        else:
-            raise TypeError(f"Unsupported target type in CombinedLoss: {type(targets)}")
-
-        # Avoid division by zero if no components were added
-        # Although previous checks should return 0 loss already in that case.
-        # if num_loss_components > 0:
-        #     return total_loss / num_loss_components # Average loss ? Or just sum? Usually SUM.
-        # else:
-        #     return torch.tensor(0.0, device=seg_logits.device, requires_grad=True)
-
-        return total_loss # Return the weighted sum
+        # Optional: return individual losses for logging
+        return total_loss #, loss_cls, loss_seg

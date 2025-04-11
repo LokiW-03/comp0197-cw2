@@ -29,18 +29,6 @@ def get_binary_mask_and_size_from_trimap(trimap_path):
         trimap = Image.open(trimap_path).convert('L')
         original_size = trimap.size # Get original (width, height)
         trimap_np = np.array(trimap)
-
-        # !!! IMPORTANT CAVEAT !!!
-        # Check if '1' is truly the foreground value in your trimaps.
-        # Common trimap values:
-        # - 0: Background
-        # - 128: Unknown
-        # - 255: Foreground
-        # If using 0/128/255, you might need:
-        # mask = (trimap_np == 255).astype(np.uint8)
-        # Or if 1 means 'unknown' and 2 means 'foreground':
-        # mask = (trimap_np == 2).astype(np.uint8)
-        # ADJUST THE LINE BELOW BASED ON YOUR TRIMAP SPECIFICATION:
         mask = (trimap_np == 1).astype(np.uint8)
 
         # Check if any foreground pixels exist
