@@ -816,7 +816,7 @@ Train -> {'loss': 52641964.995898075, 'accuracy': 0.5981874459463618, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 0:
+Trial 12:
 Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
 Downloading: "https://download.pytorch.org/models/resnet50-0676ba61.pth" to /root/.cache/torch/hub/checkpoints/resnet50-0676ba61.pth
 100% 97.8M/97.8M [00:00<00:00, 227MB/s]
@@ -888,7 +888,7 @@ Train -> {'loss': 0.8346850664719291, 'accuracy': 0.3349744755288829, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 1:
+Trial 13:
 Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -956,7 +956,7 @@ Train -> {'loss': 0.4397404079851897, 'accuracy': 0.7227117813151815, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 2:
+Trial 14:
 Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1024,7 +1024,7 @@ Train -> {'loss': 0.7519902700963228, 'accuracy': 0.5991701061310976, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 3:
+Trial 15:
 Parameters: {'thresholds': (0.25, 0.325), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1092,7 +1092,7 @@ Train -> {'loss': 0.7519912989243217, 'accuracy': 0.5991663948349331, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 4:
+Trial 16:
 Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1160,7 +1160,7 @@ Train -> {'loss': 0.7401415311771891, 'accuracy': 0.6442452446274135, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 5:
+Trial 17:
 Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1228,7 +1228,7 @@ Train -> {'loss': 0.7401432954746744, 'accuracy': 0.644238465246947, 'precision'
 
 Best model saved for model unet at epoch 10
 
-Trial 6:
+Trial 18:
 Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1296,7 +1296,7 @@ Train -> {'loss': 0.7401412834291873, 'accuracy': 0.6442460225976032, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 7:
+Trial 19:
 Parameters: {'thresholds': (0.3, 0.7), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1364,7 +1364,7 @@ Train -> {'loss': 0.7401411092799642, 'accuracy': 0.6442469156306723, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 8:
+Trial 20:
 Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1432,7 +1432,7 @@ Train -> {'loss': 0.7408933188604272, 'accuracy': 0.5606424124344536, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 9:
+Trial 21:
 Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-3_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1500,7 +1500,7 @@ Train -> {'loss': 0.6423449350439984, 'accuracy': 0.552182894685994, 'precision'
 
 Best model saved for model unet at epoch 10
 
-Trial 10:
+Trial 22:
 Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 16}
 Generated 3680 pseudo masks
 Input images: 3680
@@ -1568,7 +1568,7 @@ Train -> {'loss': 0.7631513639636661, 'accuracy': 0.5589849852997324, 'precision
 
 Best model saved for model unet at epoch 10
 
-Trial 11:
+Trial 23:
 Parameters: {'thresholds': (0.21, 0.33), 'loss_fn': 'dice_loss', 'optimizer': 'adamw_1e-2_1e-4', 'scheduler': 'steplr_15_0.1', 'batch_size': 64}
 Generated 3680 pseudo masks
 Input images: 3680
