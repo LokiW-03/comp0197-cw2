@@ -82,7 +82,7 @@ class CombinedLoss(nn.Module):
 
         required_keys = self.mode_to_key.get(self.mode, [])
         loss_list = []
-
+        print(targets)
         for key in required_keys:
             if key in ['points', 'scribbles']:
                 # Segmentation Loss (Points)
