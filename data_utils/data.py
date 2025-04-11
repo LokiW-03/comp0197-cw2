@@ -1,5 +1,4 @@
 import torch
-import random
 from torchvision import datasets, transforms
 
 # Set random seed for reproducibility

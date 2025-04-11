@@ -1,13 +1,14 @@
 import os
 import pickle
-from PIL import Image
 import numpy as np
-from skimage import measure, morphology
-from tqdm import tqdm
 import argparse
 import glob
 import random
 import logging
+
+from PIL import Image
+from skimage import measure, morphology
+from tqdm import tqdm
 
 # --- Configuration ---
 DEFAULT_NUM_POINT_PER_OBJ = 30

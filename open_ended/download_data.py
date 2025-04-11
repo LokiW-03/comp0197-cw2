@@ -111,7 +111,7 @@ def restructure_directory(download_root, final_root, torchvision_subdir):
         return False
 
 
-# TODO: check model/data.py and see if we can combine the two together
+
 def download_oxford_pet(download_root):
     """
     Downloads the Oxford-IIIT Pet dataset using torchvision.

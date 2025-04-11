@@ -10,9 +10,9 @@ import torch.nn.functional as F
 from cam.dataset.oxfordpet_paths import OxfordIIITPetWithPaths
 from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from model.resnet_drs import ResNet50_CAM_DRS
+from model.reconstruct_net import ReconstructNet
 
 from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR
-from model.reconstruct_net import ReconstructNet
 from crm.crm_loss import VGGLoss, alignment_loss
 from crm.oxfordpet_superpixel import OxfordPetSuperpixels
 from crm.gen_superpixel import generate_superpixels

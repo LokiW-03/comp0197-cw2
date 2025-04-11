@@ -4,13 +4,12 @@ import os
 import argparse
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 import torchmetrics
-import logging # Import logging for better messages during checkpoint loading
+import logging
 
-# Import your existing modules/dataset/models
+from torch.utils.data import DataLoader
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
-from model.baseline_segnet import SegNet  # Make sure this path matches your repo structure
+from model.baseline_segnet import SegNet
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

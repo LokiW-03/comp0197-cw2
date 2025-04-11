@@ -1,13 +1,13 @@
 # data_utils.py
-
 import os
 import glob
-from PIL import Image
 import numpy as np
 import torch
+import pickle
+from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms as T
-import pickle
+
 
 # ImageNet normalization stats
 MEAN = torch.tensor([0.485, 0.456, 0.406])

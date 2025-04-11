@@ -1,6 +1,7 @@
-from torchvision.utils import make_grid
 import torchvision.transforms.functional as TF
 import torch
+
+from torchvision.utils import make_grid
 
 def visualize_recon_grid(originals: torch.Tensor, reconstructions: torch.Tensor, path: str, nrow=1):
 
