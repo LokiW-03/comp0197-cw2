@@ -42,14 +42,10 @@ def draw_annotations(image, annotations):
         draw.ellipse(bbox, fill=color, outline=color)
 
     # 2. Draw 'point' annotations
-    if 'point' in annotations and annotations['point']:
-        for (y, x) in annotations['point']:
+    if 'points' in annotations and annotations['points']:
+        for (y, x) in annotations['points']:
             draw_point_marker(y, x, POINT_COLOR, POINT_RADIUS)
 
-    # 3. Draw 'scatter' annotations
-    if 'scatter' in annotations and annotations['scatter']:
-        for (y, x) in annotations['scatter']:
-            draw_point_marker(y, x, SCATTER_COLOR, POINT_RADIUS)
 
     # 4. Draw 'scribbles' annotations
     if 'scribbles' in annotations:
@@ -134,7 +130,6 @@ def main(args):
         print(f"  Image: {chosen_img_filename}")
         print(f"  Bounding Boxes: {len(annotations.get('boxes', []))}")
         print(f"  Points: {len(annotations.get('point', []))}")
-        print(f"  Scatter Points: {len(annotations.get('scatter', []))}")
         print(f"  FG Scribble Points: {len(annotations.get('scribbles', {}).get('foreground', []))}")
         print(f"  BG Scribble Points: {len(annotations.get('scribbles', {}).get('background', []))}")
         print("-" * 30)
