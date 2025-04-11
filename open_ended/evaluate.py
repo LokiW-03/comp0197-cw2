@@ -154,13 +154,13 @@ def main():
     
 
     MODEL_PATHS = [
-        os.path.join(PROJECT_ROOT, 'checkpoints_single/segnet_point_run1_best_acc.pth'),
-        os.path.join(PROJECT_ROOT, 'checkpoints_single/segnet_scatter_run1_best_acc.pth'),
-        os.path.join(PROJECT_ROOT, 'checkpoints_single/segnet_boxes_run1_best_acc.pth'),
-        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_point_scatter_run1_best_acc.pth'),
-        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_point_boxes_run1_best_acc.pth'),
-        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_scatter_boxes_run1_best_acc.pth'),
-        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_point_scatter_boxes_run1_best_acc.pth'),
+        'checkpoints_single/segnet_point_run1_best_acc.pth',
+        'checkpoints_single/segnet_scatter_run1_best_acc.pth',
+        'checkpoints_single/segnet_boxes_run1_best_acc.pth',
+        'checkpoints_hybrid/segnet_hybrid_point_scatter_run1_best_acc.pth',
+        'checkpoints_hybrid/segnet_hybrid_point_boxes_run1_best_acc.pth',
+        'checkpoints_hybrid/segnet_hybrid_scatter_boxes_run1_best_acc.pth',
+        'checkpoints_hybrid/segnet_hybrid_point_scatter_boxes_run1_best_acc.pth',
     ]
     
     
