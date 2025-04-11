@@ -5,7 +5,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from common import *
 from preprocessing import unnormalize
-from dataset.oxfordpet import download_pet_dataset
+from data_utils.data import download_pet_dataset
 from visualize import visualize_cam
 from model.resnet_drs import ResNet50_CAM_DRS
 from crm import CRM_MODEL_SAVE_PATH

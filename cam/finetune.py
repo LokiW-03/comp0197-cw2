@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from model.resnet_gradcampp import ResNet50_CAM
-from dataset.oxfordpet import download_pet_dataset
+from data_utils.data import download_pet_dataset
 from common import *
 
 

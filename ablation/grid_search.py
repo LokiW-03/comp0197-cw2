@@ -6,8 +6,7 @@ from torch.utils.data import DataLoader
 
 from cam.load_pseudo import load_pseudo
 from cam.postprocessing import generate_pseudo_masks
-from cam.dataset.oxfordpet import download_pet_dataset
-from data_utils.data import testset
+from data_utils.data import testset, download_pet_dataset
 from model.baseline_segnet import SegNet
 from model.efficient_unet import EfficientUNet
 from model.segnext import SegNeXt
