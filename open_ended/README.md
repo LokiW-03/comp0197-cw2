@@ -194,7 +194,7 @@ These generated points, scribbles, and bounding boxes, along with the original i
 ## Results
 
 
-### Single Feature
+### Single Feature (To Be Updated, new set of result will be updated shortly)
 **SegNet**
 
 | SegNet  | Performance  |               |           |               |
@@ -204,7 +204,7 @@ These generated points, scribbles, and bounding boxes, along with the original i
 | Scribbles | 0.3343       | 0.3307        | 3.0825    | 0.5080        |
 | point   | 0.3320       | 0.1522        | 4.5684    | 0.5000        |
 
-### Hybrid Feature
+### Hybrid Feature (To Be Updated, new set of result will be updated shortly)
 
 **SegNet**
 
@@ -217,35 +217,6 @@ These generated points, scribbles, and bounding boxes, along with the original i
 | box, point, Scribbles | 0.4694       | 0.4705        | 1.2276    | 0.7185        |
 
 
-
----
-
-## Expected Results and Interesting Things to See
-
-**Expected Quantitative Results:**
-
-*   We expect a performance ranking roughly following the amount of spatial information provided:
-    *   `Points` likely better than Tags, but potentially still quite low depending on how well the partial CE loss works without propagation.
-    *   `Scribbles` and `Boxes` likely significantly better than Points/Tags, potentially achieving similar mIoU scores to each other.
-    *   `Hybrid (Tags + Points)`: This is the key experimental result. We expect it to perform *better* than the `Points`-only model. The interesting question is *how much* better? Will it approach the performance of `Scribbles` or `Boxes`? It's unlikely to surpass them, but closing a significant portion of the gap would be noteworthy.
-*   The cost-effectiveness plot should visually reinforce this trade-off, potentially showing diminishing returns as annotation effort increases from points/scribbles/boxes. The hybrid point will add an interesting data point to this curve.
-
-**Expected Qualitative Results:**
-
-*   **Points:** Might segment small regions around the click points well but struggle with object extent and boundaries. May fail completely on objects that weren't clicked (if simulating only one click per *image* instead of per *object*). Class accuracy might be reasonable if points are class-labeled.
-*   **Scribbles:** Should produce more complete object shapes than points, potentially with somewhat accurate boundaries where the scribble provides guidance, but rough elsewhere. Might struggle with very thin structures not covered by scribbles.
-*   **Boxes:** Likely yield fairly complete object masks but with boundaries adhering somewhat to the box shape, potentially including background pixels near corners or failing to separate objects within the same box.
-
-
-
-No longer under experiment because of tags is not valid to compare with, but we can use the idea from this for the hybrid experiment.
-
-*   **Hybrid (Tags + Points):**
-    *   **Interesting Thing 1 (Completeness):** Compared to Points-only, we hope to see *more complete object segmentation*. Does the global tag information help the model "fill in" the object beyond the single point location?
-    *   **Interesting Thing 2 (Class Consistency):** Does adding the tag loss reduce class confusion errors compared to Points-only? E.g., if a point is ambiguously placed, does the image-level tag help assign the correct class to the segmented region?
-    *   **Interesting Thing 3 (Failure Modes):** Will the hybrid model exhibit failure modes that are a blend of Tag and Point failures, or does it find a genuinely better solution? For instance, does it still struggle with boundaries like the Point model, or does it become blobby like the Tag model?
-
->  **Overall:** The most interesting outcome relates to the **hybrid model's effectiveness**. Seeing a improvement over points-only with such minimal extra supervision (tags) would underscore the value of even coarse global context in WSSS. Conversely, if the improvement is negligible, it would suggest that for this architecture/task, simple loss combination isn't enough, and more sophisticated fusion or propagation is needed to leverage minimal signals effectively. The qualitative analysis will be crucial to understand *why* the hybrid model performs as it does.
 
 
 
