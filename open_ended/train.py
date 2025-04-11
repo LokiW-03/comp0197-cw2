@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
 from open_ended.model_utils import SegNetWrapper
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
-from open_ended.losses import PartialCrossEntropyLoss, CombinedLoss
+from open_ended.losses import CombinedLoss
 import torchmetrics # Added for metric calculation
 import time
 import traceback
@@ -155,27 +155,41 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes
     # --- Compute final epoch metrics ---
     epoch_train_acc = 0.0
     epoch_train_pet_iou = 0.0
-        # Changes in train_one_epoch function
     try:
         epoch_train_acc = train_accuracy.compute().item()
         iou_per_class = train_iou.compute()
-        # Compute average IoU across all classes, ignoring NaNs
-        average_iou_tensor = torch.nanmean(iou_per_class)
-        if torch.isinf(average_iou_tensor) or torch.isnan(average_iou_tensor):
-            epoch_train_avg_iou = 0.0
-            print("Warning: Average IoU calculation resulted in NaN or Inf for training.")
+        # Handle potential issues with IoU calculation (e.g., division by zero if no true positives/union)
+        if num_classes > 1 and iou_per_class.numel() > 1:
+            # Check for NaN/Inf before converting to item()
+            pet_iou_tensor = iou_per_class[1]
+            if torch.isinf(pet_iou_tensor) or torch.isnan(pet_iou_tensor):
+                 epoch_train_pet_iou = 0.0 # Assign 0 if IoU is invalid
+                 print("Warning: Pet IoU calculation resulted in NaN or Inf for training.")
+            else:
+                 epoch_train_pet_iou = pet_iou_tensor.item() # Assuming class 1 is 'pet'
+        elif num_classes == 1 and iou_per_class.numel() > 0:
+             pet_iou_tensor = iou_per_class[0]
+             if torch.isinf(pet_iou_tensor) or torch.isnan(pet_iou_tensor):
+                  epoch_train_pet_iou = 0.0
+                  print("Warning: Single class IoU calculation resulted in NaN or Inf for training.")
+             else:
+                  epoch_train_pet_iou = pet_iou_tensor.item()
         else:
-            epoch_train_avg_iou = average_iou_tensor.item()
+            epoch_train_pet_iou = 0.0 # Handle cases where IoU might not be computed correctly
+            print(f"Warning: Could not compute valid Pet IoU for training (num_classes={num_classes}, iou_tensor_size={iou_per_class.numel()}).")
+
     except Exception as e:
         print(f"Error computing final training metrics: {e}")
         traceback.print_exc()
-        epoch_train_avg_iou = 0.0
     finally:
+        # Reset metrics for the next epoch
         train_accuracy.reset()
         train_iou.reset()
+    # ---------------------------------
 
-    print(f"Training epoch finished. Average Loss: {avg_loss:.4f}, Train Acc (GT): {epoch_train_acc:.4f}, Train Avg IoU (GT): {epoch_train_avg_iou:.4f}")
-    return avg_loss, epoch_train_acc, epoch_train_avg_iou
+    # --- Updated Print Statement & Return Value ---
+    print(f"Training epoch finished. Average Loss: {avg_loss:.4f}, Train Acc (GT): {epoch_train_acc:.4f}, Train Pet IoU (GT): {epoch_train_pet_iou:.4f}")
+    return avg_loss, epoch_train_acc, epoch_train_pet_iou # Return metrics
 
 # Modified validate_one_epoch to calculate and return val loss, accuracy, and pet_iou
 def validate_one_epoch(model, loader, device, num_classes):
@@ -248,22 +262,28 @@ def validate_one_epoch(model, loader, device, num_classes):
     try:
         epoch_val_acc = val_accuracy.compute().item()
         final_iou_per_class = val_iou.compute()
-        # Compute average IoU across all classes, ignoring NaNs
-        average_iou_tensor = torch.nanmean(final_iou_per_class)
-        if torch.isinf(average_iou_tensor) or torch.isnan(average_iou_tensor):
-            epoch_val_avg_iou = 0.0
-            print("Warning: Average IoU calculation resulted in NaN or Inf for validation.")
-        else:
-            epoch_val_avg_iou = average_iou_tensor.item()
-        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Val Acc: {epoch_val_acc:.4f}, Val Avg IoU: {epoch_val_avg_iou:.4f}")
+        if num_classes > 1 and len(final_iou_per_class) > 1:
+             # Ensure tensor index is valid before accessing
+             if final_iou_per_class.numel() > 1:
+                epoch_val_pet_iou = final_iou_per_class[1].item() # Assuming class 1 is 'pet'
+             else:
+                print("Warning: IoU per class tensor has fewer than 2 elements.")
+                epoch_val_pet_iou = 0.0
+        elif num_classes == 1:
+             epoch_val_pet_iou = final_iou_per_class[0].item()
+        else: # Handle cases where IoU might not be computed correctly
+             epoch_val_pet_iou = 0.0
+
+        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Val Acc: {epoch_val_acc:.4f}, Val Pet IoU: {epoch_val_pet_iou:.4f}")
     except Exception as e:
         print(f"Error computing final validation metrics: {e}")
-        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Val Acc: Calculation Error, Val Avg IoU: Calculation Error")
+        print(f"Validation epoch finished. Average Loss: {avg_loss:.4f}, Val Acc: Calculation Error, Val Pet IoU: Calculation Error")
     finally:
         val_accuracy.reset()
         val_iou.reset()
 
-    return avg_loss, epoch_val_acc, epoch_val_avg_iou
+    # Return all calculated validation metrics
+    return avg_loss, epoch_val_acc, epoch_val_pet_iou
 
 
 def main():
@@ -315,17 +335,7 @@ def main():
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     else:
         loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
-    # if args.supervision_mode in ['hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
-    #     loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
-    # elif args.supervision_mode in ['points', 'scribbles']:
-    #     print("Warning: Running single weak supervision mode with hybrid script. Using PartialCrossEntropyLoss.")
-    #     loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    # elif args.supervision_mode in ['boxes', 'full']:
-    #     print("Warning: Running boxes/full supervision mode with hybrid script. Using CrossEntropyLoss.")
-    #     loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    # else:····
-    #     # Should not be reachable due to argparse choices
-    #     raise ValueError(f"Supervision mode {args.supervision_mode} not implemented for loss")
+
     loss_fn.to(device) # Move loss function to device
 
     # --- Optimizer ---
@@ -355,11 +365,11 @@ def main():
 
         try:
             # Get train loss (only loss is returned now)
-            train_loss, train_acc, train_avg_iou = train_one_epoch(
+            train_loss, train_acc, train_pet_iou = train_one_epoch(
                 model, train_loader, optimizer, loss_fn, device, args.supervision_mode, num_output_classes
             )
             # Get validation metrics
-            val_loss, val_acc, val_avg_iou = validate_one_epoch(
+            val_loss, val_acc, val_pet_iou = validate_one_epoch(
                 model, val_loader, device, num_output_classes
             )
             scheduler.step() # Step the scheduler each epoch
@@ -367,13 +377,13 @@ def main():
 
             # ***** MODIFIED PRINT STATEMENT *****
             print(f"Epoch {epoch+1} Summary: "
-                  f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train Pet IoU: {train_avg_iou:.4f} | "
-                  f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val Pet IoU: {val_avg_iou:.4f} | "
+                  f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train Pet IoU: {train_pet_iou:.4f} | "
+                  f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val Pet IoU: {val_pet_iou:.4f} | "
                   f"LR: {current_lr:.6f}")
 
             # --- Save checkpoint based on best validation accuracy ---
-            if val_avg_iou > best_val_iou:
-                best_val_iou = val_avg_iou
+            if val_pet_iou > best_val_iou:
+                best_val_iou = val_pet_iou
                 save_path = f"{checkpoint_path_base}_best_acc.pth" # Changed filename
                 model.cpu() # Move to CPU before saving
                 torch.save({
@@ -384,12 +394,12 @@ def main():
                     'train_loss': train_loss, # Save train loss
                     'val_loss': val_loss,     # Save current val loss
                     'val_acc': val_acc,       # Save current val accuracy
-                    'val_pet_iou': val_avg_iou,# Save current val pet iou
+                    'val_pet_iou': val_pet_iou,# Save current val pet iou
                     'best_val_acc': best_val_iou, # Save the best accuracy achieved
                     'args': args
                 }, save_path)
                 model.to(device) # Move back to device
-                print(f"Checkpoint saved: Validation IOU improved to {best_val_iou:.4f} (Loss: {val_loss:.4f}, Pet IoU: {val_avg_iou:.4f}). Saved to {save_path}")
+                print(f"Checkpoint saved: Validation IOU improved to {best_val_iou:.4f} (Loss: {val_loss:.4f}, Pet IoU: {val_pet_iou:.4f}). Saved to {save_path}")
             # ********************************************************
 
             # Optional: Save latest checkpoint
@@ -404,7 +414,7 @@ def main():
                     'train_loss': train_loss, # Save current train loss
                     'val_loss': val_loss,     # Save current val metrics
                     'val_acc': val_acc,
-                    'val_pet_iou': val_avg_iou,
+                    'val_pet_iou': val_pet_iou,
                     'best_val_acc': best_val_iou, # Keep track of best acc
                     'args': args
                 }, latest_save_path)
