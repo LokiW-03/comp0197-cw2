@@ -1,7 +1,5 @@
 #postprocessing.py
 import torch
-from PIL import Image
-import os
 from typing import Callable
 from torchvision import transforms
 from torch.utils.data import DataLoader
@@ -11,7 +9,6 @@ from dataset.oxfordpet import download_pet_dataset
 from visualize import visualize_cam
 from resnet_drs import ResNet50_CAM_DRS
 from crm import CRM_MODEL_SAVE_PATH
-from model.data import ImageTransform
 
 
 def generate_pseudo_masks(
@@ -46,13 +43,7 @@ def generate_pseudo_masks(
     # Verify CAM class interface
     if not hasattr(gradcam, 'generate_cam'):
         raise ValueError("CAM class must implement generate_cam() method")
-    
-    # TODO: Should be aligned with the original dataset
-    # mask_transform = transforms.Compose([
-    #     transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.NEAREST),
-    #     transforms.PILToTensor(),
-    #     transforms.Lambda(lambda x: x.squeeze().to(torch.long))
-    # ])
+
     
     all_pseudo_masks = []
     all_images = []
@@ -66,9 +57,6 @@ def generate_pseudo_masks(
         paths = batch[2]  # Third element is image path
         
         # Generate CAM heatmap
-        # cams, logits = gradcam.generate_cam(inputs, all_classes=True)  # (B, C, H, W)
-        # target_class = torch.argmax(logits, dim=1)
-        # cams = cams[torch.arange(cams.size(0)), target_class]  # (B, H, W)
         cams, _ = gradcam.generate_cam(inputs, all_classes=False, resize=True)  # (B, H, W)
         cams = (cams - cams.min()) / (cams.max() - cams.min() + 1e-8)
         # Generate pseudo masks
