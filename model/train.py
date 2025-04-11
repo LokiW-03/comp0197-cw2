@@ -205,8 +205,6 @@ def main():
     print('Using device:', device)
 
     # Create DataLoaders for batch processing
-    train_loader = DataLoader(trainset, batch_size=16, shuffle=True) # Using small batch-size as running out of memory
-    trainval_loader = DataLoader(testset, batch_size=16, shuffle=True)
     
     if args.collapse_contour:
         def custom_collate_fn(batch):
@@ -257,14 +255,9 @@ def main():
     print(output.shape)
 
     # initialise optimiser & loss class
-    # loss_fn = nn.CrossEntropyLoss(reduction='mean')
-    # loss_fn = DiceLoss()
-    # loss_fn = CombinedCELDiceLoss()
     loss_fn = nn.CrossEntropyLoss(reduction='mean')
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
 
     # train model
     train_model(model, train_loader, trainval_loader, loss_fn, optimizer, EPOCHS, device, compute_test_metrics = True, model_name = args.model, scheduler=scheduler, verbose=args.verbose)

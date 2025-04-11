@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import torchvision.datasets as datasets
 import argparse
 import os
 import time
@@ -13,7 +12,7 @@ import time
 from cam.load_pseudo import load_pseudo
 from model.train import compute_test_metrics_fn
 from model.data import testset
-from model.fpn import FPN
+from fpn_scripts.fpn import FPN
 from model.baseline_segnet import SegNet
 from model.baseline_unet import UNet
 from model.segnext import SegNeXt
