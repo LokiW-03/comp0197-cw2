@@ -43,7 +43,6 @@ def setup_arg_parser():
     parser.add_argument('--checkpoint_dir', type=str, default=DEFAULT_CHECKPOINT_DIR, help='Directory to save checkpoints')
     parser.add_argument('--run_name', type=str, required=True, help='Unique name for this training run (used for saving checkpoints)')
     parser.add_argument('--num_workers', type=int, default=2, help='Number of dataloader workers')
-    parser.add_argument('--lambda_seg', type=float, default=1.0, help='Weight for segmentation loss in hybrid mode')
     parser.add_argument('--augment', action='store_true', help='Enable basic data augmentation')
     parser.add_argument('--num_classes', type=int, default=DEFAULT_NUM_CLASSES, help='Number of output classes (e.g., 2 for BG+Pet)')
 
@@ -330,7 +329,7 @@ def main():
     if args.supervision_mode == 'full':
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     elif model_mode == 'hybrid':
-        loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
+        loss_fn = CombinedLoss(ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
     elif args.supervision_mode == 'boxes':
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     else:
