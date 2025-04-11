@@ -39,35 +39,49 @@ class PetsDataset(Dataset):
         self.supervision_mode = supervision_mode
         self.img_size = img_size
         self.augment = augment and split == 'train'
+        
+        # A hardcoded path to the weak labels file
+        # This should be replaced with a dynamic path or passed as an argument
+        data = './open_ended/weak_labels/weak_labels_train.pkl'
+
+        # Open the file in binary read mode ('rb')
+        with open(data, 'rb') as f:
+            # Load the data from the file
+            loaded_data = pickle.load(f)
         # ****************************
-
-        # ***** Print data info being used by dataset *****
+        train_image_files = loaded_data.keys()
+        set_train_image_files = set(train_image_files)
+        
+        
         print(f"Initializing dataset: split={split}, mode={supervision_mode}, augment={self.augment}")
-        # ****************************************************
-
+        
+        ## NOTE: We load all images from weak label generator, even though this seems counter intutive, however, weak label are gurantted to have 70% of the images, so enough for training data
+        ## NOTE: THen we do 50% split for val and test, same with 0.7 for train, 0.15 for val and 0.15 for test
 
         image_dir = os.path.join(data_dir, 'images')
         trimap_dir = os.path.join(data_dir, 'annotations', 'trimaps')
 
         # Load image paths (use .jpg)
         self.image_files = sorted(glob.glob(os.path.join(image_dir, '*.jpg')))
-
-        # Simple split (adjust if official splits are available/preferred)
-        num_images = len(self.image_files)
-        num_train = int(num_images * 0.7)
-        num_val = int(num_images * 0.15)
-        # num_test = num_images - num_train - num_val # Test uses remaining
+        all_image_files = set([os.path.basename(f) for f in self.image_files])
+        
+        
+        val_test_image_files = all_image_files - set_train_image_files
+        sorted_val_test_image_files = sorted(list(val_test_image_files))
+        
 
         if split == 'train':
-            self.image_files = self.image_files[:num_train]
-            print(f"Using first {len(self.image_files)} images for training.")
+            self.image_files = [os.path.join(data_dir, 'images', f) for f in train_image_files]
+            
+            # print(f"Using first {len(self.image_files)} images for training.")
         elif split == 'val':
-            self.image_files = self.image_files[num_train:num_train + num_val]
-            # Corrected print statement for val end index
-            print(f"Using images {num_train} to {num_train + num_val - 1} for validation.")
+            
+            self.image_files = sorted_val_test_image_files[:int(len(sorted_val_test_image_files) * 0.5)]
+            self.image_files = [os.path.join(data_dir, 'images', f) for f in self.image_files]
+
         elif split == 'test':
-            self.image_files = self.image_files[num_train + num_val:]
-            print(f"Using images from {num_train + num_val} onwards for testing.")
+            self.image_files = sorted_val_test_image_files[:int(len(sorted_val_test_image_files) * 0.5)]
+            self.image_files = [os.path.join(data_dir, 'images', f) for f in self.image_files]
         else:
             raise ValueError(f"Invalid split name: {split}")
 
