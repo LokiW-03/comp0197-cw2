@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
 from open_ended.model_utils import SegNetWrapper
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
-from open_ended.losses import CombinedLoss
+from open_ended.losses import CombinedLoss, PartialCrossEntropyLoss
 import torchmetrics # Added for metric calculation
 import time
 import traceback
@@ -329,9 +329,12 @@ def main():
     # --- Define Loss Function ---
     if args.supervision_mode == 'full':
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    else:
+    elif model_mode == 'hybrid':
         loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
-
+    elif args.supervision_mode == 'boxes':
+        loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    else:
+        loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
     loss_fn.to(device) # Move loss function to device
 
     # --- Optimizer ---
@@ -441,7 +444,6 @@ def main():
             break
 
     
-    # ***** ADDED: Final time printout *****
     training_end_time = time.time()
     total_training_time = training_end_time - training_start_time
     print("\n------------------------------------")
@@ -451,9 +453,7 @@ def main():
     print(f"Best Validation IOU achieved: {best_val_iou:.4f}") # Changed metric name
     print(f"Best model saved to: {checkpoint_path_base}_best_acc.pth (if accuracy improved)") # Changed filename
     print(f"Latest model saved to: {checkpoint_path_base}_latest.pth")
-    print("\nRECOMMENDATION: Load the '_best_acc.pth' checkpoint and evaluate it on the separate TEST set for final performance.")
 
 
 if __name__ == '__main__':
-    # Make sure to install torchmetrics: pip install torchmetrics
     main()
