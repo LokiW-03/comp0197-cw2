@@ -40,6 +40,8 @@ class PetsDataset(Dataset):
         self.img_size = img_size
         self.augment = augment and split == 'train'
         
+        # A hardcoded path to the weak labels file
+        # This should be replaced with a dynamic path or passed as an argument
         data = './open_ended/weak_labels/weak_labels_train.pkl'
 
         # Open the file in binary read mode ('rb')
@@ -51,12 +53,10 @@ class PetsDataset(Dataset):
         set_train_image_files = set(train_image_files)
         
         
-
-
-        # ***** Print data info being used by dataset *****
         print(f"Initializing dataset: split={split}, mode={supervision_mode}, augment={self.augment}")
-        # ****************************************************
-
+        
+        ## NOTE: We load all images from weak label generator, even though this seems counter intutive, however, weak label are gurantted to have 70% of the images, so enough for training data
+        ## NOTE: THen we do 50% split for val and test, same with 0.7 for train, 0.15 for val and 0.15 for test
 
         image_dir = os.path.join(data_dir, 'images')
         trimap_dir = os.path.join(data_dir, 'annotations', 'trimaps')
@@ -70,12 +70,6 @@ class PetsDataset(Dataset):
         sorted_val_test_image_files = sorted(list(val_test_image_files))
         
 
-        # Simple split (adjust if official splits are available/preferred)
-        # num_images = len(self.image_files)
-        # num_train = int(num_images * 0.7)
-        # num_val = int(num_images * 0.15)
-        # num_test = num_images - num_train - num_val # Test uses remaining
-
         if split == 'train':
             self.image_files = [os.path.join(data_dir, 'images', f) for f in train_image_files]
             
@@ -84,13 +78,10 @@ class PetsDataset(Dataset):
             
             self.image_files = sorted_val_test_image_files[:int(len(sorted_val_test_image_files) * 0.5)]
             self.image_files = [os.path.join(data_dir, 'images', f) for f in self.image_files]
-            # self.image_files[num_train:num_train + num_val]
-            # Corrected print statement for val end index
-            # print(f"Using images {num_train} to {num_train + num_val - 1} for validation.")
+
         elif split == 'test':
             self.image_files = sorted_val_test_image_files[:int(len(sorted_val_test_image_files) * 0.5)]
             self.image_files = [os.path.join(data_dir, 'images', f) for f in self.image_files]
-            # print(f"Using images from {num_train + num_val} onwards for testing.")
         else:
             raise ValueError(f"Invalid split name: {split}")
 

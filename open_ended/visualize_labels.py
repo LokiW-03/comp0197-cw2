@@ -27,6 +27,47 @@ POINT_RADIUS = 3  # Radius for drawing points/scribble pixels
 BOX_WIDTH = 2     # Line thickness for boxes
 # --- End Configuration ---
 
+# Standard EXIF Orientation tag ID
+ORIENTATION_TAG_ID = 274 # Hex: 0x0112
+DEFAULT_ORIENTATION = 1 # Value for standard, top-left orientation
+
+def get_exif_orientation(image_path):
+    """
+    Reads an image file and returns its EXIF orientation value.
+
+    Args:
+        image_path (str): The path to the image file.
+
+    Returns:
+        int: The EXIF orientation value (typically 1-8).
+             Returns DEFAULT_ORIENTATION (1) if the orientation tag is missing,
+             if there's no EXIF data, or if an error occurs during EXIF reading.
+        None: If the file cannot be found or opened as an image.
+    """
+    try:
+        img = Image.open(image_path)
+
+        # Use getexif() - returns an Exif object (dict-like) or None
+        exif_data = img.getexif()
+
+        if exif_data:
+            # Look for the orientation tag, return DEFAULT_ORIENTATION if not found
+            orientation = exif_data.get(ORIENTATION_TAG_ID, DEFAULT_ORIENTATION)
+            return orientation
+        else:
+            # No EXIF dictionary found at all
+            # print(f"INFO: No EXIF data found in {os.path.basename(image_path)}") # Optional: uncomment for info
+            return DEFAULT_ORIENTATION
+
+    except FileNotFoundError:
+        print(f"ERROR: File not found: {image_path}")
+        return None
+    except Exception as e:
+        # Catch other potential errors during file opening or EXIF parsing
+        # (e.g., file is not a valid image, corrupted EXIF)
+        print(f"WARNING: Error processing EXIF for {os.path.basename(image_path)}: {e}. Assuming default orientation.")
+        return DEFAULT_ORIENTATION # Return default as a safe fallback
+
 # <<< ADDED FUNCTION: To load and process the mask >>>
 def load_and_get_mask(trimap_path, foreground_value):
     """
@@ -38,12 +79,23 @@ def load_and_get_mask(trimap_path, foreground_value):
         if not os.path.exists(trimap_path):
             print(f"Error: Trimap file not found at {trimap_path}")
             return None
+        
+        
+        trimap_orientation = get_exif_orientation(trimap_path)
+        print(trimap_orientation)
+        trimap_pil = Image.open(trimap_path)
+        # trimap_pil = ImageOps.exif_transpose(trimap_pil)
+        
+        trimap_pil = trimap_pil.convert('L') # Convert to grayscale *after* transposing
+        original_size = trimap_pil.size # Get size *after* potential transpose
+        trimap_np = np.array(trimap_pil)
+        mask = (trimap_np == 1).astype(np.uint8)
 
-        trimap = Image.open(trimap_path).convert('L')
-        trimap_np = np.array(trimap)
+        # trimap = Image.open(trimap_path).convert('L')
+        # trimap_np = np.array(trimap)
 
-        # Create mask based on the specified foreground value
-        mask = (trimap_np == foreground_value).astype(np.uint8) # 0 or 1
+        # # Create mask based on the specified foreground value
+        # mask = (trimap_np == foreground_value).astype(np.uint8) # 0 or 1
 
         if not np.any(mask):
             print(f"Warning: No foreground pixels with value {foreground_value} found in trimap: {trimap_path}")
@@ -200,7 +252,7 @@ def main(args):
     trimap_filename = base_name + '.' + args.trimap_ext
     trimap_path = os.path.join(args.trimap_dir, trimap_filename)
     print(f"Attempting to load mask from trimap: {trimap_path}")
-    # mask_np = load_and_get_mask(trimap_path, args.foreground_value)
+    mask_np = load_and_get_mask(trimap_path, args.foreground_value)
     
     if mask_np is None:
         print(f"Warning: Could not load or process mask for {chosen_img_filename}. Proceeding without mask overlay.")
