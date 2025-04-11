@@ -1,0 +1,706 @@
+Using device: cuda
+Initializing dataset: split=train, mode=hybrid_tags_points, augment=False, num_classes=2
+Using first 5173 images for training.
+Loading weak labels from ./weak_labels/weak_labels_train.pkl
+Initializing dataset: split=val, mode=hybrid_tags_points, augment=False, num_classes=2
+Using images 5173 to 6280 for validation.
+/usr/local/lib/python3.11/dist-packages/torch/utils/data/dataloader.py:617: UserWarning: This DataLoader will create 8 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(
+Initializing model with 2 output classes for segmentation head.
+Downloading: "https://github.com/lukemelas/EfficientNet-PyTorch/releases/download/1.0/efficientnet-b0-355c32eb.pth" to /root/.cache/torch/hub/checkpoints/efficientnet-b0-355c32eb.pth
+100% 20.4M/20.4M [00:00<00:00, 36.4MB/s]
+
+Starting training run: tag_point_run1
+Supervision: hybrid_tags_points, Batch Size: 64, LR: 0.0002, Epochs: 75
+
+--- Epoch 1/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 1.0871, Batch Time: 0.91s, Epoch ETA: 00:00:35
+Training epoch finished. Average Loss: 0.9880
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.2127, Pet IoU: 0.3324
+Checkpoint saved: Validation IoU improved to 0.3324 (Loss: 1.2127). Saved to ./checkpoints_t4/tag_point_run1_best_iou.pth
+Epoch 1 duration: 00:01:37
+Estimated time remaining: 01:59:43
+
+--- Epoch 2/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.6994, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.6633
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.6630, Pet IoU: 0.3320
+Epoch 2 duration: 00:01:35
+Estimated time remaining: 01:57:06
+
+--- Epoch 3/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.4909, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.4493
+Starting validation epoch...
+Validation epoch finished. Average Loss: 1.9421, Pet IoU: 0.3320
+Epoch 3 duration: 00:01:33
+Estimated time remaining: 01:54:10
+
+--- Epoch 4/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.2835, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.2549
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.0579, Pet IoU: 0.3316
+Epoch 4 duration: 00:01:35
+Estimated time remaining: 01:52:25
+
+--- Epoch 5/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.1531, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.1392
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.1501, Pet IoU: 0.3318
+Epoch 5 duration: 00:01:34
+Estimated time remaining: 01:50:31
+
+--- Epoch 6/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0881, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0808
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.2521, Pet IoU: 0.3290
+Epoch 6 duration: 00:01:33
+Estimated time remaining: 01:48:40
+
+--- Epoch 7/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0554, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0517
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.2877, Pet IoU: 0.3268
+Epoch 7 duration: 00:01:35
+Estimated time remaining: 01:47:14
+
+--- Epoch 8/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0371, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0352
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.2984, Pet IoU: 0.3247
+Epoch 8 duration: 00:01:33
+Estimated time remaining: 01:45:28
+
+--- Epoch 9/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0284, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0268
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.3488, Pet IoU: 0.3221
+Epoch 9 duration: 00:01:34
+Estimated time remaining: 01:43:51
+
+--- Epoch 10/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0206, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0200
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4801, Pet IoU: 0.3202
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 10 duration: 00:01:36
+Estimated time remaining: 01:42:24
+
+--- Epoch 11/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0158, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0159
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.3806, Pet IoU: 0.3271
+Epoch 11 duration: 00:01:34
+Estimated time remaining: 01:40:46
+
+--- Epoch 12/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0145, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0145
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.3890, Pet IoU: 0.3140
+Epoch 12 duration: 00:01:33
+Estimated time remaining: 01:39:06
+
+--- Epoch 13/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0120, Batch Time: 0.95s, Epoch ETA: 00:00:32
+Training epoch finished. Average Loss: 0.0113
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4462, Pet IoU: 0.3170
+Epoch 13 duration: 00:01:32
+Estimated time remaining: 01:37:23
+
+--- Epoch 14/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0093, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0096
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4515, Pet IoU: 0.3185
+Epoch 14 duration: 00:01:34
+Estimated time remaining: 01:35:46
+
+--- Epoch 15/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0086, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0091
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.3468, Pet IoU: 0.3196
+Epoch 15 duration: 00:01:35
+Estimated time remaining: 01:34:16
+
+--- Epoch 16/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0073, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0072
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.5081, Pet IoU: 0.3128
+Epoch 16 duration: 00:01:34
+Estimated time remaining: 01:32:39
+
+--- Epoch 17/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0065, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0061
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4871, Pet IoU: 0.3158
+Epoch 17 duration: 00:01:33
+Estimated time remaining: 01:30:59
+
+--- Epoch 18/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0066, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0058
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.5676, Pet IoU: 0.3125
+Epoch 18 duration: 00:01:34
+Estimated time remaining: 01:29:26
+
+--- Epoch 19/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0046, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0048
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.5470, Pet IoU: 0.3115
+Epoch 19 duration: 00:01:34
+Estimated time remaining: 01:27:50
+
+--- Epoch 20/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0043, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0042
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.5565, Pet IoU: 0.3105
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 20 duration: 00:01:35
+Estimated time remaining: 01:26:18
+
+--- Epoch 21/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0048, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0042
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6089, Pet IoU: 0.3124
+Epoch 21 duration: 00:01:33
+Estimated time remaining: 01:24:40
+
+--- Epoch 22/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0031, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0035
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6165, Pet IoU: 0.3125
+Epoch 22 duration: 00:01:35
+Estimated time remaining: 01:23:08
+
+--- Epoch 23/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0040, Batch Time: 0.96s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0035
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6260, Pet IoU: 0.3141
+Epoch 23 duration: 00:01:34
+Estimated time remaining: 01:21:34
+
+--- Epoch 24/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0034, Batch Time: 0.95s, Epoch ETA: 00:00:32
+Training epoch finished. Average Loss: 0.0031
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6067, Pet IoU: 0.3123
+Epoch 24 duration: 00:01:32
+Estimated time remaining: 01:19:57
+
+--- Epoch 25/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0024, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0028
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6074, Pet IoU: 0.3129
+Epoch 25 duration: 00:01:34
+Estimated time remaining: 01:18:23
+
+--- Epoch 26/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0023, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0025
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4200, Pet IoU: 0.3181
+Epoch 26 duration: 00:01:33
+Estimated time remaining: 01:16:46
+
+--- Epoch 27/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0027, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0025
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4486, Pet IoU: 0.3179
+Epoch 27 duration: 00:01:33
+Estimated time remaining: 01:15:10
+
+--- Epoch 28/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0063, Batch Time: 0.96s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0048
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.5593, Pet IoU: 0.3160
+Epoch 28 duration: 00:01:34
+Estimated time remaining: 01:13:37
+
+--- Epoch 29/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0028, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0034
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7562, Pet IoU: 0.2911
+Epoch 29 duration: 00:01:34
+Estimated time remaining: 01:12:03
+
+--- Epoch 30/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0023, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0024
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4008, Pet IoU: 0.2974
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 30 duration: 00:01:34
+Estimated time remaining: 01:10:29
+
+--- Epoch 31/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0022, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0022
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.4112, Pet IoU: 0.3215
+Epoch 31 duration: 00:01:36
+Estimated time remaining: 01:08:58
+
+--- Epoch 32/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0016, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0016
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.5895, Pet IoU: 0.3027
+Epoch 32 duration: 00:01:33
+Estimated time remaining: 01:07:22
+
+--- Epoch 33/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0014, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0014
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6246, Pet IoU: 0.2980
+Epoch 33 duration: 00:01:34
+Estimated time remaining: 01:05:48
+
+--- Epoch 34/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0013, Batch Time: 0.96s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0013
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6612, Pet IoU: 0.2874
+Epoch 34 duration: 00:01:33
+Estimated time remaining: 01:04:12
+
+--- Epoch 35/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0012, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0012
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6631, Pet IoU: 0.2919
+Epoch 35 duration: 00:01:34
+Estimated time remaining: 01:02:38
+
+--- Epoch 36/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0011, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0011
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.5568, Pet IoU: 0.3056
+Epoch 36 duration: 00:01:33
+Estimated time remaining: 01:01:04
+
+--- Epoch 37/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0011, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0011
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6482, Pet IoU: 0.3002
+Epoch 37 duration: 00:01:34
+Estimated time remaining: 00:59:30
+
+--- Epoch 38/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0010, Batch Time: 0.95s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0010
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7883, Pet IoU: 0.2892
+Epoch 38 duration: 00:01:36
+Estimated time remaining: 00:57:57
+
+--- Epoch 39/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0010, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0010
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.6956, Pet IoU: 0.2910
+Epoch 39 duration: 00:01:35
+Estimated time remaining: 00:56:24
+
+--- Epoch 40/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0009, Batch Time: 0.96s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0009
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7341, Pet IoU: 0.2879
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 40 duration: 00:01:35
+Estimated time remaining: 00:54:51
+
+--- Epoch 41/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0009, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0009
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7383, Pet IoU: 0.2871
+Epoch 41 duration: 00:01:34
+Estimated time remaining: 00:53:17
+
+--- Epoch 42/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0009, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0009
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7302, Pet IoU: 0.2907
+Epoch 42 duration: 00:01:34
+Estimated time remaining: 00:51:43
+
+--- Epoch 43/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0008, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0008
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7238, Pet IoU: 0.2905
+Epoch 43 duration: 00:01:34
+Estimated time remaining: 00:50:09
+
+--- Epoch 44/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0008, Batch Time: 0.97s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0008
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7365, Pet IoU: 0.2898
+Epoch 44 duration: 00:01:33
+Estimated time remaining: 00:48:34
+
+--- Epoch 45/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0007, Batch Time: 0.94s, Epoch ETA: 00:00:32
+Training epoch finished. Average Loss: 0.0007
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7391, Pet IoU: 0.2885
+Epoch 45 duration: 00:01:32
+Estimated time remaining: 00:46:58
+
+--- Epoch 46/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0007, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0007
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7376, Pet IoU: 0.2894
+Epoch 46 duration: 00:01:34
+Estimated time remaining: 00:45:24
+
+--- Epoch 47/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0007, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0007
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7380, Pet IoU: 0.2875
+Epoch 47 duration: 00:01:34
+Estimated time remaining: 00:43:50
+
+--- Epoch 48/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0007, Batch Time: 0.96s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0007
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7435, Pet IoU: 0.2872
+Epoch 48 duration: 00:01:34
+Estimated time remaining: 00:42:17
+
+--- Epoch 49/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0007, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0007
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7496, Pet IoU: 0.2892
+Epoch 49 duration: 00:01:33
+Estimated time remaining: 00:40:42
+
+--- Epoch 50/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7670, Pet IoU: 0.2880
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 50 duration: 00:01:34
+Estimated time remaining: 00:39:09
+
+--- Epoch 51/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7665, Pet IoU: 0.2882
+Epoch 51 duration: 00:01:33
+Estimated time remaining: 00:37:34
+
+--- Epoch 52/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7630, Pet IoU: 0.2872
+Epoch 52 duration: 00:01:34
+Estimated time remaining: 00:36:00
+
+--- Epoch 53/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7508, Pet IoU: 0.2889
+Epoch 53 duration: 00:01:34
+Estimated time remaining: 00:34:26
+
+--- Epoch 54/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7638, Pet IoU: 0.2882
+Epoch 54 duration: 00:01:34
+Estimated time remaining: 00:32:52
+
+--- Epoch 55/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7695, Pet IoU: 0.2859
+Epoch 55 duration: 00:01:34
+Estimated time remaining: 00:31:18
+
+--- Epoch 56/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.7823, Pet IoU: 0.2859
+Epoch 56 duration: 00:01:33
+Estimated time remaining: 00:29:44
+
+--- Epoch 57/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0007, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0007
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.9715, Pet IoU: 0.2513
+Epoch 57 duration: 00:01:33
+Estimated time remaining: 00:28:10
+
+--- Epoch 58/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.9040, Pet IoU: 0.2732
+Epoch 58 duration: 00:01:35
+Estimated time remaining: 00:26:36
+
+--- Epoch 59/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8719, Pet IoU: 0.2768
+Epoch 59 duration: 00:01:33
+Estimated time remaining: 00:25:02
+
+--- Epoch 60/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8976, Pet IoU: 0.2761
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 60 duration: 00:01:34
+Estimated time remaining: 00:23:28
+
+--- Epoch 61/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8987, Pet IoU: 0.2772
+Epoch 61 duration: 00:01:35
+Estimated time remaining: 00:21:54
+
+--- Epoch 62/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0006, Batch Time: 0.97s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0006
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8856, Pet IoU: 0.2753
+Epoch 62 duration: 00:01:34
+Estimated time remaining: 00:20:20
+
+--- Epoch 63/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8757, Pet IoU: 0.2748
+Epoch 63 duration: 00:01:34
+Estimated time remaining: 00:18:47
+
+--- Epoch 64/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8696, Pet IoU: 0.2755
+Epoch 64 duration: 00:01:34
+Estimated time remaining: 00:17:13
+
+--- Epoch 65/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8748, Pet IoU: 0.2771
+Epoch 65 duration: 00:01:33
+Estimated time remaining: 00:15:39
+
+--- Epoch 66/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8952, Pet IoU: 0.2778
+Epoch 66 duration: 00:01:33
+Estimated time remaining: 00:14:05
+
+--- Epoch 67/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8796, Pet IoU: 0.2770
+Epoch 67 duration: 00:01:33
+Estimated time remaining: 00:12:31
+
+--- Epoch 68/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8843, Pet IoU: 0.2781
+Epoch 68 duration: 00:01:33
+Estimated time remaining: 00:10:57
+
+--- Epoch 69/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8749, Pet IoU: 0.2782
+Epoch 69 duration: 00:01:35
+Estimated time remaining: 00:09:23
+
+--- Epoch 70/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.97s, Epoch ETA: 00:00:32
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8786, Pet IoU: 0.2781
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 70 duration: 00:01:32
+Estimated time remaining: 00:07:49
+
+--- Epoch 71/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8906, Pet IoU: 0.2775
+Epoch 71 duration: 00:01:33
+Estimated time remaining: 00:06:15
+
+--- Epoch 72/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8647, Pet IoU: 0.2770
+Epoch 72 duration: 00:01:34
+Estimated time remaining: 00:04:41
+
+--- Epoch 73/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.94s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8785, Pet IoU: 0.2769
+Epoch 73 duration: 00:01:33
+Estimated time remaining: 00:03:08
+
+--- Epoch 74/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.95s, Epoch ETA: 00:00:34
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8775, Pet IoU: 0.2767
+Epoch 74 duration: 00:01:34
+Estimated time remaining: 00:01:34
+
+--- Epoch 75/75 ---
+Starting training epoch...
+  Train Batch 50/81, Current Avg Loss: 0.0005, Batch Time: 0.95s, Epoch ETA: 00:00:33
+Training epoch finished. Average Loss: 0.0005
+Starting validation epoch...
+Validation epoch finished. Average Loss: 2.8802, Pet IoU: 0.2779
+Latest checkpoint saved to ./checkpoints_t4/tag_point_run1_latest.pth
+Epoch 75 duration: 00:01:35
+
+------------------------------------
+Training finished.
+Total Training Time: 01:57:15
+Best Validation Pet IoU achieved: 0.3324
+Best model saved to: ./checkpoints_t4/tag_point_run1_best_iou.pth (if IoU improved)
+Latest model saved to: ./checkpoints_t4/tag_point_run1_latest.pth
+
+RECOMMENDATION: Load the '_best_iou.pth' checkpoint and evaluate it on the separate TEST set for final performance.
