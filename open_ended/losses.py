@@ -35,8 +35,7 @@ class PartialCrossEntropyLoss(nn.Module):
             mean_loss = total_loss / num_valid_pixels
         else:
             # Avoid division by zero if no valid pixels in batch (should not happen often)
-            mean_loss = total_loss # Or return 0.0 * total_loss to keep grad graph
-            # Alternatively return torch.tensor(0.0, device=input_logits.device, requires_grad=True)
+            mean_loss = total_loss
 
         return mean_loss
 
@@ -71,10 +70,6 @@ class CombinedLoss(nn.Module):
             model_output (dict): {'segmentation': logits_seg, 'classification': logits_cls}
             targets (dict): {'tags': target_tags, 'points': target_points_sparse}
         """
-        # Classification Loss (Tags)
-        #cls_logits = model_output['classification'] # Shape (B, C)
-        #tag_targets = targets['tags'] # Shape (B, C), float for BCE
-        #loss_cls = self.classification_loss_fn(cls_logits, tag_targets)
 
         required_keys = self.mode_to_key.get(self.mode, [])
         loss_list = []
@@ -95,5 +90,4 @@ class CombinedLoss(nn.Module):
         # Combine losses
         total_loss = sum([loss * self.lambda_seg for loss in loss_list])
 
-        # Optional: return individual losses for logging
-        return total_loss #, loss_cls, loss_seg
+        return total_loss

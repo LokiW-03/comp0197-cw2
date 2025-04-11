@@ -15,7 +15,7 @@ from open_ended.losses import CombinedLoss
 
 
 # --- Configuration ---
-DEFAULT_DATA_DIR = './data'
+DEFAULT_DATA_DIR = './data/oxford-iiit-pet'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
 DEFAULT_NUM_CLASSES = 2 # IoU should have 2 classes, foreground, background

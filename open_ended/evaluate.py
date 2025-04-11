@@ -97,10 +97,6 @@ def load_segnet_checkpoint(checkpoint_path, num_classes=2, device='cpu'):
         elif first_key.startswith("seg_model."):
             prefix_to_remove = "seg_model."
             logging.info(f"Removing prefix '{prefix_to_remove}' from state_dict keys.")
-        # Add more prefixes if needed:
-        # elif first_key.startswith("another_prefix."):
-        #     prefix_to_remove = "another_prefix."
-        #     logging.info(f"Removing prefix '{prefix_to_remove}' from state_dict keys.")
 
     if prefix_to_remove:
         for k, v in state_dict.items():
@@ -124,8 +120,6 @@ def load_segnet_checkpoint(checkpoint_path, num_classes=2, device='cpu'):
             logging.info("State_dict loaded successfully with no missing or unexpected keys.")
     except Exception as e:
         logging.error(f"Error loading state_dict into model: {e}")
-        # Optionally re-raise or attempt strict=True loading for debugging
-        # model.load_state_dict(adapted_state_dict, strict=True)
         raise e
 
     model.to(device)
@@ -201,7 +195,7 @@ def evaluate_model_on_test(model, test_loader, device, num_classes):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate multiple SegNet models on the Pets test set.")
-    parser.add_argument('--data_dir', type=str, default='./data',
+    parser.add_argument('--data_dir', type=str, default='./data/oxford-iiit-pet',
                         help="Root directory of the Oxford Pets dataset.")
     # --- MODIFICATION: Add argument for model paths ---
     parser.add_argument('--model_paths', type=str, nargs='+', required=True,
@@ -300,8 +294,6 @@ def main():
 
         except Exception as e:
             logging.error(f"Failed to evaluate model {model_path}: {e}")
-            # Optionally continue to the next model or re-raise the exception
-            # raise e # Uncomment this line to stop execution on error
             continue # Continue with the next model path
 
     print("-" * 50)
