@@ -14,7 +14,7 @@ The experiments were a grid search of 4 dimensions:
   - Loss function: Cross entropy loss, Dice loss
   - Batch size: 16, 64
 
-In total: 3 x 2 x 2 x 2 = 24
+In total: 3 x 2 x 2 x 2 = 24 configurations
 
 # Reason we picked these hyperparameters
 
