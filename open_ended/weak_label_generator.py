@@ -18,16 +18,12 @@ RANDOM_SEED = 42
 log = logging.getLogger(__name__)
 # --- End Logger Setup ---
 
-def get_binary_mask_from_trimap(trimap_path):
-    """Loads trimap and converts to binary mask (1=Foreground, 0=Background/Boundary)."""
-    try:
-        trimap = Image.open(trimap_path).convert('L')
-        trimap_np = np.array(trimap)
-        mask = (trimap_np == 1).astype(np.uint8)  # Oxford Pets uses 1 for foreground
-        return mask
-    except Exception as e:
-        log.error(f"Error loading trimap {trimap_path}: {e}")
-        return None
+def get_binary_mask_from_trimap(trimap_path, target_size=(256,256)):
+    trimap = Image.open(trimap_path).convert('L')
+    trimap = trimap.resize(target_size, Image.NEAREST)  # Resize first
+    trimap_np = np.array(trimap)
+    mask = (trimap_np == 1).astype(np.uint8)
+    return mask
 
 def get_point(mask_np, num_point_per_obj=DEFAULT_NUM_POINT_PER_OBJ):
     """Generates points sampled from each object mask."""

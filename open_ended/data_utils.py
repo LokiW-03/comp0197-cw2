@@ -229,7 +229,7 @@ class PetsDataset(Dataset):
                 supervision_target = self._get_weak_supervision(index)
                 
                 # Augment weak labels using tracked parameters
-                if self.supervision_mode in ['points', 'hybrid_points_scribbles', 'hybrid_points_boxes']:
+                if self.supervision_mode in ['points', 'scribbles','boxes', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
                     supervision_target = self._augment_weak_labels(
                         supervision_target, aug_params
                     )
