@@ -1,5 +1,6 @@
 # data_utils.py
 
+from logging import log
 import os
 import glob
 from PIL import Image
@@ -8,6 +9,8 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms as T
 import pickle
+from torch.utils.data.dataloader import default_collate
+
 
 # ImageNet normalization stats
 MEAN = torch.tensor([0.485, 0.456, 0.406])
@@ -15,6 +18,38 @@ STD = torch.tensor([0.229, 0.224, 0.225])
 
 # Define the ignore index for CrossEntropyLoss
 IGNORE_INDEX = 255 # Common value, can be changed if needed
+
+
+def skip_none_collate(batch):
+    """
+    Collate function that filters out None items from the batch.
+    """
+    # Filter out None values first
+    batch = [item for item in batch if item is not None]
+
+    # If the batch is empty after filtering, return None or raise an error
+    if not batch:
+        # Option 1: Return None (might require handling in training loop)
+        # return None
+        # Option 2: Raise error (safer if you don't expect fully empty batches)
+        # raise RuntimeError("All items in the batch were invalid (None).")
+        # Option 3: Return empty tensors of expected structure (complex)
+        # For simplicity, let's return None and handle it in the training loop
+        return None # Or maybe empty tensors: (torch.tensor([]), torch.tensor([]), torch.tensor([]))
+
+
+    # If items remain, use the default collate function to stack them
+    try:
+        return default_collate(batch)
+    except Exception as e:
+        print(f"Error during default_collate: {e}")
+        # Print info about the items that caused the error
+        for i, item in enumerate(batch):
+            if isinstance(item, tuple):
+                 print(f"Item {i} types/shapes: {[type(t) for t in item]} / {[getattr(t, 'shape', 'N/A') for t in item]}")
+            else:
+                 print(f"Item {i} type: {type(item)}")
+        raise # Re-raise the exception after printing info
 
 class PetsDataset(Dataset):
     """
@@ -136,7 +171,10 @@ class PetsDataset(Dataset):
         """ Prepares weak supervision signals based on mode. """
         img_filename = os.path.basename(self.image_files[index])
         if self.weak_labels is None or img_filename not in self.weak_labels:
-            raise ValueError(f"Warning: No weak label found for {img_filename} in mode {self.supervision_mode}")
+            # --- MODIFICATION ---
+            # Instead of raising an error, log a warning and return None
+            log.warning(f"Weak label not found for {img_filename} in mode {self.supervision_mode}. Skipping this item.")
+            return None
 
         item_labels = self.weak_labels[img_filename]
         weak_data = {}
@@ -225,19 +263,22 @@ class PetsDataset(Dataset):
         # Normalize after augmentation
         image_tensor = T.functional.normalize(image_tensor, MEAN, STD)
 
-        # Prepare supervision target
+        # --- Prepare Supervision Target for Loss ---
+        supervision_target = None # Initialize
         if self.split == 'train':
             if self.supervision_mode == 'full':
-                supervision_target = target_mask
+                supervision_target = target_mask # Use GT mask
             else:
-                supervision_target = self._get_weak_supervision(index)
-                
-                # Augment weak labels using tracked parameters
-                if self.supervision_mode in ['points', 'scribbles','boxes', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes']:
-                    supervision_target = self._augment_weak_labels(
-                        supervision_target, aug_params
-                    )
-        else:
+                # --- MODIFICATION ---
+                # Get weak supervision, check if it returned None (meaning skip)
+                weak_supervision_result = self._get_weak_supervision(index)
+                if weak_supervision_result is None:
+                    # The weak label was missing, signal to skip this item
+                    return None
+                else:
+                    supervision_target = weak_supervision_result
+                # --- END MODIFICATION ---
+        else: # Validation/Test
             supervision_target = target_mask
 
         return image_tensor, supervision_target, target_mask
@@ -282,7 +323,7 @@ class PetsDataset(Dataset):
         """Adjust point coordinates for flips/rotations."""
         h, w = img_size
         new_points = []
-
+        print(points)
         for y, x in points:
             # Horizontal Flip
             if flip == 'h':
