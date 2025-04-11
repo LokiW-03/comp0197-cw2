@@ -467,30 +467,6 @@ def main():
     else:
         print("Warning: No best model found, using final weights")
     
-    # Create test dataset
-    test_dataset = PetsDataset(args.data_dir, split='test', supervision_mode='full',
-                              weak_label_path=args.weak_label_path, img_size=img_size_tuple, augment=False)
-    
-    # Create test loader with same batch size as validation
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False,
-                            num_workers=args.num_workers, pin_memory=True if device != torch.device('cpu') else False)
-    
-    # Run evaluation
-    test_loss, test_acc, test_iou = validate_one_epoch(model, test_loader, device, args.num_classes)
-    
-    print("\n--- Final Test Results ---")
-    print(f"Test Accuracy: {test_acc:.4f}")
-    print(f"Test IoU: {test_iou:.4f}")
-    print("--------------------------")
-    
-    # Save test results
-    results_path = f"{checkpoint_path_base}_test_results.txt"
-    with open(results_path, 'w') as f:
-        f.write(f"Test Accuracy: {test_acc:.4f}\n")
-        f.write(f"Test IoU: {test_iou:.4f}\n")
-    
-    print(f"Test results saved to {results_path}")
-
     # ***** ADDED: Final time printout *****
     training_end_time = time.time()
     total_training_time = training_end_time - training_start_time
