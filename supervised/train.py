@@ -2,13 +2,13 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from metrics import compute_metrics
-from baseline_segnet import SegNet
-from efficient_unet import EfficientUNet
-from baseline_unet import UNet
-from segnext import SegNeXt
-from data import trainset, testset
-from montage import visualise_fs_segmentation
+from supervised.metrics import compute_metrics
+from model.baseline_segnet import SegNet
+from model.efficient_unet import EfficientUNet
+from model.baseline_unet import UNet
+from model.segnext import SegNeXt
+from data_utils.data import trainset, testset
+from supervised.montage import visualise_fs_segmentation
 
 SAVE_WEIGHTS_FREQUENCY = 2 # save weights to a file every {num} epochs
 EPOCHS = 1

@@ -13,7 +13,7 @@ device = torch.device("cpu")
 # Load pseudo masks
 pseudo_loader = load_pseudo(args.pseudo_path, batch_size=32, shuffle=True, device=device)
 
-from model.data import trainset, testset
+from data_utils.data import trainset, testset
 from torch.utils.data import DataLoader
 
 trainloader = DataLoader(trainset, batch_size=32, shuffle=True)

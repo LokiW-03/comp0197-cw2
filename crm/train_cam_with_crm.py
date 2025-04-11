@@ -17,7 +17,7 @@ from crm.crm_loss import VGGLoss, alignment_loss
 from crm.oxfordpet_superpixel import OxfordPetSuperpixels
 from crm.gen_superpixel import generate_superpixels
 
-from model.data import ImageTransform
+from data_utils.data import ImageTransform
 
 
 def train(model_name: str = 'resnet', 

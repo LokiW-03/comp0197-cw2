@@ -7,7 +7,7 @@ from baseline_segnet import SegNet
 from efficient_unet import EfficientUNet
 from baseline_unet import UNet
 from segnext import SegNeXt
-from data import trainset, testset
+from data_utils.data import testset
 from montage import visualise_fs_segmentation
 
 SAVE_WEIGHTS_FREQUENCY = 2 # save weights to a file every {num} epochs

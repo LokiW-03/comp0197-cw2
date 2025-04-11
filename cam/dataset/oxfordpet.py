@@ -1,10 +1,9 @@
 from functools import partial
 from torchvision.datasets import OxfordIIITPet
 from torch.utils.data import DataLoader
-from torchvision import transforms
 import torch
-from dataset.oxfordpet_paths import OxfordIIITPetWithPaths
-from model.data import ImageTransform
+from oxfordpet_paths import OxfordIIITPetWithPaths
+from data_utils.data import ImageTransform
 
 IMAGE_SIZE = 224
 BATCH_SIZE = 64
@@ -23,18 +22,18 @@ def collate_fn_impl(batch, with_paths=False):
 
 def download_pet_dataset(with_paths=False):
     """
-    下载并准备 Oxford Pet 数据集
+    download and prepare pet dataset
 
     Args:
-        with_paths (bool): 是否返回包含图片路径的loader
+        with_paths (bool): whether to return loader with path
 
     Returns:
-        train_loader, test_loader: 数据加载器
+        train_loader, test_loader: data loaders
     """
-    # 根据需求选择数据集类
+    # select dataset
     dataset_class = OxfordIIITPetWithPaths if with_paths else OxfordIIITPet
 
-    # 创建数据集
+    # create datasets
     train_dataset = dataset_class(
         root="./data",
         split="trainval",
@@ -51,11 +50,9 @@ def download_pet_dataset(with_paths=False):
         transform=ImageTransform.common_image_transform
     )
 
-    # 使用 partial 创建顶级函数，替代 lambda
     train_collate = partial(collate_fn_impl, with_paths=with_paths)
     test_collate = partial(collate_fn_impl, with_paths=with_paths)
 
-    # 创建数据加载器
     train_loader = DataLoader(
         train_dataset, 
         batch_size=BATCH_SIZE, 

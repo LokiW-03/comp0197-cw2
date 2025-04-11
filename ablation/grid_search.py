@@ -5,15 +5,15 @@ from cam.load_pseudo import load_pseudo
 from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from cam.postprocessing import generate_pseudo_masks
 from cam.dataset.oxfordpet import download_pet_dataset
-from model.data import testset
+from data_utils.data import testset
 from model.baseline_segnet import SegNet
 from model.efficient_unet import EfficientUNet
 from model.segnext import SegNeXt
 from model.baseline_unet import UNet
-from model.train import train_model, compute_test_metrics_fn
+from supervised.train import train_model, compute_test_metrics_fn
 import itertools
 from ablation.search_tools import save_results_to_csv
-from model.loss import DiceLoss
+from supervised.loss import DiceLoss
 
 
 def search(seg_model_name, # Segmentation model

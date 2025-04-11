@@ -10,8 +10,8 @@ import time
 
 # --- Model and Data Imports ---
 from cam.load_pseudo import load_pseudo
-from model.train import compute_test_metrics_fn
-from model.data import testset
+from supervised.train import compute_test_metrics_fn
+from data_utils.data import testset
 from fpn_scripts.fpn import FPN
 from model.baseline_segnet import SegNet
 from model.baseline_unet import UNet

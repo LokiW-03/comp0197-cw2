@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-import numpy as np
-import torch
+
 
 def visualize_batch(x, y, nrows=4, ncols=4, save_path=None):
     """
@@ -55,7 +54,7 @@ def visualize_batch(x, y, nrows=4, ncols=4, save_path=None):
 
 
 if __name__ == "__main__":
-    from model.data import trainset, testset
+    from data_utils.data import trainset, testset
     from torch.utils.data import DataLoader
     import argparse
 

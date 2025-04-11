@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 # Set random seed for reproducibility
 torch.manual_seed(42)
 
-DATA_DIR = './data'
+DATA_DIR = ''
 IMAGE_SIZE = 224  # we will resize images to 224x224 for training
 # Normalization values (ImageNet mean & std) – common practice if using pretrained backbone
 normalize_mean = [0.485, 0.456, 0.406]
