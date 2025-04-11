@@ -35,6 +35,4 @@ The most relatable configuration to the fully-supervised experiments are
 
 This is because the last 3 hyperparameters are exactly those used for training the fully-supervised models, which we consider our baseline.
 
-# Execution commands
 
-To run grid search
