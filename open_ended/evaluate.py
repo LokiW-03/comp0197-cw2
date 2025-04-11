@@ -1,11 +1,11 @@
 # evaluate.py
-
 import os
 import argparse
 import torch
 import torch.nn as nn
 import torchmetrics
 import logging
+import pickle
 
 from torch.utils.data import DataLoader
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
@@ -19,7 +19,6 @@ def load_segnet_checkpoint(checkpoint_path, num_classes=2, device='cpu'):
     Loads a SegNet model from a given checkpoint path, attempting to handle
     multiple checkpoint formats (similar to your visualization script).
     """
-    import pickle
 
     print(f"Loading checkpoint: {checkpoint_path}") # Keep this print for clarity during run
 

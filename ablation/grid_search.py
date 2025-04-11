@@ -1,4 +1,5 @@
 import torch
+import argparse
 import itertools
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -68,9 +69,6 @@ def search(seg_model_name, # Segmentation model
     return test_metrics
 
 if __name__ == "__main__":
-
-    import argparse
-
     results = []
     parser = argparse.ArgumentParser(description="Grid search for multiple hyperparameters")
     parser.add_argument("--model_path", type=str, default="cam/saved_models/resnet50_pet_cam.pth")
@@ -91,7 +89,6 @@ if __name__ == "__main__":
     loss_fn_space = {
         "ce_mean": nn.CrossEntropyLoss(reduction='mean'),
         "dice_loss": DiceLoss(),
-        # "combined_loss": CombinedCELDiceLoss(),
     }
     optimizer_generator_space = {
         "adamw_1e-3_1e-4": lambda model: torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4),
@@ -99,7 +96,6 @@ if __name__ == "__main__":
     }
     scheduler_generator_space = {
         "steplr_15_0.1": lambda optimizer: torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1),
-        # "ca_50_1e-6": lambda optimizer: torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
     }
     batch_size_space = [16, 64]
 
