@@ -91,17 +91,14 @@ class PetsDataset(Dataset):
         self.base_transform = T.Compose([
             T.Resize(img_size),
             T.ToTensor(),
-            T.Normalize(mean=MEAN, std=STD)
         ])
-        self.mask_transform = T.Compose([
-            T.Resize(img_size, interpolation=T.InterpolationMode.NEAREST), # Use NEAREST for masks
-        ])
-        # Augmentations (optional)
+
         self.augmentation_transform = T.Compose([
             T.RandomHorizontalFlip(p=0.5),
             T.RandomRotation(degrees=15),
-            # Add more augmentations if needed (e.g., ColorJitter)
         ])
+
+        self.normalize = T.Normalize(mean=MEAN, std=STD)
 
         # Map supervision mode to required weak label keys
         self.mode_to_key = {
@@ -201,24 +198,226 @@ class PetsDataset(Dataset):
         trimap_path = self.trimap_files[index]
 
         image = Image.open(img_path).convert('RGB')
-        target_mask = self._load_and_transform_mask(trimap_path) # HxW GT mask
+        target_mask = self._load_and_transform_mask(trimap_path)  # HxW GT mask
 
-        # Apply base transform (resize, ToTensor, Normalize)
+        # Track augmentation parameters
+        aug_params = {}  # Stores flip/rotation info
+
+        # Apply base transform first (resize, ToTensor)
         image_tensor = self.base_transform(image)
 
         # Apply augmentation if enabled
         if self.augment:
-            image_tensor = self.augmentation_transform(image_tensor)
-            # NOTE: Augmenting sparse labels/masks correctly requires more complex implementation
-            #       if geometric transforms are applied to them. Omitted for simplicity.
+            # Random Horizontal Flip
+            if torch.rand(1) < 0.5:
+                image_tensor = T.functional.hflip(image_tensor)
+                aug_params['hflip'] = True
 
-        # Prepare supervision target based on mode
+            # Random Rotation (example: 15 degrees)
+            angle = float(torch.randint(-15, 15, (1,)).item())
+            image_tensor = T.functional.rotate(image_tensor, angle)
+            aug_params['rotation'] = angle
+
+        # Normalize after augmentation
+        image_tensor = T.functional.normalize(image_tensor, MEAN, STD)
+
+        # Prepare supervision target
         if self.split == 'train':
             if self.supervision_mode == 'full':
-                supervision_target = target_mask # Use GT mask directly
+                supervision_target = target_mask
             else:
                 supervision_target = self._get_weak_supervision(index)
-        else: # For val/test, always use the GT mask for evaluation
-             supervision_target = target_mask
+                
+                # Augment weak labels using tracked parameters
+                if self.supervision_mode in ['points', 'hybrid_points_scribbles', 'hybrid_points_boxes']:
+                    supervision_target = self._augment_weak_labels(
+                        supervision_target, aug_params
+                    )
+        else:
+            supervision_target = target_mask
 
-        return image_tensor, supervision_target, target_mask # Return GT mask always for eval
+        return image_tensor, supervision_target, target_mask
+    
+    def _augment_weak_labels(self, weak_data, aug_params):
+        """Applies geometric augmentations to weak labels."""
+        img_size = (self.img_size[0], self.img_size[1])  # (height, width)
+        
+        if 'hflip' in aug_params and aug_params['hflip']:
+            # Flip augmentation
+            if 'points' in weak_data:
+                weak_data['points'] = self._augment_points(
+                    weak_data['points'], img_size, flip='h'
+                )
+            if 'scribbles' in weak_data:
+                weak_data['scribbles'] = self._augment_scribbles(
+                    weak_data['scribbles'], img_size, flip='h'
+                )
+            if 'boxes' in weak_data:
+                weak_data['boxes'] = self._augment_boxes(
+                    weak_data['boxes'], img_size, flip='h'
+                )
+
+        if 'rotation' in aug_params:
+            angle = aug_params['rotation']
+            if 'points' in weak_data:
+                weak_data['points'] = self._augment_points(
+                    weak_data['points'], img_size, rotate=angle
+                )
+            if 'scribbles' in weak_data:
+                weak_data['scribbles'] = self._augment_scribbles(
+                    weak_data['scribbles'], img_size, rotate=angle
+                )
+            if 'boxes' in weak_data:
+                weak_data['boxes'] = self._augment_boxes(
+                    weak_data['boxes'], img_size, rotate=angle
+                )
+
+        return weak_data
+        
+    def _augment_points(self, points, img_size, flip=None, rotate=None):
+        """Adjust point coordinates for flips/rotations."""
+        h, w = img_size
+        new_points = []
+
+        for y, x in points:
+            # Horizontal Flip
+            if flip == 'h':
+                x = w - x - 1  # Mirror x-coordinate
+
+            # Rotation (example: 15 degrees)
+            if rotate is not None:
+                # Convert to image center coordinates
+                cx, cy = w // 2, h // 2
+                # Rotate point (simplified example)
+                # For precise rotation, use rotation matrix
+                theta = np.radians(rotate)
+                x_new = (x - cx) * np.cos(theta) - (y - cy) * np.sin(theta) + cx
+                y_new = (x - cx) * np.sin(theta) + (y - cy) * np.cos(theta) + cy
+                x, y = int(x_new), int(y_new)
+
+            # Clamp to valid coordinates
+            x = max(0, min(x, w - 1))
+            y = max(0, min(y, h - 1))
+            new_points.append((y, x))
+
+        return new_points
+    
+    def _augment_scribbles(self, scribbles_data, img_size, flip=None, rotate=None):
+        """
+        Applies geometric transformations to scribble coordinates.
+        Args:
+            scribbles_data: Dictionary with 'foreground' and 'background' keys
+            img_size: (height, width) tuple
+            flip: None or 'h' (horizontal flip)
+            rotate: Rotation angle in degrees (positive = counter-clockwise)
+        Returns:
+            Augmented scribbles dictionary
+        """
+        h, w = img_size
+        augmented_scribbles = {'foreground': [], 'background': []}
+        
+        # Process both foreground and background scribbles
+        for category in ['foreground', 'background']:
+            if category not in scribbles_data:
+                continue
+                
+            for y, x in scribbles_data[category]:
+                # Original coordinates (assuming they're in [0, h-1] x [0, w-1])
+                orig_y, orig_x = y, x
+                
+                # Apply horizontal flip
+                if flip == 'h':
+                    orig_x = w - orig_x - 1  # Mirror x-coordinate
+
+                # Apply rotation
+                if rotate is not None:
+                    # Convert to image center coordinates
+                    cx, cy = w // 2, h // 2
+                    x_centered = orig_x - cx
+                    y_centered = orig_y - cy
+                    
+                    # Convert angle to radians
+                    theta = np.radians(rotate)
+                    
+                    # Rotation matrix
+                    new_x = x_centered * np.cos(theta) - y_centered * np.sin(theta)
+                    new_y = x_centered * np.sin(theta) + y_centered * np.cos(theta)
+                    
+                    # Convert back to image coordinates
+                    orig_x = new_x + cx
+                    orig_y = new_y + cy
+
+                # Clamp coordinates to valid range
+                final_x = int(np.clip(orig_x, 0, w-1))
+                final_y = int(np.clip(orig_y, 0, h-1))
+                
+                augmented_scribbles[category].append((final_y, final_x))
+
+        return augmented_scribbles
+
+    def _augment_boxes(self, boxes, img_size, flip=None, rotate=None):
+        """
+        Applies geometric transformations to bounding boxes.
+        Args:
+            boxes: List of (ymin, xmin, ymax, xmax) tuples
+            img_size: (height, width) tuple
+            flip: None or 'h' (horizontal flip)
+            rotate: Rotation angle in degrees
+        Returns:
+            List of augmented bounding boxes
+        """
+        h, w = img_size
+        augmented_boxes = []
+        
+        for box in boxes:
+            ymin, xmin, ymax, xmax = box
+            
+            # Create four corners of the box
+            corners = np.array([
+                [ymin, xmin],
+                [ymin, xmax],
+                [ymax, xmin],
+                [ymax, xmax]
+            ], dtype=np.float32)
+
+            # Apply horizontal flip
+            if flip == 'h':
+                corners[:, 1] = w - corners[:, 1] - 1  # Flip x-coordinates
+
+            # Apply rotation
+            if rotate is not None:
+                # Convert to image center coordinates
+                cx, cy = w // 2, h // 2
+                corners[:, 1] -= cx  # x coordinates
+                corners[:, 0] -= cy  # y coordinates
+                
+                # Convert angle to radians
+                theta = np.radians(rotate)
+                
+                # Rotation matrix
+                rot_matrix = np.array([
+                    [np.cos(theta), -np.sin(theta)],
+                    [np.sin(theta), np.cos(theta)]
+                ])
+                
+                # Apply rotation to all corners
+                rotated = np.dot(corners[:, [1, 0]], rot_matrix.T)  # Swap x,y for rotation
+                
+                # Convert back to original coordinate system
+                corners[:, 1] = rotated[:, 0] + cx  # x coordinates
+                corners[:, 0] = rotated[:, 1] + cy  # y coordinates
+
+            # Find new bounding box coordinates
+            new_ymin = np.clip(corners[:, 0].min(), 0, h-1)
+            new_ymax = np.clip(corners[:, 0].max(), 0, h-1)
+            new_xmin = np.clip(corners[:, 1].min(), 0, w-1)
+            new_xmax = np.clip(corners[:, 1].max(), 0, w-1)
+
+            # Only keep valid boxes
+            if new_ymax > new_ymin and new_xmax > new_xmin:
+                augmented_boxes.append((
+                    int(new_ymin), int(new_xmin),
+                    int(new_ymax), int(new_xmax)
+                ))
+
+        return augmented_boxes

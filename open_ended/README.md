@@ -130,10 +130,13 @@ python -m open_ended.weight_visualization
 ## Evaluate
 
 ```
-python -m open_ended.evaluate \
+!cd comp0197-cw2/  && python evaluate.py \
     --data_dir ./data \
+    --model_paths checkpoints_single/segnet_point_run1_best_acc.pth \
+                  checkpoints_single/segnet_scatter_run1_best_acc.pth \
+                  checkpoints_single/segnet_boxes_run1_best_acc.pth \
+                  checkpoints_hybrid/segnet_hybrid_point_scatter_run1_best_acc.pth \
     --batch_size 8 \
-    --num_workers 4 \
     --device cuda
 ```
 
