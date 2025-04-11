@@ -49,10 +49,6 @@ This is because the last 3 hyperparameters are exactly those used for training t
 To run grid search
 
 ```
-git checkout -b feature/ablation
-mkdir -p cam/saved_models
-# download classifier from: https://liveuclac-my.sharepoint.com/:u:/g/personal/ucabc46_ucl_ac_uk/EU3B9wuc8LpBsEfLVpKVvUYBBo43vqkc528X-25_iiH09A?e=cdB93n
-# save classifer to cam/saved_models
-
-python -m ablation.grid_search ----result_path=./result.csv
+# make sure classification model is under cam/saved_models
+python -m ablation.grid_search
 ```
