@@ -231,7 +231,7 @@ def main(args):
         log.critical(f"No images found in {os.path.join(args.data_dir, 'images')} with extension {args.image_ext}")
         return
 
-    num_images_to_process = int(len(image_files) * args.data_split  * 0.001) # Use data_split arg
+    num_images_to_process = int(len(image_files) * args.data_split) # Use data_split arg
     log.info(f"Found {len(image_files)} images. Processing {num_images_to_process} ({args.data_split*100:.1f}%).")
 
     weak_labels = {}
