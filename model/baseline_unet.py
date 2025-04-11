@@ -1,9 +1,24 @@
 import torch
 import torch.nn as nn
 
-
+# Code partially adopted from https://medium.com/@fernandopalominocobo/mastering-u-net-a-step-by-step-guide-to-segmentation-from-scratch-with-pytorch-6a17c5916114
 
 class DoubleConv(nn.Module):
+    """
+    A module consisting of two sequential 3x3 convolutional layers,
+    each followed by a ReLU activation.
+
+    This is a common block used in UNet architectures to extract and refine features.
+
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels.
+
+    Methods:
+        forward(x):
+            Runs a forward pass.
+    """
+
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.conv_op = nn.Sequential(
@@ -16,7 +31,22 @@ class DoubleConv(nn.Module):
     def forward(self, x):
         return self.conv_op(x)
 
+
 class UpSampleDecoder(nn.Module):
+    """
+    A decoder block that upsamples the input using transposed convolution,
+    concatenates it with a skip connection, and applies double convolution.
+
+    Args:
+        in_channels (int): Number of input channels before upsampling.
+        out_channels (int): Number of output channels after processing.
+
+    Methods:
+        forward(x, skip_connection):
+            Performs upsampling, concatenation, and double convolution.
+
+    """
+
     def __init__(self, in_channels, out_channels):
         super(UpSampleDecoder, self).__init__()
         # Define upsampling layers (ConvTranspose2d)
@@ -36,6 +66,18 @@ class UpSampleDecoder(nn.Module):
 
 
 class DownSample(nn.Module):
+    """
+    DownSample: A UNet encoder block that applies double convolution followed by max pooling.
+
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels after convolution.
+
+    Methods:
+        forward(x):
+            Applies double convolution and then using max pooling to perform downsample.
+    """
+
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.doubleconv = DoubleConv(in_channels, out_channels)
@@ -49,6 +91,21 @@ class DownSample(nn.Module):
 
 
 class UNet(nn.Module):
+    """
+    UNet: A convolutional neural network for semantic segmentation.
+
+    Combines a contracting encoder path and an expansive decoder path with skip connections
+    for accurate localization and segmentation.
+
+    Args:
+        in_channels (int): Number of input channels (e.g., 1 for grayscale, 3 for RGB).
+        num_classes (int): Number of output classes for segmentation.
+
+    Methods:
+        forward(x):
+            Passes input through the encoder, bottleneck, and decoder to produce a segmentation map.
+    """
+
     def __init__(self, in_channels, num_classes):
         super().__init__()
         self.down_convolution_1 = DownSample(in_channels, 64)

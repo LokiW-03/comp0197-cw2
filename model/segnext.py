@@ -15,6 +15,21 @@ import torch.nn.functional as F
 
 # Convolutional MLP block used in each MSCA block (1x1 convs with expansion)
 class ConvFeedForward(nn.Module):
+    """
+    Feed-forward network using 1x1 convolutions, GELU activation, and dropout.
+
+    Commonly used in transformer-style architectures to expand and contract channel dimensions.
+
+    Args:
+           dim (int): Input and output channel dimension.
+           expansion_ratio (float): Factor to expand the hidden dimension. Default is 4.
+           drop (float): Dropout rate. Default is 0.0.
+
+    Methods:
+        forward(x):
+            Applies two pointwise convolutions with GELU and dropout.
+    """
+
     def __init__(self, dim, expansion_ratio=4, drop=0.0):
         super().__init__()
         hidden_dim = int(dim * expansion_ratio)
@@ -33,7 +48,18 @@ class ConvFeedForward(nn.Module):
 
 # Large Kernel Attention module (MSCA attention part)
 class LargeKernelAttention(nn.Module):
-    """Spatial attention with multi-scale large kernel convolutions."""
+    """
+    Applies spatial attention using multiple large-kernel depthwise convolutions
+    to capture multiscale contextual information efficiently.
+
+    Args:
+        dim (int): Number of input and output channels.
+
+    Methods:
+        forward(x):
+            Applies multiscale spatial attention and multiplies it with the input.
+    """
+
     def __init__(self, dim):
         super().__init__()
         # Depthwise convolutions with large kernels (decomposed for efficiency)
@@ -45,6 +71,7 @@ class LargeKernelAttention(nn.Module):
         self.dw_conv21_1 = nn.Conv2d(dim, dim, kernel_size=(1,21), padding=(0,10), groups=dim) # 21x21 via strips
         self.dw_conv21_2 = nn.Conv2d(dim, dim, kernel_size=(21,1), padding=(10,0), groups=dim)
         self.point_conv = nn.Conv2d(dim, dim, kernel_size=1)  # 1x1 conv to mix channels after spatial conv
+
 
     def forward(self, x):
         # x: [B, C, H, W]
@@ -62,8 +89,24 @@ class LargeKernelAttention(nn.Module):
         out = identity * attn
         return out
 
+
 # MSCA Block: combines LargeKernelAttention and ConvFeedForward with residuals
 class MSCABlock(nn.Module):
+    """
+    A transformer-style block that combines Large Kernel Attention with a ConvFeedForward network,
+    along with residual connections, normalization, and optional stochastic depth.
+
+    Args:
+        dim (int): Number of input/output channels.
+        expansion_ratio (float): Feed-forward expansion ratio. Default is 4.
+        drop (float): Dropout rate for the feed-forward network. Default is 0.0.
+        drop_path (float): Drop path rate for stochastic depth. Default is 0.0.
+
+    Methods:
+        forward(x):
+            Applies attention, feed-forward network, and residual connections.
+    """
+
     def __init__(self, dim, expansion_ratio=4, drop=0.0, drop_path=0.0):
         super().__init__()
         self.norm1 = nn.BatchNorm2d(dim)
@@ -84,11 +127,24 @@ class MSCABlock(nn.Module):
         out = out + self.drop_path(self.layer_scale_2.unsqueeze(-1).unsqueeze(-1) * self.ffn(self.norm2(out)))
         return out
 
+
 # Stochastic depth (DropPath) implementation for drop_path in blocks
 class DropPath(nn.Module):
+    """
+    Implements stochastic depth by randomly dropping entire residual paths during training.
+
+    Args:
+        drop_prob (float): Probability of dropping a path. Default is 0.0.
+
+    Methods:
+        forward(x):
+            Applies drop path during training or returns input unchanged during evaluation.
+    """
+
     def __init__(self, drop_prob=0.):
         super().__init__()
         self.drop_prob = drop_prob
+
 
     def forward(self, x):
         if self.drop_prob == 0. or not self.training:
@@ -101,8 +157,27 @@ class DropPath(nn.Module):
         output = x / keep_prob * random_tensor
         return output
 
+
 # Encoder Backbone: Multi-Scale Convolutional Attention Network (MSCAN)
 class MSCAN_Backbone(nn.Module):
+    """
+    Multi-Scale Convolutional Attention Network for feature extraction.
+
+    Consists of a stem for initial downsampling followed by multiple stages of convolutional
+    and attention-based processing using MSCABlocks.
+
+    Args:
+        in_channels (int): Number of input channels (e.g. 3 for RGB). Default is 3.
+        embed_dims (list): List of feature dimensions for each stage. Default is [64, 128, 256, 512].
+        depths (list): Number of MSCABlocks in each stage. Default is [3, 4, 6, 3].
+        drop_rate (float): Dropout rate within blocks. Default is 0.0.
+        drop_path_rate (float): Maximum drop path rate across all blocks. Default is 0.1.
+
+    Methods:
+        forward(x):
+            Passes the input through the stem and all stages to produce multiscale features.
+    """
+
     def __init__(self, in_channels=3, embed_dims=[64, 128, 256, 512], depths=[3, 4, 6, 3], drop_rate=0.0, drop_path_rate=0.1):
         """
         embed_dims: list of feature dimensions for the 4 stages.
@@ -144,6 +219,7 @@ class MSCAN_Backbone(nn.Module):
             # Combine all parts for this stage into a Sequential module
             self.stages.append(nn.Sequential(*stage_blocks))
 
+
     def forward(self, x):
         features = []
         # Stage 0 (stem)
@@ -158,8 +234,25 @@ class MSCAN_Backbone(nn.Module):
         # features will be [stage1, stage2, stage3, stage4] feature maps
         return features
 
+
 # Complete SegNeXt model with encoder and decoder
 class SegNeXt(nn.Module):
+    """
+    Semantic segmentation model combining MSCAN as a backbone and a fusion-based decoder.
+
+    Upsamples and fuses multiscale features from the backbone, then applies classification to
+    generate per-pixel predictions.
+
+    Args:
+        num_classes (int): Number of segmentation classes. Default is 3.
+        backbone_dims (list): Feature dimensions for each stage in the backbone. Default is [64, 128, 256, 512].
+        backbone_depths (list): Number of MSCABlocks in each stage. Default is [3, 4, 6, 3].
+
+    Methods:
+        forward(x):
+            Extracts features, upsamples and fuses them, and produces a segmentation map.
+    """
+
     def __init__(self, num_classes=3, backbone_dims=[64,128,256,512], backbone_depths=[3,4,6,3]):
         super().__init__()
         self.backbone = MSCAN_Backbone(in_channels=3, embed_dims=backbone_dims, depths=backbone_depths)
@@ -168,6 +261,7 @@ class SegNeXt(nn.Module):
         fusion_in_channels = sum(backbone_dims)  # total channels when all features are concatenated
         self.fusion_conv = nn.Conv2d(fusion_in_channels, 256, kernel_size=1)  # reduce fused channels
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)  # output segmentation logits
+
 
     def forward(self, x):
         B, C, H, W = x.shape

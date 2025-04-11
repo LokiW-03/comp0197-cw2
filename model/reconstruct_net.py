@@ -15,6 +15,20 @@ Modifications were made for simplification, clarity, and alignment with our proj
 
 
 class LayerNorm(nn.Module):
+    """
+    Applies layer normalization over an entire input tensor, normalizing across all spatial and channel dimensions.
+    Useful for stabilizing training in convolutional networks.
+
+    Args:
+        num_features (int): Number of features/channels in the input.
+        eps (float): Small epsilon added to standard deviation for numerical stability. Default is 1e-5.
+        affine (bool): If True, includes learnable scaling (gamma) and shifting (beta) parameters. Default is True.
+
+    Methods:
+        forward(x):
+            Applies layer normalization to the input tensor.
+    """
+
     def __init__(self, num_features, eps=1e-5, affine=True):
         super(LayerNorm, self).__init__()
         self.num_features = num_features
@@ -38,6 +52,27 @@ class LayerNorm(nn.Module):
 
 
 class Conv2dBlock(nn.Module):
+    """
+    A configurable 2D convolution block with optional padding, normalization, and activation.
+    Commonly used as a basic building block in convolutional networks.
+
+    Args:
+        input_dim (int): Number of input channels.
+        output_dim (int): Number of output channels.
+        kernel_size (int): Size of the convolution kernel.
+        stride (int): Convolution stride. Default is 1.
+        padding (int): Padding size. Default is 0.
+        norm (str): Normalization type. Use 'ln' for LayerNorm or None. Default is 'ln'.
+        activation (str): Activation type. Supports 'relu', 'tanh', or None. Default is 'relu'.
+        pad_type (str): Padding type, either 'zero' or 'reflect'. Default is 'zero'.
+        bias (bool): Whether to include a bias term in the convolution. Default is True.
+
+    Methods:
+        forward(x):
+            Applies padding, convolution, optional normalization, and activation.
+
+    """
+
     def __init__(self, input_dim, output_dim, kernel_size, stride=1,
                  padding=0, norm='ln', activation='relu', pad_type='zero', bias=True):
 
@@ -71,6 +106,19 @@ class Conv2dBlock(nn.Module):
 
 
 class ResBlock(nn.Module):
+    """
+    Residual block composed of two convolutional blocks with LayerNorm and ReLU.
+    Adds the input to the output of the block to form a residual connection.
+
+    Args:
+        dim (int): Number of input and output channels.
+
+    Methods:
+        forward(x):
+            Applies two convolutional layers with a skip connection.
+
+    """
+
     def __init__(self, dim):
         super(ResBlock, self).__init__()
         self.block = nn.Sequential(

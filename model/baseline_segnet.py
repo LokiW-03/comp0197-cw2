@@ -6,6 +6,28 @@ from torchvision import models
 import copy
 
 class BaseModel(nn.Module):
+    """
+    An abstract base class for all neural network models.
+
+    This class extends `torch.nn.Module` and provides common functionality:
+    - A logger tied to the class name for consistent logging.
+    - A method to print a summary of trainable parameters.
+    - A string representation that includes the number of trainable parameters.
+
+    Intended to be subclassed by specific model implementations.
+    Subclasses must override the `forward()` method.
+
+    Methods:
+        forward():
+            Abstract method that must be implemented in the subclass. Raises NotImplementedError.
+
+        summary():
+            Logs the total number of trainable parameters in the model.
+
+        __str__():
+            Returns a string representation of the model including trainable parameter count.
+    """
+
     def __init__(self):
         super(BaseModel, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -27,6 +49,30 @@ class BaseModel(nn.Module):
 # Code adopted from https://github.com/yassouali/pytorch-segmentation/blob/master/models/segnet.py
 # SegNet uses the 13 first layers from VGG16 and left out the fully connected layer
 class SegNet(BaseModel):
+    """
+    A semantic segmentation model based on the VGG16 architecture with batch normalization.
+
+    This implementation constructs an encoder-decoder network where:
+    - The encoder is derived from the convolutional layers of VGG16-BN (excluding the fully connected layers).
+    - The decoder mirrors the encoder structure, using unpooling and transposed convolution operations.
+    - Pooling indices are stored during encoding and reused during decoding for spatial reconstruction.
+
+    Args:
+        in_channels (int): Number of input channels. Default is 3 (RGB images).
+        freeze_batchnormal (bool): If True, all BatchNorm2d layers are frozen (set to eval mode). Default is False.
+        output_num_classes (int): Number of output classes for semantic segmentation. Default is 3.
+        **_ : Accepts and ignores additional keyword arguments for compatibility.
+
+    Methods:
+        forward(x):
+            Runs a forward pass of the SegNet model, returning the segmentation map.
+
+        get_decoder_params():
+            Returns the parameters of the model (used for optimization or freezing).
+
+        freeze_bn():
+            Sets all BatchNorm2d layers to evaluation mode (freezes their running stats and parameters).
+    """
     def __init__(self, in_channels=3, freeze_batchnormal=False, output_num_classes=3, **_):
         super(SegNet, self).__init__()
         vgg_bn = models.vgg16_bn(weights='VGG16_BN_Weights.IMAGENET1K_V1')
