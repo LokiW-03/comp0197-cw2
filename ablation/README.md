@@ -26,7 +26,6 @@ In total: 3 x 2 x 2 x 2 = 24 configurations
 # Hyperparameters that were kept consistent (Model architecture)
 
 **Classifier model**
-**Classifier model**
 
 Throughout the experiments, we maintained the same classifier model and its hyperparameters. This is because the model was tuned to have >90% accuracy and was deemed good enough.
 
@@ -44,9 +43,7 @@ GradCam++ is in use because it's a refined version of GradCam. ScoreCam was test
 
 **Pseudo mask generation**
 
-@chenge
-- The generation process involves 2 thresholds that determine the split between 3 classes: foreground, contour, background. These thresholds are varied but the rest of the process is the same.
-- Any other details I'm missing?
+- The generation process involves 2 thresholds that determine the split between 3 classes: foreground, contour(ambiguous), background that are aligned with the original dataset. These thresholds are varied but the rest of the process is the same.
 
 **Segmentation model**
 
