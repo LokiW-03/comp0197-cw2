@@ -43,5 +43,11 @@ pip install scikit-image
    ```sh
    python -m model.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet50_gradcampp_pseudo.pt
    ```
+#### Ablation Experiments 
 
+Ensure the classification model is saved under ```cam/saved_models```
+
+```sh
+python -m ablation.grid_search
+```
 ### Open-ended Section
