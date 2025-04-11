@@ -2,9 +2,9 @@
 import os
 import pickle
 import random
-from PIL import Image, ImageDraw, ImageOps # Added ImageOps
+from PIL import Image, ImageDraw
 import argparse
-import numpy as np # Now needed for mask processing
+import numpy as np 
 
 # --- Configuration ---
 DEFAULT_WEAK_LABEL_FILE = './weak_labels/weak_labels_train.pkl'

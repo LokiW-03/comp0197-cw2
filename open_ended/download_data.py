@@ -3,9 +3,7 @@
 import os
 import logging
 import shutil  # For moving files/directories
-import tarfile # For checking archive integrity (optional but good practice)
 from torchvision.datasets import OxfordIIITPet
-from torchvision.datasets.utils import download_url, check_integrity
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

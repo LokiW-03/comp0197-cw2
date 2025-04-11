@@ -178,7 +178,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Optimized weak label generator")
     parser.add_argument('--data_dir', default='./data')
-    parser.add_argument('--output_file', default='./weak_labels/weak_labels.pkl')
+    parser.add_argument('--output_file', default='./weak_labels/weak_labels_efficient.pkl')
     parser.add_argument('--image_ext', default='jpg')
     parser.add_argument('--trimap_ext', default='png')
     parser.add_argument('--num_point', type=int, default=DEFAULT_NUM_POINT_PER_OBJ)

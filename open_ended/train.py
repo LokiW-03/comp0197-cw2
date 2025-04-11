@@ -11,7 +11,6 @@ from open_ended.losses import CombinedLoss
 import torchmetrics # Added for metric calculation
 import time
 import traceback
-from torch.utils.data import Subset
 
 
 # --- Configuration ---

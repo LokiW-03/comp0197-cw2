@@ -8,7 +8,7 @@ How does the type and potential combination of sparse weak annotations (specific
 ## Installation
 Additional installation
 ```bash
-pip install torchmetrics
+pip install torchmetrics pillow matplotlib
 ```
 
 ## Run
