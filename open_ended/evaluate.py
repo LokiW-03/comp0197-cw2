@@ -1,4 +1,4 @@
-# evaluate_on_test.py
+# evaluate.py
 
 import os
 import argparse
@@ -149,20 +149,18 @@ def main():
     parser.add_argument('--data_dir', type=str, default='./data',
                         help="Root directory of the Oxford Pets dataset.")
     PROJECT_ROOT = 'open_ended'
-    MODELS_DIR = os.path.join(PROJECT_ROOT, 'models')
-
     DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
     
     
 
     MODEL_PATHS = [
-        os.path.join(MODELS_DIR, 'checkpoints_single/segnet_point_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'checkpoints_single/segnet_scatter_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'checkpoints_single/segnet_boxes_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'checkpoints_hybrid/segnet_hybrid_point_scatter_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'checkpoints_hybrid/segnet_hybrid_point_boxes_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'checkpoints_hybrid/segnet_hybrid_scatter_boxes_run1_best_acc.pth'),
-        os.path.join(MODELS_DIR, 'checkpoints_hybrid/segnet_hybrid_point_scatter_boxes_run1_best_acc.pth'),
+        os.path.join(PROJECT_ROOT, 'checkpoints_single/segnet_point_run1_best_acc.pth'),
+        os.path.join(PROJECT_ROOT, 'checkpoints_single/segnet_scatter_run1_best_acc.pth'),
+        os.path.join(PROJECT_ROOT, 'checkpoints_single/segnet_boxes_run1_best_acc.pth'),
+        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_point_scatter_run1_best_acc.pth'),
+        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_point_boxes_run1_best_acc.pth'),
+        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_scatter_boxes_run1_best_acc.pth'),
+        os.path.join(PROJECT_ROOT, 'checkpoints_hybrid/segnet_hybrid_point_scatter_boxes_run1_best_acc.pth'),
     ]
     
     
