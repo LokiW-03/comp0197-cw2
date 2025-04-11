@@ -11,11 +11,14 @@ Throughout the experiments, we maintained the same classifier model and its hype
 The experiments were a grid search of 4 dimensions:
 
 - pseudo-mask thresholds: (0.25, 0.325), (0.3, 0.7), (0.21, 0.33)
-- Learning rate: 1e-3, 1e-2
-- Loss function: Cross entropy loss, Dice loss
-- Batch size: 16, 64
+- segmentation model:
+  - Learning rate: 1e-3, 1e-2
+  - Loss function: Cross entropy loss, Dice loss
+  - Batch size: 16, 64
 
 In total: 3 x 2 x 2 x 2 = 24
+
+Other segmentation model hyperparameters were kept consistent (AdamW optimizer, 1e-4 weight_decay, scheduler StepLR step_size=15 gamma=0.1)
 
 # Reason we picked these hyperparameters
 
