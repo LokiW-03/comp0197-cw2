@@ -56,12 +56,13 @@ def main():
     """
     # Use FINAL_DATA_ROOT as the place torchvision downloads *into*.
     # The restructuring step will then fix the layout *within* this directory.
-    download_target_root = FINAL_DATA_ROOT
-
-    if download_oxford_pet(download_target_root):
-        logging.info("Download step successful.")
+    if os.path.exists(FINAL_DATA_ROOT):
+        logging.info("Data already exist")
     else:
-        logging.error("Dataset download failed. Cannot proceed with restructuring.")
+        if download_oxford_pet(FINAL_DATA_ROOT):
+            logging.info("Download step successful.")
+        else:
+            logging.error("Dataset download failed. Cannot proceed with restructuring.")
 
 
 if __name__ == "__main__":
