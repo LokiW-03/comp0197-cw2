@@ -1,7 +1,7 @@
 # load_pseudo.py
 import torch
 from torch.utils.data import DataLoader
-from dataset.oxfordpet_pseudo import OxfordPetWithPseudo
+from data_utils.data import OxfordPetWithPseudo
 from common import MODEL_SAVE_PATH
 
 def load_pseudo(save_path, batch_size=32, shuffle=False, device=torch.device('cpu'), collapse_contour=False):

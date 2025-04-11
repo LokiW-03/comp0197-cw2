@@ -6,6 +6,7 @@ from glob import glob
 import numpy as np
 from PIL import Image
 
+
 def generate_superpixels(image_dir, save_dir, n_segments=100, compactness=10):
     if not os.path.exists(image_dir):
         raise RuntimeError(f"Image directory '{image_dir}' not found.")

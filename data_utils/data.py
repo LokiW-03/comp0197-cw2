@@ -1,5 +1,7 @@
+import os
 import torch
 from torchvision import datasets, transforms
+from torch.utils.data import Dataset
 
 # Set random seed for reproducibility
 torch.manual_seed(42)
@@ -62,6 +64,78 @@ class ImageTransform:
         transforms.RandomRotation(degrees=15),
     ])
 
+
+class OxfordIIITPetWithPaths(datasets.OxfordIIITPet):
+    """Extends dataset class to return image paths"""
+
+    def __init__(self, root="./data", split="trainval", target_types="category",
+                 download=False, transform=None, target_transform=None):
+        super().__init__(
+            root=root,
+            split=split,
+            target_types=target_types,
+            download=download,
+            transform=transform,
+            target_transform=target_transform
+        )
+
+        # Build image path list
+        self.image_paths = [
+            os.path.join(self._images_folder, name)
+            for name in self._images
+        ]
+
+    def __getitem__(self, index):
+        # Original data
+        image, target = super().__getitem__(index)
+        return image, target, self.image_paths[index]
+
+
+
+class OxfordPetWithPseudo(Dataset):
+    def __init__(self, pseudo_data):
+        """
+        Args:
+            pseudo_data (dict): Data dictionary loaded via load_pseudo()
+        """
+        self.pairs = pseudo_data['pairs']
+
+    def __len__(self):
+        return len(self.pairs)
+
+    def __getitem__(self, idx):
+        """
+        Returns format consistent with original dataset: (image, target)
+        Note: Here the target is actually a pseudo mask
+        """
+        item = self.pairs[idx]
+        return item['image'], item['mask']
+
+
+class OxfordPetSuperpixels(torch.utils.data.Dataset):
+    def __init__(self, base_dataset, superpixel_dir, transform=None):
+        self.base_dataset = base_dataset
+        self.image_paths = base_dataset.image_paths
+        self.labels = base_dataset._labels
+        self.superpixel_dir = superpixel_dir
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.base_dataset)
+
+    def __getitem__(self, idx):
+        image, label, path = self.base_dataset[idx]
+        filename = os.path.basename(path).replace(".jpg", ".pt")
+        sp_path = os.path.join(self.superpixel_dir, filename)
+        sp = torch.load(sp_path)  # (H, W)
+
+        if self.transform:
+            image = self.transform(image)
+            sp = torch.nn.functional.interpolate(
+                sp[None, None].float(), size=(IMAGE_SIZE, IMAGE_SIZE), mode='nearest'
+            ).long().squeeze(0).squeeze(0)
+
+        return image, label, sp
 
 
 trainset = datasets.OxfordIIITPet(

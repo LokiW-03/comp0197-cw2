@@ -2,7 +2,7 @@ from functools import partial
 from torchvision.datasets import OxfordIIITPet
 from torch.utils.data import DataLoader
 import torch
-from oxfordpet_paths import OxfordIIITPetWithPaths
+from data_utils.data import OxfordIIITPetWithPaths
 from data_utils.data import ImageTransform
 
 IMAGE_SIZE = 224

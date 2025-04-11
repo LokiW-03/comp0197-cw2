@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # --- Configuration ---
 # Root directory where data *should end up*
-FINAL_DATA_ROOT = "./data/oxford-iiit-pet/"
+FINAL_DATA_ROOT = "./data"
 # Directory for weak labels (will be created, but file is generated elsewhere)
 # --- End Configuration ---
 
