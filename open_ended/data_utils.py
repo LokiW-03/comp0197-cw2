@@ -136,133 +136,92 @@ class PetsDataset(Dataset):
     def _get_weak_supervision(self, index):
         """
         Prepares weak supervision mask based on mode.
-        If mode is 'points' and labels are missing/empty, uses image center as default.
-        Returns a HxW tensor mask.
+        Returns a dictionary mapping supervision type(s) to HxW tensor masks.
+        Returns None if the item should be skipped.
         """
         img_filename = os.path.basename(self.image_files[index])
         height, width = self.img_size
+        item_labels = self.weak_labels.get(img_filename) if self.weak_labels else None
 
-        # Initialize the mask we will return (all ignored initially)
-        supervision_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
-        weak_label_applied = False # Flag to track if we successfully used weak labels
+        supervision_dict = {} # Initialize empty dictionary
+        weak_label_applied = False
 
-        # Check if weak labels exist for this file at all
-        item_labels = None
-        if self.weak_labels and img_filename in self.weak_labels:
-            item_labels = self.weak_labels[img_filename]
-        # else:
-            
+        # --- Determine keys based on supervision_mode ---
+        required_keys = []
+        if self.supervision_mode in self.mode_to_key:
+            keys = self.mode_to_key[self.supervision_mode]
+            required_keys = keys if isinstance(keys, list) else [keys]
+        elif self.supervision_mode == 'full': # Should not happen here ideally
+            return torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64) # Or handle error
+        else:
+            print(f"Warning: Unsupported supervision mode '{self.supervision_mode}' in _get_weak_supervision")
+            return torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64) # Return ignore mask
 
-        # --- Apply specific weak label type based on mode ---
+        # --- Generate masks for each required key ---
+        for key in required_keys:
+            key_mask = torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
+            applied_for_key = False
 
-        if self.supervision_mode == 'points':
-            coords = []
             if item_labels:
-                coords = item_labels.get('points', []) # Get points if key exists
+                if key == 'points':
+                    coords = item_labels.get('points', [])
+                    if coords:
+                        for x, y in coords: # Assuming (x, y)
+                            y_c = max(0, min(int(y), height - 1))
+                            x_c = max(0, min(int(x), width - 1))
+                            key_mask[y_c, x_c] = 1 # Pet class
+                            applied_for_key = True
+                    # Default center logic (if needed specifically for points key)
+                    if not applied_for_key:
+                        y_center, x_center = height // 2, width // 2
+                        if 0 <= y_center < height and 0 <= x_center < width:
+                            key_mask[y_center, x_center] = 1
+                            applied_for_key = True # Mark default as applied
 
-            if coords: # Check if list is not empty
-                # log.debug(f"Applying {len(coords)} points for {img_filename}")
-                for point_item in coords:
-                    # --- Check point format and unpack ---
-                    # if not isinstance(point_item, (list, tuple)) or len(point_item) != 2:
-                    #     log.warning(f"Skipping invalid point format {point_item} in {img_filename}")
-                    #     continue
-                    # Assuming format from weak_label_generator is (x, y)
-                    x, y = point_item
-                    # --- End Check ---
+                elif key == 'scribbles':
+                    scribbles_dict = item_labels.get('scribbles', {})
+                    fg = scribbles_dict.get('foreground', [])
+                    bg = scribbles_dict.get('background', [])
+                    if fg:
+                        for x,y in fg:
+                            y_c = max(0, min(int(y), height - 1)); x_c = max(0, min(int(x), width - 1))
+                            key_mask[y_c, x_c] = 1 # FG
+                            applied_for_key = True
+                    if bg:
+                        for x,y in bg:
+                            y_c = max(0, min(int(y), height - 1)); x_c = max(0, min(int(x), width - 1))
+                            key_mask[y_c, x_c] = 0 # BG
+                            applied_for_key = True # Mark BG scribbles as applied too
 
-                    # Clamp coordinates and apply to mask
-                    y_c = max(0, min(int(y), height - 1))
-                    x_c = max(0, min(int(x), width - 1))
-                    supervision_mask[y_c, x_c] = 1  # Pet class (label 1)
-                    weak_label_applied = True # Mark as applied
-            # Default logic applied later if weak_label_applied is still False
+                elif key == 'boxes':
+                    boxes = item_labels.get('boxes', [])
+                    if boxes:
+                        for xmin, ymin, xmax, ymax in boxes:
+                            ymin_c = max(0, min(int(ymin), height - 1))
+                            xmin_c = max(0, min(int(xmin), width - 1))
+                            ymax_c = max(0, min(int(ymax), height - 1))
+                            xmax_c = max(0, min(int(xmax), width - 1))
+                            if ymax_c > ymin_c and xmax_c > xmin_c:
+                                key_mask[ymin_c:ymax_c, xmin_c:xmax_c] = 1 # Pet class inside box
+                                applied_for_key = True
 
-        elif self.supervision_mode == 'scribbles':
-            scribbles_dict = {}
-            if item_labels:
-                scribbles_dict = item_labels.get('scribbles', {})
+                # --- Add logic for other weak label types ---
 
-            fg_scribbles = scribbles_dict.get('foreground', [])
-            bg_scribbles = scribbles_dict.get('background', [])
+            if applied_for_key:
+                supervision_dict[key] = key_mask
+                weak_label_applied = True # Mark that at least one type of label was processed
 
-            if fg_scribbles or bg_scribbles: # Check if either list is not empty
-                # log.debug(f"Applying {len(fg_scribbles)} FG / {len(bg_scribbles)} BG scribbles for {img_filename}")
-                # FG scribbles (class 1)
-                for scribble_item in fg_scribbles:
-                    if not isinstance(scribble_item, (list, tuple)) or len(scribble_item) != 2: continue
-                    x, y = scribble_item # Assuming (x, y)
-                    y_c = max(0, min(int(y), height - 1))
-                    x_c = max(0, min(int(x), width - 1))
-                    supervision_mask[y_c, x_c] = 1
-                    weak_label_applied = True
-                # BG scribbles (class 0)
-                for scribble_item in bg_scribbles:
-                     if not isinstance(scribble_item, (list, tuple)) or len(scribble_item) != 2: continue
-                     x, y = scribble_item # Assuming (x, y)
-                     y_c = max(0, min(int(y), height - 1))
-                     x_c = max(0, min(int(x), width - 1))
-                     supervision_mask[y_c, x_c] = 0 # Background class (label 0)
-                     weak_label_applied = True
-            # No default centroid for scribbles, mask remains IGNORE if no labels found
+        # Decide whether to return the dict or skip (e.g., if no labels found at all)
+        # This logic might need refinement based on your requirements
+        if not weak_label_applied and self.supervision_mode != 'full':
+            print(f"Warning: No weak labels found or applied for {img_filename} in mode {self.supervision_mode}. Returning empty dict (loss might be zero).")
+            # Or you could return None here to have the collate_fn skip it, but need a custom collate_fn.
+            # Returning an empty dict is simpler for now, CombinedLoss must handle it.
+            return {}
+            # Alternative: Return a default ignore mask if no labels are ever found
+            # return {'segmentation': torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)}
 
-        elif self.supervision_mode == 'boxes':
-            boxes = []
-            if item_labels:
-                boxes = item_labels.get('boxes', [])
-
-            if boxes: # Check if list is not empty
-                # log.debug(f"Applying {len(boxes)} boxes for {img_filename}")
-                pet_class_index = 1
-                for box_item in boxes:
-                    if not isinstance(box_item, (list, tuple)) or len(box_item) != 4: continue
-                    # Assuming (xmin, ymin, xmax, ymax) from weak_label_generator
-                    xmin, ymin, xmax, ymax = box_item
-                    ymin_c = max(0, min(int(ymin), height - 1))
-                    xmin_c = max(0, min(int(xmin), width - 1))
-                    ymax_c = max(0, min(int(ymax), height - 1)) # Use H for ymax
-                    xmax_c = max(0, min(int(xmax), width - 1))  # Use W for xmax
-                    if ymax_c > ymin_c and xmax_c > xmin_c:
-                        supervision_mask[ymin_c:ymax_c, xmin_c:xmax_c] = pet_class_index
-                        weak_label_applied = True
-            # No default centroid for boxes, mask remains IGNORE if no labels found
-
-        # --- Handle Hybrid Modes (Example - add specific logic as needed) ---
-        # elif self.supervision_mode == 'hybrid_points_boxes':
-        #    # Apply points logic... set weak_label_applied if points are added
-        #    # Apply boxes logic... set weak_label_applied if boxes are added
-        #    # Default centroid might apply only if points were expected but missing
-
-        elif self.supervision_mode == "full":
-             # This function shouldn't normally be called in 'full' mode,
-             # but return ignore mask as a fallback.
-            #  log.warning(f"Called _get_weak_supervision in 'full' mode for {img_filename}.")
-             return torch.full(self.img_size, IGNORE_INDEX, dtype=torch.int64)
-        
-        # else:
-        #      log.warning(f"Unsupported supervision mode '{self.supervision_mode}' in _get_weak_supervision for {img_filename}.")
-             # Returns the ignore mask by default
-
-
-        # --- Apply Default Centroid Logic (ONLY for 'points' mode if no labels were applied) ---
-        if not weak_label_applied and self.supervision_mode == 'points':
-            # log.warning(f"Weak label points missing or empty for {img_filename}. Using image center point as default.")
-            y_center = height // 2
-            x_center = width // 2
-            # Ensure center is within bounds (should always be if img_size > 0)
-            if 0 <= y_center < height and 0 <= x_center < width:
-                supervision_mask[y_center, x_center] = 1 # Pet class (label 1)
-            else:
-                log.error(f"Calculated center ({y_center}, {x_center}) is out of bounds for image size {self.img_size}. Cannot apply default point.")
-
-
-        # If weak_label_applied is False for other modes (scribbles, boxes),
-        # the mask remains the initial full IGNORE_INDEX mask.
-        # if not weak_label_applied and self.supervision_mode != 'points':
-        #      log.debug(f"No valid weak labels applied for {img_filename} in mode '{self.supervision_mode}'. Returning ignore mask.")
-
-
-        return supervision_mask
+        return supervision_dict
 
     def __getitem__(self, index):
         img_path = self.image_files[index]
@@ -296,21 +255,23 @@ class PetsDataset(Dataset):
         supervision_target = None # Initialize
         if self.split == 'train':
             if self.supervision_mode == 'full':
-                supervision_target = target_mask # Use GT mask
+                supervision_target = target_mask # Use GT mask (Tensor)
             else:
-                # --- MODIFICATION ---
-                # Get weak supervision, check if it returned None (meaning skip)
-                weak_supervision_result = self._get_weak_supervision(index)
-                if weak_supervision_result is None:
-                    # The weak label was missing, signal to skip this item
-                    return None
-                else:
-                    supervision_target = weak_supervision_result
-                # --- END MODIFICATION ---
-        else: # Validation/Test
-            supervision_target = target_mask
+                # Get weak supervision dictionary
+                supervision_target = self._get_weak_supervision(index)
+                # Handle potential skip case if _get_weak_supervision returns None or empty dict
+                if not supervision_target: # Checks for None or {}
+                    # Handle skip - needs custom collate_fn or return dummy data
+                    print(f"Skipping item {index} due to missing weak labels.")
+                    # Returning None often requires a custom collate_fn in DataLoader
+                    # For simplicity, might return dummy data or raise error earlier
+                    # Let's assume for now _get_weak_supervision returns at least {}
+                    pass # DataLoader will handle the dict collation
 
-        return image_tensor, supervision_target, target_mask
+        else: # Validation/Test
+            supervision_target = target_mask # Tensor
+
+        return image_tensor, supervision_target, target_mask # supervision_target is now Tensor OR Dict
     
     def _augment_weak_labels(self, weak_data, aug_params):
         """Applies geometric augmentations to weak labels."""
