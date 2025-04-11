@@ -150,9 +150,8 @@ class PetsDataset(Dataset):
         item_labels = None
         if self.weak_labels and img_filename in self.weak_labels:
             item_labels = self.weak_labels[img_filename]
-        else:
-            # Log if the entire file entry is missing (but continue to potentially apply default)
-            log.debug(f"No weak label entry found for {img_filename}.") # Use debug level
+        # else:
+            
 
         # --- Apply specific weak label type based on mode ---
 
@@ -162,7 +161,7 @@ class PetsDataset(Dataset):
                 coords = item_labels.get('points', []) # Get points if key exists
 
             if coords: # Check if list is not empty
-                log.debug(f"Applying {len(coords)} points for {img_filename}")
+                # log.debug(f"Applying {len(coords)} points for {img_filename}")
                 for point_item in coords:
                     # --- Check point format and unpack ---
                     if not isinstance(point_item, (list, tuple)) or len(point_item) != 2:
@@ -188,7 +187,7 @@ class PetsDataset(Dataset):
             bg_scribbles = scribbles_dict.get('background', [])
 
             if fg_scribbles or bg_scribbles: # Check if either list is not empty
-                log.debug(f"Applying {len(fg_scribbles)} FG / {len(bg_scribbles)} BG scribbles for {img_filename}")
+                # log.debug(f"Applying {len(fg_scribbles)} FG / {len(bg_scribbles)} BG scribbles for {img_filename}")
                 # FG scribbles (class 1)
                 for scribble_item in fg_scribbles:
                     if not isinstance(scribble_item, (list, tuple)) or len(scribble_item) != 2: continue
@@ -213,7 +212,7 @@ class PetsDataset(Dataset):
                 boxes = item_labels.get('boxes', [])
 
             if boxes: # Check if list is not empty
-                log.debug(f"Applying {len(boxes)} boxes for {img_filename}")
+                # log.debug(f"Applying {len(boxes)} boxes for {img_filename}")
                 pet_class_index = 1
                 for box_item in boxes:
                     if not isinstance(box_item, (list, tuple)) or len(box_item) != 4: continue
@@ -259,8 +258,8 @@ class PetsDataset(Dataset):
 
         # If weak_label_applied is False for other modes (scribbles, boxes),
         # the mask remains the initial full IGNORE_INDEX mask.
-        if not weak_label_applied and self.supervision_mode != 'points':
-             log.debug(f"No valid weak labels applied for {img_filename} in mode '{self.supervision_mode}'. Returning ignore mask.")
+        # if not weak_label_applied and self.supervision_mode != 'points':
+        #      log.debug(f"No valid weak labels applied for {img_filename} in mode '{self.supervision_mode}'. Returning ignore mask.")
 
 
         return supervision_mask
