@@ -77,7 +77,7 @@ class PetsDataset(Dataset):
         # num_test = num_images - num_train - num_val # Test uses remaining
 
         if split == 'train':
-            self.image_files = [os.join(data_dir, 'images', f) for f in train_image_files]
+            self.image_files = [os.path.join(data_dir, 'images', f) for f in train_image_files]
             
             # print(f"Using first {len(self.image_files)} images for training.")
         elif split == 'val':
