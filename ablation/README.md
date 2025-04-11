@@ -40,9 +40,14 @@ In particular:
 
 **CAM**
 
+@chenge
+- How is the heatmap generated? (if the process is too complicated, just link the paper)
+
 **Pseudo mask generation**
 
+@chenge
 - The generation process involves 2 thresholds that determine the split between 3 classes: foreground, contour, background. These thresholds are varied but the rest of the process is the same.
+- Any other details I'm missing?
 
 **Segmentation model**
 
