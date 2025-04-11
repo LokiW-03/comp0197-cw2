@@ -33,14 +33,19 @@ class ImageTransform:
         transforms.Lambda(tensor_trimap)
     ])
 
-    image_rotation_transform = transforms.Compose([
-        common_image_transform,
-        transforms.RandomRotation(degrees=(45, 45))
+    cam_train_transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.RandomResizedCrop(IMAGE_SIZE),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=normalize_mean, std=normalize_std)
     ])
 
-    mask_rotation_transform = transforms.Compose([
-        common_mask_transform,
-        transforms.RandomRotation(degrees=(45, 45))
+    cam_test_transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(IMAGE_SIZE),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=normalize_mean, std=normalize_std)
     ])
 
 
@@ -53,14 +58,6 @@ trainset = datasets.OxfordIIITPet(
     target_transform=ImageTransform.common_mask_transform
 )
 
-trainset_rotate = datasets.OxfordIIITPet(
-    root='./data',
-    split='trainval',
-    target_types= 'segmentation',
-    download=True,
-    transform=ImageTransform.image_rotation_transform,
-    target_transform=ImageTransform.mask_rotation_transform
-)
 
 testset = datasets.OxfordIIITPet(
     root='./data',

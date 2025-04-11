@@ -3,8 +3,8 @@ import argparse
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets
-from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
-from cam.resnet_drs import ResNet50_CAM_DRS
+from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+from model.resnet_drs import ResNet50_CAM_DRS
 from model.reconstruct_net import ReconstructNet
 from crm.visualize import visualize_recon_grid
 from crm import CRM_MODEL_SAVE_PATH, NUM_CLASSES

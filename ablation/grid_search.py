@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from cam.load_pseudo import load_pseudo
-from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from cam.postprocessing import generate_pseudo_masks
 from cam.dataset.oxfordpet import download_pet_dataset
 from data_utils.data import testset

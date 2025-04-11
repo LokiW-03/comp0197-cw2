@@ -8,8 +8,8 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
 from cam.dataset.oxfordpet_paths import OxfordIIITPetWithPaths
-from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
-from cam.resnet_drs import ResNet50_CAM_DRS
+from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+from model.resnet_drs import ResNet50_CAM_DRS
 
 from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR
 from model.reconstruct_net import ReconstructNet

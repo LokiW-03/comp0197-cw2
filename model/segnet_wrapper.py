@@ -1,4 +1,4 @@
-#model_utils.py
+#segnet_wrapper.py
 import torch.nn as nn
 from model.baseline_segnet import SegNet
 

@@ -12,7 +12,7 @@ import time
 from cam.load_pseudo import load_pseudo
 from supervised.train import compute_test_metrics_fn
 from data_utils.data import testset
-from fpn_scripts.fpn import FPN
+from fpn_scripts_not_submit.fpn import FPN
 from model.baseline_segnet import SegNet
 from model.baseline_unet import UNet
 from model.segnext import SegNeXt

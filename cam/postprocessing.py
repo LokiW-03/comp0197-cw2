@@ -7,7 +7,7 @@ from common import *
 from preprocessing import unnormalize
 from dataset.oxfordpet import download_pet_dataset
 from visualize import visualize_cam
-from resnet_drs import ResNet50_CAM_DRS
+from model.resnet_drs import ResNet50_CAM_DRS
 from crm import CRM_MODEL_SAVE_PATH
 
 
@@ -124,7 +124,7 @@ def generate_pseudo_masks(
 # Usage example
 if __name__ == "__main__":
     # ---------- User-defined section ----------
-    from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+    from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
     import argparse
 
     parser = argparse.ArgumentParser()
