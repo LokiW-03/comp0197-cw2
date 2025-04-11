@@ -2,13 +2,12 @@ import os
 import argparse
 import torch
 from torch.utils.data import DataLoader
-from torchvision import datasets
 from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from model.resnet_drs import ResNet50_CAM_DRS
 from model.reconstruct_net import ReconstructNet
 from crm.visualize import visualize_recon_grid
 from crm import CRM_MODEL_SAVE_PATH, NUM_CLASSES
-from data_utils.data import ImageTransform
+from data_utils.data import crm_testset
 
 
 def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
@@ -18,10 +17,7 @@ def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
     print(f"Using device: {device}")
 
 
-    testset = datasets.OxfordIIITPet(
-        root='./data', split='test', target_types='category',
-        download=True, transform=ImageTransform.common_image_transform
-    )
+    testset = crm_testset
     test_loader = DataLoader(testset, batch_size=8, shuffle=False)
 
   

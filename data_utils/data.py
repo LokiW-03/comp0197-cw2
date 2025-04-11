@@ -155,3 +155,20 @@ testset = datasets.OxfordIIITPet(
     download=True,
     transform=ImageTransform.common_image_transform,
     target_transform=ImageTransform.common_mask_transform)
+
+
+crm_base_dataset = OxfordIIITPetWithPaths(
+        root='./data', split='trainval', target_types='category',
+        download=True, transform=None
+    )
+
+crm_testset = datasets.OxfordIIITPet(
+        root='./data', split='test', target_types='category',
+        download=True, transform=ImageTransform.common_image_transform
+    )
+
+crm_trainset = OxfordPetSuperpixels(
+        base_dataset=crm_base_dataset,
+        superpixel_dir="./superpixels",
+        transform=ImageTransform.common_image_transform
+    )

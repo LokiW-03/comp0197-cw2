@@ -15,9 +15,7 @@ from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR
 from crm.crm_loss import VGGLoss, alignment_loss
 from crm.gen_superpixel import generate_superpixels
 
-from data_utils.data import ImageTransform
-from data_utils.data import OxfordIIITPetWithPaths
-from data_utils.data import OxfordPetSuperpixels
+from data_utils.data import crm_trainset
 
 
 def train(model_name: str = 'resnet', 
@@ -40,11 +38,6 @@ def train(model_name: str = 'resnet',
     os.makedirs(CRM_MODEL_SAVE_PATH, exist_ok=True)
 
 
-    base_dataset = OxfordIIITPetWithPaths(
-        root='./data', split='trainval', target_types='category',
-        download=True, transform=None
-    )
-
     superpixel_dir = "./superpixels"
     image_dir = "./data/oxford-iiit-pet/images"
 
@@ -53,11 +46,7 @@ def train(model_name: str = 'resnet',
         print(f"Generating superpixels...")
         generate_superpixels(image_dir=image_dir, save_dir=superpixel_dir)
 
-    trainset = OxfordPetSuperpixels(
-        base_dataset=base_dataset,
-        superpixel_dir="./superpixels",
-        transform=ImageTransform.common_image_transform
-    )
+    trainset = crm_trainset
 
     train_loader = DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
