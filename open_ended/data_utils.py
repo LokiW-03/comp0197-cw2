@@ -38,6 +38,10 @@ class PetsDataset(Dataset):
         self.split = split
         self.supervision_mode = supervision_mode
         self.img_size = img_size
+        
+        self.mask_transform = T.Compose([
+            T.Resize(img_size, interpolation=T.InterpolationMode.NEAREST),
+        ])
         self.augment = augment and split == 'train'
         # ****************************
 
