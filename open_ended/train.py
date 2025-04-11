@@ -439,19 +439,7 @@ def main():
             import traceback
             traceback.print_exc()
             break
-    
-    # Add after the training loop in main()
-    # --- Final Test Evaluation ---
-    print("\n\n--- Evaluating on Test Set ---")
-    
-    # Load best model
-    best_model_path = f"{checkpoint_path_base}_best_acc.pth"
-    if os.path.exists(best_model_path):
-        print(f"Loading best model from {best_model_path}")
-        checkpoint = torch.load(best_model_path, map_location=device)
-        model.load_state_dict(checkpoint['model_state_dict'])
-    else:
-        print("Warning: No best model found, using final weights")
+
     
     # ***** ADDED: Final time printout *****
     training_end_time = time.time()

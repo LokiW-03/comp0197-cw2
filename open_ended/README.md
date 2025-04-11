@@ -16,21 +16,25 @@ pip install torchmetrics pillow matplotlib
 ```
 !cd comp0197-cw2/ && python open_ended/download_data.py
 
+# We dont need to generate new labels, as labels is uploaded in git
 !cd comp0197-cw2/ && python open_ended/weak_label_generator.py --data_dir ./data --output_file ./weak_labels/weak_labels_train.pkl
+
+#Visualize pseudo labels
+!cd comp0197-cw2/ && python -m open_ended.visualize_labels  --seed 19 --label_file open_ended/weak_labels/weak_labels_train.pkl --
+
 
 
 !cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode points \
     --run_name segnet_points_run1 \
     --data_dir ./data \
-    --weak_label_path ./weak_labels/weak_labels_train.pkl \
+    --weak_label_path ./open_ended/weak_labels/weak_labels_train.pkl \
     --batch_size 64 \
     --lr 2e-4 \
     --epochs 25 \
     --num_workers 8 \
     --img_size 256 \
-    --checkpoint_dir ./checkpoints_single \
-    --augment
+    --checkpoint_dir ./checkpoints_single
 
 !cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode scribbles \
@@ -42,8 +46,9 @@ pip install torchmetrics pillow matplotlib
     --epochs 25 \
     --num_workers 8 \
     --img_size 256 \
-    --checkpoint_dir ./checkpoints_single \
-    --augment
+    --checkpoint_dir ./checkpoints_single
+
+
 
 !cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode boxes \
@@ -55,9 +60,10 @@ pip install torchmetrics pillow matplotlib
     --epochs 25 \
     --num_workers 8 \
     --img_size 256 \
-    --checkpoint_dir ./checkpoints_single \
-    --augment
+    --checkpoint_dir ./checkpoints_single
 
+
+# Hybrid
 
 !cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode hybrid_points_scribbles \
@@ -69,8 +75,7 @@ pip install torchmetrics pillow matplotlib
     --epochs 25 \
     --num_workers 8 \
     --img_size 256 \
-    --checkpoint_dir ./checkpoints_hybrid \
-    --augment
+    --checkpoint_dir ./checkpoints_hybrid
 
 !cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode hybrid_points_boxes \
@@ -82,8 +87,7 @@ pip install torchmetrics pillow matplotlib
     --epochs 25 \
     --num_workers 8 \
     --img_size 256 \
-    --checkpoint_dir comp0197/checkpoints_hybrid \
-    --augment
+    --checkpoint_dir ./checkpoints_hybrid
 
 !cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode hybrid_scribbles_boxes \
@@ -95,8 +99,7 @@ pip install torchmetrics pillow matplotlib
     --epochs 25 \
     --num_workers 8 \
     --img_size 256 \
-    --checkpoint_dir ./checkpoints_hybrid \
-    --augment
+    --checkpoint_dir ./checkpoints_hybrid
 
 !cd comp0197-cw2/  && python -m open_ended.train \
     --supervision_mode hybrid_points_scribbles_boxes \

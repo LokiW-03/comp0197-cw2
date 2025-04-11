@@ -7,10 +7,10 @@ import argparse
 import numpy as np 
 
 # --- Configuration ---
-DEFAULT_WEAK_LABEL_FILE = './weak_labels/weak_labels_train.pkl'
+DEFAULT_WEAK_LABEL_FILE = './open_ended/weak_labels/weak_labels_train.pkl'
 DEFAULT_IMAGE_DIR = './data/images' # Path to ORIGINAL images
 DEFAULT_TRIMAP_DIR = './data/annotations/trimaps' # <<< ADDED: Path to ORIGINAL trimaps
-DEFAULT_OUTPUT_DIR = './visualization_output'
+DEFAULT_OUTPUT_DIR = './open_ended/visualization_output'
 DEFAULT_SEED = 7
 
 # --- Annotation Drawing Settings ---
