@@ -45,7 +45,8 @@ pip install scikit-image torchmetrics
    ```
 #### Ablation Experiments 
 
-Ensure the classification model is saved under ```cam/saved_models```
+1. Download classifier from: https://liveuclac-my.sharepoint.com/:u:/g/personal/ucabc46_ucl_ac_uk/EU3B9wuc8LpBsEfLVpKVvUYBBo43vqkc528X-25_iiH09A?e=cdB93n
+2. Save classifer to ```cam/saved_models```
 
 ```sh
 python -m ablation.grid_search
