@@ -2,80 +2,165 @@
 import os
 import pickle
 import random
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps # Added ImageOps
 import argparse
-import numpy as np # Only needed if drawing complex shapes, PIL handles tuples
+import numpy as np # Now needed for mask processing
 
 # --- Configuration ---
 DEFAULT_WEAK_LABEL_FILE = './weak_labels/weak_labels_train.pkl'
 DEFAULT_IMAGE_DIR = './data/images' # Path to ORIGINAL images
+DEFAULT_TRIMAP_DIR = './data/annotations/trimaps' # <<< ADDED: Path to ORIGINAL trimaps
 DEFAULT_OUTPUT_DIR = './visualization_output'
-DEFAULT_SEED = 7 # Use same seed for reproducibility if needed
+DEFAULT_SEED = 7
 
 # --- Annotation Drawing Settings ---
-BOX_COLOR = (255, 0, 0)       # Red
-POINT_COLOR = (0, 255, 0)     # Lime Green
-SCATTER_COLOR = (0, 0, 255)   # Blue
-FG_SCRIBBLE_COLOR = (255, 255, 0) # Yellow
-BG_SCRIBBLE_COLOR = (255, 0, 255) # Magenta
+BOX_COLOR = (255, 0, 0, 255)       # Red (RGBA)
+POINT_COLOR = (0, 255, 0, 255)     # Lime Green (RGBA)
+FG_SCRIBBLE_COLOR = (255, 255, 0, 255) # Yellow (RGBA)
+BG_SCRIBBLE_COLOR = (255, 0, 255, 255) # Magenta (RGBA)
+# <<< ADDED: Mask Overlay Settings >>>
+MASK_OVERLAY_COLOR = (0, 0, 255, 100) # Semi-transparent Blue (R, G, B, Alpha)
+DEFAULT_FOREGROUND_VALUE = 1 # <<< ADDED: The value in trimap indicating foreground
+DEFAULT_TRIMAP_EXT = 'png'   # <<< ADDED: Default trimap extension
 
-POINT_RADIUS = 3  # Radius for drawing points/scatter/scribble pixels
+POINT_RADIUS = 3  # Radius for drawing points/scribble pixels
 BOX_WIDTH = 2     # Line thickness for boxes
 # --- End Configuration ---
 
-def draw_annotations(image, annotations):
-    """Draws annotations onto the PIL image object."""
-    draw = ImageDraw.Draw(image)
+# <<< ADDED FUNCTION: To load and process the mask >>>
+def load_and_get_mask(trimap_path, foreground_value):
+    """
+    Loads the trimap, converts to grayscale, and creates a binary mask
+    based on the specified foreground value.
+    Returns the binary mask (numpy array HxW, dtype=uint8) or None on error.
+    """
+    try:
+        if not os.path.exists(trimap_path):
+            print(f"Error: Trimap file not found at {trimap_path}")
+            return None
 
-    # 1. Draw Bounding Boxes
-    if 'boxes' in annotations and annotations['boxes']:
-        for box in annotations['boxes']:
-            # box format: (ymin, xmin, ymax, xmax)
-            ymin, xmin, ymax, xmax = box
-            # PIL draw rectangle uses [(x0, y0), (x1, y1)]
-            draw.rectangle([(xmin, ymin), (xmax, ymax)], outline=BOX_COLOR, width=BOX_WIDTH)
+        trimap = Image.open(trimap_path).convert('L')
+        trimap_np = np.array(trimap)
 
-    # Helper to draw points/pixels as small ellipses
-    def draw_point_marker(y, x, color, radius):
-         # PIL uses (x,y) coordinates
-        bbox = [(x - radius, y - radius), (x + radius, y + radius)]
+        # Create mask based on the specified foreground value
+        mask = (trimap_np == foreground_value).astype(np.uint8) # 0 or 1
+
+        if not np.any(mask):
+            print(f"Warning: No foreground pixels with value {foreground_value} found in trimap: {trimap_path}")
+            # Return an empty mask of the correct shape instead of None
+            # return np.zeros_like(trimap_np, dtype=np.uint8)
+            # Or maybe signal caller this specific issue? For now, let's return it empty
+            return mask # It's valid, just empty
+
+        return mask
+    except FileNotFoundError:
+        # This case is handled above, but kept for safety
+        print(f"Error: Trimap file not found: {trimap_path}")
+        return None
+    except Exception as e:
+        print(f"Error processing trimap {trimap_path}: {e}")
+        return None
+
+# <<< MODIFIED FUNCTION: To accept and draw the mask >>>
+def draw_annotations(image, annotations, mask_np=None):
+    """
+    Draws the mask overlay (if provided) and annotations onto the PIL image object.
+    Assumes image is in RGB or RGBA mode.
+    """
+    # Ensure image is RGBA for overlay compositing
+    if image.mode != 'RGBA':
+        image = image.convert('RGBA')
+
+    # --- Draw Mask Overlay (if mask is provided) ---
+    if mask_np is not None and mask_np.shape[0] == image.height and mask_np.shape[1] == image.width:
+        try:
+            # Create an RGBA overlay image where mask=1 is the overlay color, else transparent
+            overlay = np.zeros((image.height, image.width, 4), dtype=np.uint8)
+            overlay[mask_np == 1] = MASK_OVERLAY_COLOR # Apply color where mask is 1
+
+            # Convert overlay numpy array to PIL Image
+            mask_overlay_pil = Image.fromarray(overlay, 'RGBA')
+
+            # Composite the overlay onto the image using alpha blending
+            # The mask_overlay_pil itself acts as the mask due to its alpha channel
+            image.paste(mask_overlay_pil, (0, 0), mask_overlay_pil)
+
+        except Exception as e:
+            print(f"Warning: Failed to draw mask overlay: {e}")
+    elif mask_np is not None:
+         print(f"Warning: Mask dimensions ({mask_np.shape}) do not match image dimensions ({image.height}, {image.width}). Skipping mask overlay.")
+
+
+    # --- Now draw other annotations ON TOP of the image + overlay ---
+    draw = ImageDraw.Draw(image) # Draw directly on the (potentially overlaid) image
+
+    # Helper to draw points/pixels as small ellipses centered at (x, y)
+    def draw_point_marker(x, y, color, radius):
+        bbox = [
+            (x - radius, y - radius), # Top-left (xmin, ymin)
+            (x + radius, y + radius)  # Bottom-right (xmax, ymax)
+        ]
+        # Use RGBA color for drawing
         draw.ellipse(bbox, fill=color, outline=color)
 
-    # 2. Draw 'point' annotations
+    # 1. Draw Bounding Boxes
+    # Expected format: list of (xmin, ymin, xmax, ymax)
+    if 'boxes' in annotations and annotations['boxes']:
+        for box in annotations['boxes']:
+            try:
+                xmin, ymin, xmax, ymax = map(int, box)
+                draw.rectangle([(xmin, ymin), (xmax, ymax)], outline=BOX_COLOR[:3], width=BOX_WIDTH) # Use RGB for outline
+            except (ValueError, TypeError) as e:
+                print(f"Warning: Skipping invalid box format {box}: {e}")
+
+    # 2. Draw 'points' annotations
+    # Expected format: list of (x, y)
     if 'points' in annotations and annotations['points']:
-        for (y, x) in annotations['points']:
-            draw_point_marker(y, x, POINT_COLOR, POINT_RADIUS)
+        for point in annotations['points']:
+            try:
+                x, y = map(int, point)
+                draw_point_marker(x, y, POINT_COLOR, POINT_RADIUS)
+            except (ValueError, TypeError) as e:
+                 print(f"Warning: Skipping invalid point format {point}: {e}")
 
-
-    # 4. Draw 'scribbles' annotations
+    # 3. Draw 'scribbles' annotations
+    # Expected format: dict with 'foreground'/'background' lists of (x, y)
     if 'scribbles' in annotations:
-        # Draw foreground scribble points
-        if 'foreground' in annotations['scribbles'] and annotations['scribbles']['foreground']:
-            for (y, x) in annotations['scribbles']['foreground']:
-                draw_point_marker(y, x, FG_SCRIBBLE_COLOR, POINT_RADIUS)
-        # Draw background scribble points
-        if 'background' in annotations['scribbles'] and annotations['scribbles']['background']:
-             for (y, x) in annotations['scribbles']['background']:
-                draw_point_marker(y, x, BG_SCRIBBLE_COLOR, POINT_RADIUS)
+        scribble_data = annotations['scribbles']
+        if 'foreground' in scribble_data and scribble_data['foreground']:
+            for point in scribble_data['foreground']:
+                try:
+                    x, y = map(int, point)
+                    draw_point_marker(x, y, FG_SCRIBBLE_COLOR, POINT_RADIUS)
+                except (ValueError, TypeError) as e:
+                    print(f"Warning: Skipping invalid fg scribble point format {point}: {e}")
+        if 'background' in scribble_data and scribble_data['background']:
+             for point in scribble_data['background']:
+                try:
+                    x, y = map(int, point)
+                    draw_point_marker(x, y, BG_SCRIBBLE_COLOR, POINT_RADIUS)
+                except (ValueError, TypeError) as e:
+                    print(f"Warning: Skipping invalid bg scribble point format {point}: {e}")
 
     return image
 
 
 def main(args):
-    # Set seed for reproducible random choice if desired
     random.seed(args.seed)
 
-    # --- Load Data ---
+    # --- Load Weak Labels ---
     if not os.path.exists(args.label_file):
         print(f"Error: Weak label file not found at {args.label_file}")
         return
-
     print(f"Loading weak labels from: {args.label_file}")
-    with open(args.label_file, 'rb') as f:
-        all_weak_labels = pickle.load(f)
-
-    if not all_weak_labels:
-        print("Error: No labels found in the pickle file.")
+    try:
+        with open(args.label_file, 'rb') as f:
+            all_weak_labels = pickle.load(f)
+    except Exception as e:
+        print(f"Error loading pickle file {args.label_file}: {e}")
+        return
+    if not isinstance(all_weak_labels, dict) or not all_weak_labels:
+        print("Error: Loaded labels data is not a non-empty dictionary.")
         return
 
     # --- Select Image ---
@@ -83,53 +168,79 @@ def main(args):
     if not available_images:
         print("Error: No image keys found in the loaded labels.")
         return
-
     chosen_img_filename = random.choice(available_images)
     print(f"Randomly selected image: {chosen_img_filename}")
 
-    # --- Load Image ---
+    # --- Load Original Image ---
     img_path = os.path.join(args.image_dir, chosen_img_filename)
-    if not os.path.exists(img_path):
-        print(f"Error: Image file not found at {img_path}")
-        # Attempt common extensions if original failed (e.g., if pkl key has .jpg but file is .png)
-        base_name = os.path.splitext(chosen_img_filename)[0]
-        found = False
-        for ext in ['.jpg', '.png', '.jpeg']:
+    base_name = os.path.splitext(chosen_img_filename)[0]
+    found_img = False
+    if os.path.exists(img_path):
+        found_img = True
+    else:
+        print(f"Warning: Image file not found directly at {img_path}. Trying common extensions...")
+        for ext in ['.jpg', '.png', '.jpeg', '.bmp', '.gif']:
             potential_path = os.path.join(args.image_dir, base_name + ext)
             if os.path.exists(potential_path):
                 img_path = potential_path
                 print(f"Found image as: {img_path}")
-                found = True
+                found_img = True
                 break
-        if not found:
-            print(f"Error: Could not find image file corresponding to {chosen_img_filename} in {args.image_dir}")
-            return
-
+    if not found_img:
+        print(f"Error: Could not find image file corresponding to {chosen_img_filename} in {args.image_dir}")
+        return
     try:
-        image = Image.open(img_path).convert('RGB') # Ensure RGB for color drawing
+        image = Image.open(img_path).convert('RGB') # Start with RGB
     except Exception as e:
         print(f"Error opening image {img_path}: {e}")
         return
 
-    # --- Get Annotations ---
-    annotations = all_weak_labels[chosen_img_filename]
+    # --- Load Corresponding Mask (from Trimap) ---
+    mask_np = None # Initialize mask as None
+    trimap_filename = base_name + '.' + args.trimap_ext
+    trimap_path = os.path.join(args.trimap_dir, trimap_filename)
+    print(f"Attempting to load mask from trimap: {trimap_path}")
+    # mask_np = load_and_get_mask(trimap_path, args.foreground_value)
+    
+    if mask_np is None:
+        print(f"Warning: Could not load or process mask for {chosen_img_filename}. Proceeding without mask overlay.")
+        # Proceeding, mask_np remains None
 
-    # --- Draw Annotations ---
+    # --- Get Annotations ---
+    if chosen_img_filename not in all_weak_labels:
+         print(f"Error: Key {chosen_img_filename} not found in labels dictionary.")
+         return
+    annotations = all_weak_labels[chosen_img_filename]
+    if not isinstance(annotations, dict):
+        print(f"Error: Annotation data for {chosen_img_filename} is not a dictionary.")
+        return
+
+    # --- Draw Annotations (and mask if loaded) ---
     print("Drawing annotations...")
-    annotated_image = draw_annotations(image.copy(), annotations) # Draw on a copy
+    # Pass the loaded mask (or None) to the drawing function
+    annotated_image = draw_annotations(image.copy(), annotations, mask_np)
 
     # --- Save Output ---
-    os.makedirs(args.output_dir, exist_ok=True)
-    output_filename = f"annotated_{os.path.splitext(chosen_img_filename)[0]}.png"
-    output_path = os.path.join(args.output_dir, output_filename)
-
     try:
+        os.makedirs(args.output_dir, exist_ok=True)
+    except OSError as e:
+        print(f"Error creating output directory {args.output_dir}: {e}")
+        return
+    output_filename = f"annotated_{base_name}.png" # Save as PNG to preserve transparency
+    output_path = os.path.join(args.output_dir, output_filename)
+    try:
+        # Convert back to RGB if no transparency was actually needed (e.g., no mask)
+        # or just save as PNG which handles RGBA well. Let's stick with PNG.
         annotated_image.save(output_path)
         print("-" * 30)
         print("Annotation Summary:")
         print(f"  Image: {chosen_img_filename}")
+        if mask_np is not None:
+            print(f"  Mask Overlay: Drawn (using value {args.foreground_value} from {trimap_filename})")
+        else:
+            print(f"  Mask Overlay: Not drawn (trimap/mask issue)")
         print(f"  Bounding Boxes: {len(annotations.get('boxes', []))}")
-        print(f"  Points: {len(annotations.get('point', []))}")
+        print(f"  Points: {len(annotations.get('points', []))}")
         print(f"  FG Scribble Points: {len(annotations.get('scribbles', {}).get('foreground', []))}")
         print(f"  BG Scribble Points: {len(annotations.get('scribbles', {}).get('background', []))}")
         print("-" * 30)
@@ -139,11 +250,19 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Visualize Weak Labels on a Random Image")
+    parser = argparse.ArgumentParser(description="Visualize Weak Labels and Mask Overlay on a Random Image")
     parser.add_argument('--label_file', type=str, default=DEFAULT_WEAK_LABEL_FILE,
                         help='Path to the generated weak labels pickle file')
     parser.add_argument('--image_dir', type=str, default=DEFAULT_IMAGE_DIR,
                         help='Path to the directory containing the original images')
+    # <<< ADDED Arguments for Mask Loading >>>
+    parser.add_argument('--trimap_dir', type=str, default=DEFAULT_TRIMAP_DIR,
+                        help='Path to the directory containing the original trimaps')
+    parser.add_argument('--trimap_ext', type=str, default=DEFAULT_TRIMAP_EXT,
+                        help='Extension of trimap files (e.g., png)')
+    parser.add_argument('--foreground_value', type=int, default=DEFAULT_FOREGROUND_VALUE,
+                        help='Pixel value in the trimap representing definite foreground')
+    # <<< End Added Arguments >>>
     parser.add_argument('--output_dir', type=str, default=DEFAULT_OUTPUT_DIR,
                         help='Directory to save the visualized output image')
     parser.add_argument('--seed', type=int, default=DEFAULT_SEED,

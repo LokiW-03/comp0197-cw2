@@ -149,6 +149,7 @@ python -m open_ended.weight_visualization
     *   Points (centroid of each object mask).
     *   Scribbles (freehand stroke per object and background)
     *   Bounding boxes (tightest box around mask).
+    Fo
 
 **Phase 2: Model Training**
 
@@ -157,7 +158,7 @@ python -m open_ended.weight_visualization
     *   **Points:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels. Modify dataloader to provide point labels.
     *   **Scribbles:** Implement partial CrossEntropyLoss, ignoring unlabeled pixels.
     *   **Boxes:** Generate pseudo-masks (inside box = foreground, outside = background). Train using standard CrossEntropyLoss on these pseudo-masks. Modify dataloader to provide box labels/masks.
-7.  **Launch Training Runs:** Start training one model for each supervision type (Tags, Points, Scribbles, Boxes, Hybrid Tags+Points) on available GPUs. Use modest epochs initially (e.g., 50) and monitor validation loss/accuracy. Use consistent hyperparameters (learning rate, batch size) across runs where applicable.
+7.  **Launch Training Runs:** Start training one model for each supervision type (Points, Scribbles, Boxes, Hybrid) on available GPUs. Use modest epochs initially (e.g., 50) and monitor validation loss/accuracy. Use consistent hyperparameters (learning rate, batch size) across runs where applicable.
 8.  **Debugging & Monitoring:** Monitor training progress (loss curves, basic validation metrics). Debug any issues (NaN losses, slow convergence, bugs in loss implementation). Adjust hyperparameters slightly if necessary (e.g., learning rate).
 
 **Phase 3: Evaluation & Analysis**
