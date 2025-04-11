@@ -134,7 +134,7 @@ python -m open_ended.evaluate \
     --data_dir ./data \
     --batch_size 8 \
     --num_workers 4 \
-    --device mps
+    --device cuda
 ```
 
 ## Plan
