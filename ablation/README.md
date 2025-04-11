@@ -26,22 +26,21 @@ In total: 3 x 2 x 2 x 2 = 24 configurations
 # Hyperparameters that were kept consistent (Model architecture)
 
 **Classifier model**
+**Classifier model**
 
 Throughout the experiments, we maintained the same classifier model and its hyperparameters. This is because the model was tuned to have >90% accuracy and was deemed good enough.
 
-@chenge
 In particular:
-- We used ResNet50 model (why?)
-- Epochs: ...
-- Loss fn: ...
-- Learning rate: ...
-- Batch size: ...
-- Optimizer: ...
+- We used pretrained ResNet50 model, only fine-tuned the classifier: it's a commonly used backbone in generating cam
+- Epochs: 20
+- Loss fn: cross entropy
+- Learning rate: 1e-3
+- Batch size: 32
+- Optimizer: Adam
 
 **CAM**
 
-@chenge
-- How is the heatmap generated? (if the process is too complicated, just link the paper)
+GradCam++ is in use because it's a refined version of GradCam. ScoreCam was tested with OOM error on A100(40GB GRAM). https://arxiv.org/abs/1710.11063
 
 **Pseudo mask generation**
 
