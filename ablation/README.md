@@ -18,7 +18,13 @@ The experiments were a grid search of 4 dimensions:
 
 In total: 3 x 2 x 2 x 2 = 24
 
-Other segmentation model hyperparameters were kept consistent (AdamW optimizer, 1e-4 weight_decay, scheduler StepLR step_size=15 gamma=0.1)
+Other segmentation model hyperparameters were kept consistent:
+- AdamW optimizer
+  - 1e-4 weight_decay
+  - LR varies as above
+- StepLR scheduler
+  - step_size=15
+  - gamma=0.1
 
 # Reason we picked these hyperparameters
 
