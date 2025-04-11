@@ -328,12 +328,12 @@ def main():
     # --- Define Loss Function ---
     if args.supervision_mode == 'full':
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    elif model_mode == 'hybrid':
-        loss_fn = CombinedLoss(ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
-    elif args.supervision_mode == 'boxes':
-        loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     else:
-        loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
+        loss_fn = CombinedLoss(ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
+    # elif args.supervision_mode == 'boxes':
+    #     loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    # else:
+    #     loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
     loss_fn.to(device) # Move loss function to device
 
     # --- Optimizer ---
