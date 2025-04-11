@@ -191,6 +191,7 @@ def train_model(
 
 
 def main():
+    """Main function"""
     import argparse
 
     parser = argparse.ArgumentParser()

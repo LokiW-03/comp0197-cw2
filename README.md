@@ -13,7 +13,7 @@ conda create -n comp0197-cw2-pt python=3.12 pip && conda activate comp0197-cw2-p
 ### Extra Dependencies
 In addition to above base packages, this codebase also requires below packages to be installed.
 ```bash
-pip install scikit-image
+pip install scikit-image torchmetrics
 ```
 
 
@@ -50,4 +50,5 @@ Ensure the classification model is saved under ```cam/saved_models```
 ```sh
 python -m ablation.grid_search
 ```
+
 ### Open-ended Section
