@@ -73,8 +73,8 @@ def fine_tune_model():
         # Save best model
         if epoch_acc > best_acc:
             best_acc = epoch_acc
-            torch.save(model.state_dict(), f"{MODEL_SAVE_PATH}/resnet50_pet_cam.pth")
-            print(f"Model saved at {MODEL_SAVE_PATH}/resnet50_pet_cam.pth with acc {best_acc:.4f}")
+            torch.save(model.state_dict(), f"{MODEL_SAVE_PATH}/resnet_pet_cam.pth")
+            print(f"Model saved at {MODEL_SAVE_PATH}/resnet_pet_cam.pth with acc {best_acc:.4f}")
 
 
 # -------------------- Execute Training --------------------

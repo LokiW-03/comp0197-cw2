@@ -39,11 +39,14 @@ Available segmentation model options are: segnet, segnext, effunet, unet.
 
 ### Weakly Supervised Model
 
-1. Finetune classifier without regularization
+NOTE: Below command are designed to be executed in sequence. Breaking the sequence may result in receiving errors due to
+saved model weights not found.
+
+1. Finetune classifier without regularisation
    ```sh
    python -m cam.finetune
    ```
-   or with regularization
+   or with regularisation
    ```sh
    python -m crm.train_cam_with_crm
    python -m crm.evaluate_with_crm
@@ -53,12 +56,22 @@ Available segmentation model options are: segnet, segnext, effunet, unet.
    ```sh
    python -m cam.postprocessing --model=resnet
    ```
+   or with regularisation
+   ```sh
+   python -m cam.postprocessing --model=resnet_crm
+   ```
 
    Sample heapmap images are generated in the ```cam/output/cam_grid.jpg```
 
-3. Train the SegNet segmentation model with pseudo masks
+3. Train the SegNet segmentation model with pseudo masks\
+   If classifier used in previous steps is simple resnet, model and pseudo masks are save in cam/saved_models folder:
    ```sh
-   python -m supervised.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet50_gradcampp_pseudo.pt
+   python -m supervised.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet_pet_cam_pseudo.pt
+   ```
+   If classifier used earlier is with regularisation, i.e. resnet_crm or resnet_drs, model and pseudo masks are save in 
+   crm_models/ folder:
+   ```sh
+   python -m supervised.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet_pet_gradcampp_crm_pseudo.pt
    ```
    
 ### Ablation Experiments

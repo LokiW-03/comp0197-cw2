@@ -11,7 +11,7 @@ from supervised.montage import visualise_fs_segmentation
 from supervised.metrics import compute_metrics
 
 SAVE_WEIGHTS_FREQUENCY = 2 # save weights to a file every {num} epochs
-EPOCHS = 1
+EPOCHS = 20
 
 def compute_test_metrics_fn(model, testloader, loss_fn, device, num_classes = 3, num_eval_batches = None):
     """

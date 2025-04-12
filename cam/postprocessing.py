@@ -135,9 +135,9 @@ if __name__ == "__main__":
 
     if args.model == 'resnet':
         model = ResNet50_CAM(num_classes)
-        model_save_path = f"{MODEL_SAVE_PATH}/resnet50_pet_cam.pth"
+        model_save_path = f"{MODEL_SAVE_PATH}/resnet_pet_cam.pth"
         cam_generator = lambda model: GradCAMpp(model)
-        pseudo_save_path = f"{MODEL_SAVE_PATH}/resnet50_pet_cam_pseudo.pt"
+        pseudo_save_path = f"{MODEL_SAVE_PATH}/resnet_pet_cam_pseudo.pt"
 
     elif args.model == 'resnet_crm':
         model = ResNet50_CAM(num_classes)
