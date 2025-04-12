@@ -9,7 +9,7 @@ import traceback
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
 from model.segnet_wrapper import SegNetWrapper
-from data_utils.data_utils import PetsDataset, IGNORE_INDEX
+from data_utils.data_util import PetsDataset, IGNORE_INDEX
 from open_ended.losses import CombinedLoss
 
 

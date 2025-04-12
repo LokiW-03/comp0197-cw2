@@ -8,7 +8,7 @@ import logging
 import pickle
 
 from torch.utils.data import DataLoader
-from data_utils.data_utils import PetsDataset, IGNORE_INDEX
+from data_utils.data_util import PetsDataset, IGNORE_INDEX
 from model.baseline_segnet import SegNet
 
 # Configure logging

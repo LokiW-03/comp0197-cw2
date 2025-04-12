@@ -75,7 +75,7 @@ This section details the steps to download data, prepare labels (if needed), tra
 This script checks if the Oxford-IIIT Pet Dataset has been downloaded already. If not, download it.
 
 ```bash
-python open_ended/download_data.py
+python -m open_ended.download_data
 ```
 *   This command will download the dataset into a directory (likely `./data` based on subsequent commands). Ensure you have sufficient disk space and an internet connection.
 
@@ -84,7 +84,7 @@ python open_ended/download_data.py
 This script generates the sparse weak annotations (points, scribbles, boxes) from the ground-truth segmentation masks provided by the original dataset.
 
 ```bash
-python open_ended/weak_label_generator.py --data_dir ./data/oxford-iiit-pet --output_file ./open_ended/weak_labels/weak_labels_train.pkl
+python -m open_ended.weak_label_generator --data_dir ./data/oxford-iiit-pet --output_file ./open_ended/weak_labels/weak_labels_train.pkl
 ```
 
 *   `--data_dir ./data/oxford-iiit-pet`: Specifies the directory where the Oxford-IIIT Pet dataset was downloaded (input).

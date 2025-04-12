@@ -1,4 +1,4 @@
-# data_utils.py
+# data_util.py
 import os
 import glob
 import numpy as np
@@ -6,7 +6,7 @@ import torch
 import pickle
 from PIL import Image
 from torch.utils.data import Dataset
-from data import ImageTransform
+from data_utils.data import ImageTransform
 
 
 # Define the ignore index for CrossEntropyLoss
