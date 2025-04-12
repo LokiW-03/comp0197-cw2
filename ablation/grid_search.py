@@ -99,7 +99,8 @@ def search(seg_model_name, # Segmentation model
 if __name__ == "__main__":
     results = []
     parser = argparse.ArgumentParser(description="Grid search for multiple hyperparameters")
-    parser.add_argument("--model_path", type=str, default="cam/saved_models/resnet50_pet_cam.pth")
+    parser.add_argument('--model', type=str, default='segnet', choices=['segnet', 'segnext', 'effunet', 'unet'], help='Segmentation model')
+    parser.add_argument("--model_path", type=str, default="cam/saved_models/resnet_pet_cam.pth")
     parser.add_argument("--result_path", type=str, default="./grid_search_results.csv", help="Path to search results")
     args = parser.parse_args()
 
@@ -157,9 +158,9 @@ if __name__ == "__main__":
         print(f"Parameters: {result['parameters']}")
 
         test_metrics = search(
-            seg_model_name="unet",
+            seg_model_name=args.model,
             model_path=args.model_path,
-            save_path=f"cam/saved_models/resnet50_gradcampp_trial_pseudo.pt",
+            save_path=f"cam/saved_models/resnet_gradcampp_trial_pseudo.pt",
             batch_size=batch_size,
             thres_low=thres_low,
             thres_high=thres_high,

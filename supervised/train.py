@@ -195,9 +195,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='effunet', choices=['segnet', 'segnext', 'effunet', 'unet'], help='Segmentation model')
+    parser.add_argument('--model', type=str, default='segnet', choices=['segnet', 'segnext', 'effunet', 'unet'], help='Segmentation model')
     parser.add_argument('--pseudo', action="store_true", help='Use pseudo masks')
-    parser.add_argument('--pseudo_path', type=str, default='cam/saved_models/resnet50_pet_cam_pseudo.pt', help='Path to pseudo masks')
+    parser.add_argument('--pseudo_path', type=str, default='cam/saved_models/resnet_pet_cam_pseudo.pt', help='Path to pseudo masks')
     parser.add_argument('--verbose', action="store_true", help='Print verbose output')
     parser.add_argument('--collapse_contour', action='store_true')
     args = parser.parse_args()
