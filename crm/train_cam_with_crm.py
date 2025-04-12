@@ -1,3 +1,6 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 import os
 import argparse
 import torch
@@ -5,18 +8,17 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.amp import autocast, GradScaler
 from torch.utils.data import DataLoader
-from torchvision import transforms
 import torch.nn.functional as F
 
-from cam.dataset.oxfordpet_paths import OxfordIIITPetWithPaths
-from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
-from cam.resnet_drs import ResNet50_CAM_DRS
+from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+from model.resnet_drs import ResNet50_CAM_DRS
+from model.reconstruct_net import ReconstructNet
 
-from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR ,IMG_SIZE
-from crm.reconstruct_net import ReconstructNet
+from crm.constants import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR
 from crm.crm_loss import VGGLoss, alignment_loss
-from crm.oxfordpet_superpixel import OxfordPetSuperpixels
 from crm.gen_superpixel import generate_superpixels
+
+from data_utils.data import crm_trainset
 
 
 def train(model_name: str = 'resnet', 
@@ -25,6 +27,18 @@ def train(model_name: str = 'resnet',
           vgg_weight: float = 0.3,
           align_weight: float = 0.3,
           num_epochs: int = NUM_EPOCHS):
+    """
+    Trains a classification and reconstruction model with a combined multi-task loss
+    involving classification accuracy, image reconstruction, and CAM-superpixel alignment.
+
+    Args:
+        model_name (str): Name of the classification model to use. Options: 'resnet', 'resnet_drs'.
+        cls_lr (float): Learning rate for the classification model.
+        rec_lr (float): Learning rate for the reconstruction model.
+        vgg_weight (float): Weight for VGG-based perceptual loss in the reconstruction loss.
+        align_weight (float): Weight for the alignment loss between CAMs and superpixels.
+        num_epochs (int): Number of training epochs.
+    """
 
     loss_history = {
         "cls": [],
@@ -38,17 +52,6 @@ def train(model_name: str = 'resnet',
     device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
     os.makedirs(CRM_MODEL_SAVE_PATH, exist_ok=True)
 
-    transform = transforms.Compose([
-        transforms.Resize((IMG_SIZE, IMG_SIZE)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225])
-    ])
-
-    base_dataset = OxfordIIITPetWithPaths(
-        root='./data', split='trainval', target_types='category',
-        download=True, transform=None
-    )
 
     superpixel_dir = "./superpixels"
     image_dir = "./data/oxford-iiit-pet/images"
@@ -58,11 +61,7 @@ def train(model_name: str = 'resnet',
         print(f"Generating superpixels...")
         generate_superpixels(image_dir=image_dir, save_dir=superpixel_dir)
 
-    trainset = OxfordPetSuperpixels(
-        base_dataset=base_dataset,
-        superpixel_dir="./superpixels",
-        transform=transform
-    )
+    trainset = crm_trainset
 
     train_loader = DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
@@ -97,6 +96,7 @@ def train(model_name: str = 'resnet',
     recon_net.train()
 
     for epoch in range(num_epochs):
+        print(f"Training epoch: {epoch}")
         total_cls_loss, total_rec_loss, total_align_loss = 0.0, 0.0, 0.0
         correct_preds, total_preds = 0, 0
 
@@ -113,7 +113,6 @@ def train(model_name: str = 'resnet',
                 labels_onehot = F.one_hot(labels, num_classes=NUM_CLASSES).float()
                 align_loss_val = alignment_loss(cams, sp, labels_onehot, align_loss_fn)
                 loss = cls_loss + rec_loss + align_weight * align_loss_val
-                # loss = cls_loss + rec_loss
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -136,7 +135,6 @@ def train(model_name: str = 'resnet',
         print(f"[Epoch {epoch+1:02}/{num_epochs}] "
               f"CLS Loss: {avg_cls_loss:.4f} | "
               f"REC Loss: {avg_rec_loss:.4f} | "
-              # f"ALIGN Loss: {avg_align_loss:.4f} | "
               f"Train Acc: {train_acc:.2f}%")
 
         total_loss = avg_cls_loss + avg_rec_loss + align_weight * avg_align_loss
@@ -153,12 +151,6 @@ def train(model_name: str = 'resnet',
     elif model_name == 'resnet_drs':
         torch.save(model.state_dict(), f"{CRM_MODEL_SAVE_PATH}/resnet_drs_pet_gradcampp_crm.pth")
         torch.save(recon_net.state_dict(), f"{CRM_MODEL_SAVE_PATH}/reconstruct_net_resnet_drs.pth")
-
-    # graph_dir = "./graph"
-    # os.makedirs(graph_dir, exist_ok=True)
-    # filename = os.path.join(graph_dir, f"{model_name}_loss_history.pt")
-    # torch.save(loss_history, filename)
-    # print("Saved loss history to ./graph/{model_name}_loss_history.pt")
 
     print("Training complete. Models saved.")
 

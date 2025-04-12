@@ -1,13 +1,17 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 import os
 import pickle
-from PIL import Image
 import numpy as np
-from skimage import measure, morphology
-from tqdm import tqdm
 import argparse
 import glob
 import random
 import logging
+
+from PIL import Image
+from skimage import measure, morphology
+from tqdm import tqdm
 
 # --- Configuration ---
 DEFAULT_NUM_POINT_PER_OBJ = 30
@@ -24,6 +28,9 @@ def get_binary_mask_and_size_from_trimap(trimap_path):
     Loads the trimap, gets its original size, converts to grayscale,
     and creates a binary mask based on the foreground value (assuming 1).
     Returns the binary mask (numpy array) and original size (width, height).
+
+    Args:
+        trimap_path: path of trimap file
     """
     try:
         trimap = Image.open(trimap_path).convert('L')
@@ -47,7 +54,20 @@ def get_binary_mask_and_size_from_trimap(trimap_path):
 
 
 def get_point(mask_np, num_point_per_obj=DEFAULT_NUM_POINT_PER_OBJ):
-    """Generates points sampled from each object mask."""
+    """
+    Generates points sampled from each object mask.
+
+    This function uses connected component labeling to find individual objects in the mask and samples points
+    from the coordinates of each object. The number of points sampled per object is configurable.
+
+    Args:
+        mask_np (np.ndarray): Binary mask (numpy array) where the foreground objects are labeled with non-zero values.
+        num_point_per_obj (int, optional): Number of points to sample per object. Default is `DEFAULT_NUM_POINT_PER_OBJ`.
+
+    Returns:
+        points: A list of (x, y) coordinates sampled from each object in the mask.
+    """
+
     point = []
     # Ensure mask is boolean for labeling
     labels = measure.label(mask_np > 0, connectivity=2)
@@ -75,8 +95,21 @@ def get_point(mask_np, num_point_per_obj=DEFAULT_NUM_POINT_PER_OBJ):
 
     return point
 
+
 def get_scribbles(mask_np, bg_dilation=40):
-    """Generate scribbles using longest skeleton path."""
+    """
+    Generate scribbles using the longest skeleton path for both foreground and background regions.
+
+    Args:
+        mask_np (np.ndarray): Binary mask (numpy array) with foreground (1) and background (0) values.
+        bg_dilation (int, optional): Size of the dilation used to define the background region. Default is 40.
+
+    Returns:
+        scribbles: A dictionary containing two keys:
+            - 'foreground': List of (x, y) points for the longest skeleton path in the foreground.
+            - 'background': List of (x, y) points for the longest skeleton path in the background.
+    """
+
     def find_longest_path(skeleton):
         # Check if skeleton is empty
         if not np.any(skeleton):
@@ -183,12 +216,23 @@ def get_scribbles(mask_np, bg_dilation=40):
         log.error(f"Error generating background skeleton/path: {e}")
         scribbles['background'] = []
 
-
     return scribbles
 
 
 def get_bounding_boxes(mask_np):
-    """Returns bounding boxes for each object as (xmin, ymin, xmax, ymax)."""
+    """
+    Returns bounding boxes for each object in the mask as (xmin, ymin, xmax, ymax).
+
+    This function uses connected component labeling to find each object in the binary mask and computes
+    the bounding box coordinates (xmin, ymin, xmax, ymax) for each object.
+
+    Args:
+        mask_np (np.ndarray): Binary mask (numpy array) where foreground objects are labeled with non-zero values.
+
+    Returns:
+        boxes: A list of bounding boxes, each represented as a tuple (xmin, ymin, xmax, ymax).
+    """
+
     boxes = []
     # Ensure mask is boolean for labeling
     labels = measure.label(mask_np > 0, connectivity=2)
@@ -201,7 +245,10 @@ def get_bounding_boxes(mask_np):
         boxes.append((int(min_col), int(min_row), int(max_col), int(max_row)))
     return boxes
 
+
 def main(args):
+    """Main function for weak label generation"""
+
     logging.basicConfig(
         level=getattr(logging, args.log_level.upper()),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', # Added logger name
@@ -282,7 +329,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate weak supervision data (points, scribbles, boxes) from trimaps.")
-    parser.add_argument('--data_dir', default='./data', help='Dataset root directory (expects subfolders: images, annotations/trimaps)')
+    parser.add_argument('--data_dir', default='./data/oxford-iiit-pet', help='Dataset root directory (expects subfolders: images, annotations/trimaps)')
     parser.add_argument('--output_file', default='./weak_labels/weak_labels_train.pkl', help='Output file path for the pickled dictionary')
     parser.add_argument('--image_ext', default='jpg', help='Extension of image files (e.g., jpg, png)')
     parser.add_argument('--trimap_ext', default='png', help='Extension of trimap files (e.g., png)')

@@ -1,41 +1,52 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 # train_hybrid_feature.py (modified script)
 import os
 import argparse
 import torch
 import torch.optim as optim
-from torch.utils.data import DataLoader
-from torch.nn import CrossEntropyLoss
-from open_ended.model_utils import SegNetWrapper
-from open_ended.data_utils import PetsDataset, IGNORE_INDEX
-from open_ended.losses import CombinedLoss, PartialCrossEntropyLoss
 import torchmetrics # Added for metric calculation
 import time
 import traceback
+from torch.utils.data import DataLoader
+from torch.nn import CrossEntropyLoss
+from model.segnet_wrapper import SegNetWrapper
+from data_utils.data_util import PetsDataset, IGNORE_INDEX
+from open_ended.losses import CombinedLoss
+
 
 
 # --- Configuration ---
-DEFAULT_DATA_DIR = './data'
+DEFAULT_DATA_DIR = './data/oxford-iiit-pet'
 DEFAULT_WEAK_LABEL_PATH = './weak_labels/weak_labels_train.pkl'
 DEFAULT_CHECKPOINT_DIR = './checkpoints'
 DEFAULT_NUM_CLASSES = 2 # IoU should have 2 classes, foreground, background
 
 # ***** HELPER FUNCTION for formatting time *****
 def format_time(seconds):
-    """Converts seconds to HH:MM:SS format."""
+    """
+    Converts seconds to HH:MM:SS format.
+
+    Args:
+        seconds: time in second format
+    """
+
     seconds = int(round(seconds))
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return f"{h:02d}:{m:02d}:{s:02d}"
 # ********************************************
 
+
 def setup_arg_parser():
+    """Set up argparser for running this file"""
     parser = argparse.ArgumentParser(description='Train WSSS Model on Pets Dataset')
     parser.add_argument('--data_dir', type=str, default=DEFAULT_DATA_DIR, help='Dataset directory')
     parser.add_argument('--weak_label_path', type=str, default=DEFAULT_WEAK_LABEL_PATH, help='Path to pre-generated weak labels')
     parser.add_argument('--supervision_mode', type=str, required=True,
                         choices=['full', 'points', 'scribbles', 'boxes', 'hybrid_points_scribbles', 'hybrid_points_boxes', 'hybrid_scribbles_boxes', 'hybrid_points_scribbles_boxes'],
                         help='Type of supervision to use for training')
-    parser.add_argument('--backbone', type=str, default='efficientnet-b0', help='EffUnet backbone')
     parser.add_argument('--img_size', type=int, default=256, help='Image size for training (square)')
     parser.add_argument('--epochs', type=int, default=50, help='Number of training epochs')
     parser.add_argument('--batch_size', type=int, default=8, help='Training batch size')
@@ -48,7 +59,27 @@ def setup_arg_parser():
 
     return parser
 
-def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes):
+
+def train_one_epoch(model, loader, optimizer, loss_fn, device, num_classes):
+    """
+    Performs a single training epoch for a semantic segmentation model using weak labels for loss
+    and ground truth masks for metrics.
+
+    Args:
+        model (torch.nn.Module): The segmentation model to train.
+        loader (DataLoader): DataLoader providing batches of (image, weak_target, ground_truth_mask).
+        optimizer (torch.optim.Optimizer): Optimizer used to update model weights.
+        loss_fn (callable): Loss function that supports weak supervision inputs.
+        device (torch.device): Device to run the training on (CPU or CUDA).
+        num_classes (int): Number of segmentation classes.
+
+    Returns:
+        tuple of metrics:
+            - avg_loss (float): Average training loss across the epoch.
+            - epoch_train_acc (float): Training accuracy calculated using ground truth masks.
+            - epoch_train_avg_iou (float): Mean IoU across all classes using ground truth masks.
+    """
+
     model.train()
     total_loss = 0.0
     num_batches = len(loader)
@@ -78,7 +109,7 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes
         # Ensure GT masks are suitable for metrics (LongTensor)
         gt_masks_device = gt_masks.to(device).long()
 
-        # Move weak targets to device based on mode
+        # Move weak targets to device based on targets type
         if isinstance(targets, torch.Tensor):
             targets_device = targets.to(device).long()
             # print(f"Warning: Training with Tensor targets in hybrid script (Batch {i}). Ensure loss function handles this.")
@@ -155,7 +186,6 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes
     epoch_train_avg_iou = 0.0
     try:
         epoch_train_acc = train_accuracy.compute().item()
-        iou_per_class = train_iou.compute()
         # Handle potential issues with IoU calculation (e.g., division by zero if no true positives/union)
 
         # Inside train_one_epoch after computing iou_per_class
@@ -186,8 +216,25 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes
     print(f"Training epoch finished. Average Loss: {avg_loss:.4f}, Train Acc (GT): {epoch_train_acc:.4f}, Train Avg IoU (GT): {epoch_train_avg_iou:.4f}")
     return avg_loss, epoch_train_acc, epoch_train_avg_iou # Return metrics
 
+
 # Modified validate_one_epoch to calculate and return val loss, accuracy, and pet_iou
 def validate_one_epoch(model, loader, device, num_classes):
+    """
+    Evaluates the model for one epoch on the validation dataset using ground truth masks.
+
+    Args:
+        model (torch.nn.Module): Trained segmentation model to validate.
+        loader (DataLoader): DataLoader providing batches of (image, _, ground_truth_mask).
+        device (torch.device): Device to run validation on (CPU or CUDA).
+        num_classes (int): Number of segmentation classes.
+
+    Returns:
+        tuple of metrics:
+            - avg_loss (float): Average validation loss across all batches.
+            - epoch_val_acc (float): Validation accuracy using ground truth.
+            - epoch_val_avg_iou (float): Mean IoU across all classes using ground truth.
+    """
+
     model.eval()
     total_loss = 0.0
     num_batches = len(loader)
@@ -282,7 +329,7 @@ def validate_one_epoch(model, loader, device, num_classes):
 
 
 def main():
-
+    """Main function for training"""
     torch.manual_seed(42)
     parser = setup_arg_parser()
     args = parser.parse_args()
@@ -320,8 +367,7 @@ def main():
         model_mode = 'single' # Assumed equivalent to 'segmentation' for SegNeXtWrapper
     num_output_classes = args.num_classes
     print(f"Initializing model in '{model_mode}' mode with {num_output_classes} output classes for segmentation head.")
-    # model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)
-    # model.to(device)
+
     model = SegNetWrapper(num_classes=num_output_classes, mode=model_mode) # Pass num_classes here
     model.to(device)
 
@@ -330,10 +376,7 @@ def main():
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     else:
         loss_fn = CombinedLoss(ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
-    # elif args.supervision_mode == 'boxes':
-    #     loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
-    # else:
-    #     loss_fn = PartialCrossEntropyLoss(ignore_index=IGNORE_INDEX)
+
     loss_fn.to(device) # Move loss function to device
 
     # --- Optimizer ---
@@ -364,7 +407,7 @@ def main():
         try:
             # Get train loss (only loss is returned now)
             train_loss, train_acc, train_avg_iou = train_one_epoch(
-                model, train_loader, optimizer, loss_fn, device, args.supervision_mode, num_output_classes
+                model, train_loader, optimizer, loss_fn, device, num_output_classes
             )
             # Get validation metrics
             val_loss, val_acc, val_avg_iou = validate_one_epoch(
@@ -442,7 +485,7 @@ def main():
             traceback.print_exc()
             break
 
-    
+
     training_end_time = time.time()
     total_training_time = training_end_time - training_start_time
     print("\n------------------------------------")

@@ -1,21 +1,23 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 import torch
+import argparse
+import itertools
 import torch.nn as nn
 from torch.utils.data import DataLoader
+
 from cam.load_pseudo import load_pseudo
-from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from cam.postprocessing import generate_pseudo_masks
-from cam.dataset.oxfordpet import download_pet_dataset
-from model.data import testset
+from data_utils.data import testset, get_cam_pet_dataset
 from model.baseline_segnet import SegNet
 from model.efficient_unet import EfficientUNet
 from model.segnext import SegNeXt
 from model.baseline_unet import UNet
-from model.train import train_model, compute_test_metrics_fn
-import itertools
-from ablation.search_space import generate_refined_cam_threshold_space
+from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+from supervised.train import train_model, compute_test_metrics_fn
+from supervised.loss import DiceLoss
 from ablation.search_tools import save_results_to_csv
-from model.loss import DiceLoss, CombinedCELDiceLoss
-
 
 def search(seg_model_name, # Segmentation model
            model_path, # Path to the classification model
@@ -28,13 +30,42 @@ def search(seg_model_name, # Segmentation model
            optimizer_generator: callable, # Optimizer
            scheduler_generator: callable, # Learning rate scheduler
            ):
+    """
+    Runs a pseudo-mask-based weakly supervised segmentation pipeline using a CAM-based classifier.
+
+    This function performs the following steps:
+        1. Loads a pre-trained classification model (ResNet50_CAM).
+        2. Generates Class Activation Maps (CAMs) using Grad-CAM++.
+        3. Applies thresholding to create pseudo segmentation masks.
+        4. Loads the pseudo masks as a training dataset.
+        5. Selects and initializes a segmentation model based on `seg_model_name`.
+        6. Trains the segmentation model using the pseudo masks.
+        7. Evaluates the trained model on the test set and returns test metrics.
+
+    Args:
+        seg_model_name (str): Name of the segmentation model to use. Options include
+            "segnet", "efficientunet", "segnext", or "unet".
+        model_path (str): Path to the saved classification model weights.
+        save_path (str): Temporary directory path to save generated pseudo masks.
+        batch_size (int): Batch size for training and evaluation.
+        thres_low (float): Lower threshold for CAM values to include in the pseudo mask.
+        thres_high (float): Upper threshold for CAM values to include in the pseudo mask.
+        epochs (int): Number of training epochs for the segmentation model.
+        loss_fn (callable): Loss function to optimize during training.
+        optimizer_generator (callable): Function that accepts a model and returns an optimizer.
+        scheduler_generator (callable): Function that accepts an optimizer and returns a scheduler.
+
+    Returns:
+        dict: A dictionary of test evaluation metrics computed after training the segmentation model.
+    """
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = ResNet50_CAM(37)
     model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     cam_generator = lambda model: GradCAMpp(model)
 
-    train_loader, _ = download_pet_dataset(with_paths=True)
+    train_loader, _ = get_cam_pet_dataset(with_paths=True)
     generate_pseudo_masks(train_loader, model, cam_generator, 
                           save_path=save_path,
                           threshold_low=thres_low,
@@ -67,12 +98,10 @@ def search(seg_model_name, # Segmentation model
     return test_metrics
 
 if __name__ == "__main__":
-
-    import argparse
-
     results = []
     parser = argparse.ArgumentParser(description="Grid search for multiple hyperparameters")
-    parser.add_argument("--model_path", type=str, default="cam/saved_models/resnet50_pet_cam.pth")
+    parser.add_argument('--model', type=str, default='segnet', choices=['segnet', 'segnext', 'effunet', 'unet'], help='Segmentation model')
+    parser.add_argument("--model_path", type=str, default="cam/saved_models/resnet_pet_cam.pth")
     parser.add_argument("--result_path", type=str, default="./grid_search_results.csv", help="Path to search results")
     args = parser.parse_args()
 
@@ -90,7 +119,6 @@ if __name__ == "__main__":
     loss_fn_space = {
         "ce_mean": nn.CrossEntropyLoss(reduction='mean'),
         "dice_loss": DiceLoss(),
-        # "combined_loss": CombinedCELDiceLoss(),
     }
     optimizer_generator_space = {
         "adamw_1e-3_1e-4": lambda model: torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4),
@@ -98,7 +126,6 @@ if __name__ == "__main__":
     }
     scheduler_generator_space = {
         "steplr_15_0.1": lambda optimizer: torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1),
-        # "ca_50_1e-6": lambda optimizer: torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
     }
     batch_size_space = [16, 64]
 
@@ -132,9 +159,9 @@ if __name__ == "__main__":
         print(f"Parameters: {result['parameters']}")
 
         test_metrics = search(
-            seg_model_name="unet",
+            seg_model_name=args.model,
             model_path=args.model_path,
-            save_path=f"cam/saved_models/resnet50_gradcampp_trial_pseudo.pt",
+            save_path=f"cam/saved_models/resnet_gradcampp_trial_pseudo.pt",
             batch_size=batch_size,
             thres_low=thres_low,
             thres_high=thres_high,

@@ -1,17 +1,19 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 #postprocessing.py
 import torch
-from PIL import Image
-import os
+import argparse
 from typing import Callable
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from common import *
-from preprocessing import unnormalize
-from dataset.oxfordpet import download_pet_dataset
-from visualize import visualize_cam
-from resnet_drs import ResNet50_CAM_DRS
-from crm import CRM_MODEL_SAVE_PATH
-from model.data import ImageTransform
+from cam.common import *
+from cam.preprocessing import unnormalize
+from cam.visualize import visualize_cam
+from data_utils.data import get_cam_pet_dataset
+from model.resnet_drs import ResNet50_CAM_DRS
+from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
+from crm.constants import CRM_MODEL_SAVE_PATH
 
 
 def generate_pseudo_masks(
@@ -46,7 +48,7 @@ def generate_pseudo_masks(
     # Verify CAM class interface
     if not hasattr(gradcam, 'generate_cam'):
         raise ValueError("CAM class must implement generate_cam() method")
-    
+
     all_pseudo_masks = []
     all_images = []
     image_paths = []
@@ -59,9 +61,6 @@ def generate_pseudo_masks(
         paths = batch[2]  # Third element is image path
         
         # Generate CAM heatmap
-        # cams, logits = gradcam.generate_cam(inputs, all_classes=True)  # (B, C, H, W)
-        # target_class = torch.argmax(logits, dim=1)
-        # cams = cams[torch.arange(cams.size(0)), target_class]  # (B, H, W)
         cams, _ = gradcam.generate_cam(inputs, all_classes=False, resize=True)  # (B, H, W)
         cams = (cams - cams.min()) / (cams.max() - cams.min() + 1e-8)
         # Generate pseudo masks
@@ -129,12 +128,9 @@ def generate_pseudo_masks(
 # Usage example
 if __name__ == "__main__":
     # ---------- User-defined section ----------
-    from cam.resnet_gradcampp import ResNet50_CAM, GradCAMpp
-    import argparse
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='efficientnet', 
-                        choices=['resnet', 'efficientnet', 'resnet_crm', 'efficientnet_crm', 'resnet_drs', 'resnet_scorecam', 'resnet_scorecam_crm'],)
+    parser.add_argument('--model', type=str, default='resnet',
+                        choices=['resnet', 'resnet_crm', 'resnet_drs'],)
     args = parser.parse_args()
 
     num_classes=37
@@ -142,9 +138,9 @@ if __name__ == "__main__":
 
     if args.model == 'resnet':
         model = ResNet50_CAM(num_classes)
-        model_save_path = f"{MODEL_SAVE_PATH}/resnet50_pet_cam.pth"
+        model_save_path = f"{MODEL_SAVE_PATH}/resnet_pet_cam.pth"
         cam_generator = lambda model: GradCAMpp(model)
-        pseudo_save_path = f"{MODEL_SAVE_PATH}/resnet50_pet_cam_pseudo.pt"
+        pseudo_save_path = f"{MODEL_SAVE_PATH}/resnet_pet_cam_pseudo.pt"
 
     elif args.model == 'resnet_crm':
         model = ResNet50_CAM(num_classes)
@@ -170,7 +166,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(model_save_path, map_location=device, weights_only=True))
     
     # 2. Data initialization
-    train_loader, test_loader = download_pet_dataset(with_paths=True)
+    train_loader, test_loader = get_cam_pet_dataset(with_paths=True)
     
     generate_pseudo_masks(train_loader, model, cam_generator, pseudo_save_path, device=device,
                           threshold_low=cam_threshold[0], threshold_high=cam_threshold[1])

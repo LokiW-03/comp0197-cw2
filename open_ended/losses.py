@@ -1,3 +1,6 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 #lossess.py
 import torch
 import torch.nn as nn
@@ -36,8 +39,7 @@ class PartialCrossEntropyLoss(nn.Module):
             mean_loss = total_loss / num_valid_pixels
         else:
             # Avoid division by zero if no valid pixels in batch (should not happen often)
-            mean_loss = total_loss # Or return 0.0 * total_loss to keep grad graph
-            # Alternatively return torch.tensor(0.0, device=input_logits.device, requires_grad=True)
+            mean_loss = total_loss
 
         return mean_loss
 
@@ -51,7 +53,7 @@ class CombinedLoss(nn.Module):
         super().__init__()
         self.segmentation_loss_fn = PartialCrossEntropyLoss(ignore_index=ignore_index)
         self.cross_entropy_loss_fn = nn.CrossEntropyLoss(ignore_index=ignore_index)
-        
+
         # Define valid supervision types per mode
         self.mode_to_key = {
             'points': ['points'],
@@ -85,7 +87,7 @@ class CombinedLoss(nn.Module):
         for key in self.required_keys:
             log_var = getattr(self, f'log_var_{key}')
             loss = loss_dict[key]
-            
+
             # L = 1/(2σ²)*loss + log(σ) = 1/(2exp(log_var)) * loss + 0.5*log_var
             precision = torch.exp(-log_var)
             weighted_loss = 0.5 * precision * loss + 0.5 * log_var

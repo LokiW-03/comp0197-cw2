@@ -1,7 +1,12 @@
-from cam .load_pseudo import load_pseudo
-import torch
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
 
+import torch
 import argparse
+
+from data_utils.data import trainset, testset
+from torch.utils.data import DataLoader
+from cam.load_pseudo import load_pseudo
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pseudo_path', type=str, default='./pseudo_masks.pt', help='Path to pseudo masks')
@@ -13,11 +18,9 @@ device = torch.device("cpu")
 # Load pseudo masks
 pseudo_loader = load_pseudo(args.pseudo_path, batch_size=32, shuffle=True, device=device)
 
-from model.data import trainset, testset
-from torch.utils.data import DataLoader
-
 trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
 testloader = DataLoader(testset, batch_size=32, shuffle=False)
+
 
 def compute_label_distribution(dataloader):
     """

@@ -1,8 +1,10 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 # load_pseudo.py
 import torch
 from torch.utils.data import DataLoader
-from dataset.oxfordpet_pseudo import OxfordPetWithPseudo
-from common import MODEL_SAVE_PATH
+from data_utils.data import OxfordPetWithPseudo
 
 def load_pseudo(save_path, batch_size=32, shuffle=False, device=torch.device('cpu'), collapse_contour=False):
     """
@@ -42,8 +44,6 @@ def load_pseudo_dataset(save_path, device=torch.device('cpu')):
     
     Args:
         save_path (str): Path to pseudo mask data
-        batch_size (int): Batch size
-        shuffle (bool): Whether to shuffle the data
         device (torch.device): Device to load the data on
     
     Returns:
@@ -56,20 +56,3 @@ def load_pseudo_dataset(save_path, device=torch.device('cpu')):
     dataset = OxfordPetWithPseudo(pseudo_data)
     return dataset
 
-
-if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # Load pseudo data (assuming save path is './pseudo_masks.pt')
-    pseudo_loader = load_pseudo(
-        f'{MODEL_SAVE_PATH}/resnet50_pet_cam_pseudo.pt',
-        batch_size=16,
-        shuffle=True,
-        device=device
-    )
-    
-    # Verify format compatibility
-    print(len(pseudo_loader.dataset))  # Should output number of samples in pseudo dataset
-    for images, masks in pseudo_loader:
-        print(f"Image shape: {images.shape}")  # Should output torch.Size([16, 3, 224, 224])
-        print(f"Mask shape: {masks.shape}")    # Should output torch.Size([16, 1, 224, 224])
-        break

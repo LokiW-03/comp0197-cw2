@@ -1,12 +1,15 @@
-#finetune.py
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
 
+#finetune.py
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from resnet_gradcampp import ResNet50_CAM
-from dataset.oxfordpet import download_pet_dataset
-from common import *
+from model.resnet_gradcampp import ResNet50_CAM
+from data_utils.data import get_cam_pet_dataset
+from cam.common import *
 
 
 # -------------------- Fine-tuning Function --------------------
@@ -15,7 +18,7 @@ def fine_tune_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     
     # Load data
-    train_loader, test_loader = download_pet_dataset()
+    train_loader, test_loader = get_cam_pet_dataset()
     
     # Initialize model (fix pretrained parameter spelling)
     model = ResNet50_CAM(NUM_CLASSES)
@@ -73,13 +76,12 @@ def fine_tune_model():
         # Save best model
         if epoch_acc > best_acc:
             best_acc = epoch_acc
-            torch.save(model.state_dict(), f"{MODEL_SAVE_PATH}/resnet50_pet_cam.pth")
-            print(f"Model saved at {MODEL_SAVE_PATH}/resnet50_pet_cam.pth with acc {best_acc:.4f}")
+            torch.save(model.state_dict(), f"{MODEL_SAVE_PATH}/resnet_pet_cam.pth")
+            print(f"Model saved at {MODEL_SAVE_PATH}/resnet_pet_cam.pth with acc {best_acc:.4f}")
 
 
 # -------------------- Execute Training --------------------
 if __name__ == "__main__":
-    import os
     if not os.path.exists(MODEL_SAVE_PATH):
         os.makedirs(MODEL_SAVE_PATH)
     fine_tune_model()

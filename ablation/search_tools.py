@@ -1,6 +1,15 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 import csv
 
 def save_results_to_csv(results, filename="grid_search_results.csv"):
+    """
+    Save grid search results
+
+    :param results: grid search results
+    :param filename: file to save to
+    """
     all_fields = set()
     for res in results:
         params = res["parameters"]
@@ -12,6 +21,7 @@ def save_results_to_csv(results, filename="grid_search_results.csv"):
         all_fields.discard("thresholds")
         all_fields.update(res["metrics"].keys())
         all_fields.add("iou")
+
     ordered_fields = [
         "threshold_low",
         "threshold_high",

@@ -1,11 +1,29 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
 from torchvision import models
 
 
+# Unet code partially adopted from https://medium.com/@fernandopalominocobo/mastering-u-net-a-step-by-step-guide-to-segmentation-from-scratch-with-pytorch-6a17c5916114
+
 class UpSampleDecoder(nn.Module):
+    """
+    A decoder block that performs upsampling using transposed convolution,
+    concatenates the result with a corresponding skip connection, and applies a convolutional layer.
+
+    Args:
+        in_channels (int): Number of input channels to the upsampling layer.
+        out_channels (int): Number of output channels after upsampling and convolution.
+        skip_out_channels (int): Number of channels in the skip connection from the encoder.
+
+    Methods:
+        forward(x, skip_connection):
+            Upsamples the input, concatenates with a skip connection, and applies a convolution.
+
+    """
+
     def __init__(self, in_channels, out_channels, skip_out_channels):
         super(UpSampleDecoder, self).__init__()
         # Define upsampling layers (ConvTranspose2d)
@@ -21,10 +39,19 @@ class UpSampleDecoder(nn.Module):
 
         # Apply convolution after concatenation
         x = self.conv(x)
-
         return x
 
+
 class EfficientUNet(nn.Module):
+    """
+    A lightweight semantic segmentation model based on EfficientNet-B0 as the encoder
+    and unet-style decoder for spatially-precise segmentation and efficiency.
+
+    Methods:
+        forward(x):
+            Passes input through the encoder and decoder to produce a segmentation map.
+    """
+
     def __init__(self):
         super(EfficientUNet, self).__init__()
         self.encoder = models.efficientnet_b0(weights="DEFAULT")
@@ -52,7 +79,6 @@ class EfficientUNet(nn.Module):
         for idx, block in enumerate(self.encoder_blocks):
             x = block(x)
             encoder_outputs.append(x)
-            #print(f"Shape of encoder output at block {idx}: {x.shape}") # Store encoder outputs for skip connections in upsampling
 
         # Decoder: Upsample and concatenate with encoder outputs
         x = self.upconv1(x, encoder_outputs[-3])

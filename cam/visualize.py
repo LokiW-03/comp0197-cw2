@@ -1,8 +1,11 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 #visualize.py
 import torch
 from PIL import Image
 import numpy as np
-from preprocessing import unnormalize
+from cam.preprocessing import unnormalize
 
 def visualize_cam(images: torch.Tensor, cams: np.ndarray, save_path: str, nrow: int=4, ncol: int=4):
     """
