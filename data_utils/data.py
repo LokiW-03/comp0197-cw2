@@ -27,6 +27,8 @@ def tensor_trimap(t):
 
 
 class ImageTransform:
+    """ Class storing different transform for image and mask"""
+
     common_image_transform = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
         transforms.ToTensor(),
@@ -170,7 +172,7 @@ def get_cam_pet_dataset(with_paths=False):
 
     # create datasets
     train_dataset = dataset_class(
-        root="./data_cat",
+        root="./data",
         split="trainval",
         target_types="category",
         download=True,
@@ -178,7 +180,7 @@ def get_cam_pet_dataset(with_paths=False):
     )
 
     test_dataset = dataset_class(
-        root="./data_cat",
+        root="./data",
         split="test",
         target_types="category",
         download=True,
@@ -262,10 +264,8 @@ testset = datasets.OxfordIIITPet(
     target_transform=ImageTransform.common_mask_transform)
 
 
-crm_base_dataset = OxfordIIITPetWithPaths(
-        root='./data', split='trainval', target_types='category',
-        download=True, transform=None
-    )
+crm_base_dataset = OxfordIIITPetWithPaths(root='./data', split='trainval', target_types='category', download=True,
+                                          transform=None)
 
 crm_testset = datasets.OxfordIIITPet(
         root='./data', split='test', target_types='category',

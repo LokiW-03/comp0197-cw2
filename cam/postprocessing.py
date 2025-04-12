@@ -125,8 +125,6 @@ def generate_pseudo_masks(
 # Usage example
 if __name__ == "__main__":
     # ---------- User-defined section ----------
-
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='resnet',
                         choices=['resnet', 'resnet_crm', 'resnet_drs'],)

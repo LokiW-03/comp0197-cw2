@@ -29,6 +29,35 @@ def search(seg_model_name, # Segmentation model
            optimizer_generator: callable, # Optimizer
            scheduler_generator: callable, # Learning rate scheduler
            ):
+    """
+    Runs a pseudo-mask-based weakly supervised segmentation pipeline using a CAM-based classifier.
+
+    This function performs the following steps:
+        1. Loads a pre-trained classification model (ResNet50_CAM).
+        2. Generates Class Activation Maps (CAMs) using Grad-CAM++.
+        3. Applies thresholding to create pseudo segmentation masks.
+        4. Loads the pseudo masks as a training dataset.
+        5. Selects and initializes a segmentation model based on `seg_model_name`.
+        6. Trains the segmentation model using the pseudo masks.
+        7. Evaluates the trained model on the test set and returns test metrics.
+
+    Args:
+        seg_model_name (str): Name of the segmentation model to use. Options include
+            "segnet", "efficientunet", "segnext", or "unet".
+        model_path (str): Path to the saved classification model weights.
+        save_path (str): Temporary directory path to save generated pseudo masks.
+        batch_size (int): Batch size for training and evaluation.
+        thres_low (float): Lower threshold for CAM values to include in the pseudo mask.
+        thres_high (float): Upper threshold for CAM values to include in the pseudo mask.
+        epochs (int): Number of training epochs for the segmentation model.
+        loss_fn (callable): Loss function to optimize during training.
+        optimizer_generator (callable): Function that accepts a model and returns an optimizer.
+        scheduler_generator (callable): Function that accepts an optimizer and returns a scheduler.
+
+    Returns:
+        dict: A dictionary of test evaluation metrics computed after training the segmentation model.
+    """
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = ResNet50_CAM(37)

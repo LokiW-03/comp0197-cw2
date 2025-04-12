@@ -11,6 +11,12 @@ from data_utils.data import crm_testset
 
 
 def evaluate_crm(model_name='resnet', save_dir='crm_eval_outputs'):
+    """
+    Evaluate generated crm
+
+    :param model_name: model used to generate crm
+    :param save_dir: dir to save evaluation output
+    """
     os.makedirs(save_dir, exist_ok=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

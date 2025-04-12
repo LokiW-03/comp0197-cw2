@@ -18,6 +18,11 @@ def load_segnet_checkpoint(checkpoint_path, num_classes=2, device='cpu'):
     """
     Loads a SegNet model from a given checkpoint path, attempting to handle
     multiple checkpoint formats (similar to your visualization script).
+
+    Args:
+        checkpoint_path: path where model training checkpoints are saved
+        num_classes: number of category to predict
+        device: device to use, cpu or cuda
     """
 
     print(f"Loading checkpoint: {checkpoint_path}") # Keep this print for clarity during run
@@ -194,6 +199,7 @@ def evaluate_model_on_test(model, test_loader, device, num_classes):
 
 
 def main():
+    """Main function for evaluation"""
     parser = argparse.ArgumentParser(description="Evaluate multiple SegNet models on the Pets test set.")
     parser.add_argument('--data_dir', type=str, default='./data/oxford-iiit-pet',
                         help="Root directory of the Oxford Pets dataset.")

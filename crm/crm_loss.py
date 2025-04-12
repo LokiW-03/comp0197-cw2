@@ -16,6 +16,13 @@ Modifications were made for simplification, clarity, and alignment with our proj
 """
 
 class VGGLoss(nn.Module):
+    """
+    Computes perceptual loss using a pretrained VGG19 network.
+
+    Args:
+        device (torch.device): Device to load the VGG model on (CPU or CUDA).
+    """
+
     def __init__(self, device):
         super(VGGLoss, self).__init__()
         self.vgg = Vgg19().to(device)
@@ -33,6 +40,16 @@ class VGGLoss(nn.Module):
         return loss
     
 class MaskedVGGLoss(nn.Module):
+    """
+    Computes a masked version of the perceptual loss using a pretrained VGG19 network.
+
+    Only considers features in valid regions defined by the mask, allowing partial-region
+    comparison. Useful for tasks like inpainting, segmentation, or selective region evaluation.
+
+    Args:
+        device (torch.device): Device to load the VGG model on (CPU or CUDA).
+    """
+
     def __init__(self, device):
         super(MaskedVGGLoss, self).__init__()
         self.vgg = Vgg19().to(device)
@@ -55,6 +72,17 @@ class MaskedVGGLoss(nn.Module):
         return total_loss
 
 class Vgg19(nn.Module):
+    """
+    VGG19 feature extractor.
+
+    Loads a pretrained VGG19 model and slices it into 5 sequential blocks, each representing
+    different levels of abstraction in the image. Used for computing perceptual similarity
+    or extracting deep features.
+
+    Args:
+        requires_grad (bool): If False, disables gradient computation for VGG parameters.
+    """
+
     def __init__(self, requires_grad=False):
         super(Vgg19, self).__init__()
         vgg_pretrained_features = models.vgg19(weights=VGG19_Weights.IMAGENET1K_V1).features
@@ -88,6 +116,24 @@ class Vgg19(nn.Module):
     
     
 def alignment_loss(pred, sp, label, criterion):
+
+    """
+    Computes alignment loss between predicted CAMs and superpixel regions.
+
+    This loss function encourages the model's CAM outputs to align with superpixel
+    boundaries by averaging CAM activations within each superpixel and minimizing
+    the difference between original and averaged activations.
+
+    Args:
+        pred (Tensor): Predicted CAMs of shape [B, C, H, W].
+        sp (Tensor): Superpixel segmentation map of shape [B, H', W'].
+        label (Tensor): One-hot encoded label of shape [B, C].
+        criterion (callable): A PyTorch loss function (e.g., L1Loss).
+
+    Returns:
+        Tensor: Scalar alignment loss.
+    """
+
     superpixel = sp.float()
 
     # downsample superpixel to match CAM

@@ -24,6 +24,18 @@ def train(model_name: str = 'resnet',
           vgg_weight: float = 0.3,
           align_weight: float = 0.3,
           num_epochs: int = NUM_EPOCHS):
+    """
+    Trains a classification and reconstruction model with a combined multi-task loss
+    involving classification accuracy, image reconstruction, and CAM-superpixel alignment.
+
+    Args:
+        model_name (str): Name of the classification model to use. Options: 'resnet', 'resnet_drs'.
+        cls_lr (float): Learning rate for the classification model.
+        rec_lr (float): Learning rate for the reconstruction model.
+        vgg_weight (float): Weight for VGG-based perceptual loss in the reconstruction loss.
+        align_weight (float): Weight for the alignment loss between CAMs and superpixels.
+        num_epochs (int): Number of training epochs.
+    """
 
     loss_history = {
         "cls": [],

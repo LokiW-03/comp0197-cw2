@@ -6,7 +6,7 @@ import torch
 import pickle
 from PIL import Image
 from torch.utils.data import Dataset
-from data_utils.data import ImageTransform
+from data import ImageTransform
 
 
 # Define the ignore index for CrossEntropyLoss

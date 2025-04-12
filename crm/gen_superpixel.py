@@ -8,6 +8,17 @@ from PIL import Image
 
 
 def generate_superpixels(image_dir, save_dir, n_segments=100, compactness=10):
+    """
+    Generates and saves superpixel segmentation maps for a directory of images.
+
+    Args:
+        image_dir (str): Path to the directory containing input `.jpg` images.
+        save_dir (str): Directory to save the resulting superpixel `.pt` files.
+        n_segments (int, optional): Number of superpixels to generate per image. Default is 100.
+        compactness (float, optional): Balances color proximity and space proximity.
+        Higher values make superpixels more spatially compact. Default is 10.
+    """
+
     if not os.path.exists(image_dir):
         raise RuntimeError(f"Image directory '{image_dir}' not found.")
 
