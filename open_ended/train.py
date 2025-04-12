@@ -9,7 +9,7 @@ import traceback
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
 from model.segnet_wrapper import SegNetWrapper
-from open_ended.data_utils import PetsDataset, IGNORE_INDEX
+from data_utils.data_utils import PetsDataset, IGNORE_INDEX
 from open_ended.losses import CombinedLoss
 
 
@@ -49,7 +49,7 @@ def setup_arg_parser():
 
     return parser
 
-def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes):
+def train_one_epoch(model, loader, optimizer, loss_fn, device, num_classes):
     model.train()
     total_loss = 0.0
     num_batches = len(loader)
@@ -79,7 +79,7 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes
         # Ensure GT masks are suitable for metrics (LongTensor)
         gt_masks_device = gt_masks.to(device).long()
 
-        # Move weak targets to device based on mode
+        # Move weak targets to device based on targets type
         if isinstance(targets, torch.Tensor):
             targets_device = targets.to(device).long()
             # print(f"Warning: Training with Tensor targets in hybrid script (Batch {i}). Ensure loss function handles this.")
@@ -328,7 +328,7 @@ def main():
     if args.supervision_mode == 'full':
         loss_fn = CrossEntropyLoss(ignore_index=IGNORE_INDEX)
     else:
-        loss_fn = CombinedLoss(lambda_seg=args.lambda_seg, ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
+        loss_fn = CombinedLoss(ignore_index=IGNORE_INDEX, mode=args.supervision_mode)
 
     loss_fn.to(device) # Move loss function to device
 
@@ -360,7 +360,7 @@ def main():
         try:
             # Get train loss (only loss is returned now)
             train_loss, train_acc, train_avg_iou = train_one_epoch(
-                model, train_loader, optimizer, loss_fn, device, args.supervision_mode, num_output_classes
+                model, train_loader, optimizer, loss_fn, device, num_output_classes
             )
             # Get validation metrics
             val_loss, val_acc, val_avg_iou = validate_one_epoch(
