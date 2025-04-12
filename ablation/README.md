@@ -31,9 +31,9 @@ Throughout the experiments, we maintained the same classifier model and its hype
 
 In particular:
 - We used pretrained ResNet50 model, only fine-tuned the classifier: it's a commonly used backbone in generating cam
-- Epochs: 20
+- Epochs: 23
 - Loss fn: cross entropy
-- Learning rate: 1e-3
+- Learning rate: 5e-5
 - Batch size: 32
 - Optimizer: Adam
 
