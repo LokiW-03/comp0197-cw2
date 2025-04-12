@@ -34,7 +34,7 @@ def print_model_parameters(models):
         print("-" * 40)
 
 if __name__ == '__main__':
-    file_path = 'parsed_segnext.txt'
+    file_path = '../ablation/results/parsed_segnext.txt'
     top_models = extract_top_models(file_path, top_n=3)
     print("Top 3 models by best IoU:")
     print_model_parameters(top_models)
