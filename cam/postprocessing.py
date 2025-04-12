@@ -47,13 +47,6 @@ def generate_pseudo_masks(
     if not hasattr(gradcam, 'generate_cam'):
         raise ValueError("CAM class must implement generate_cam() method")
     
-    # TODO: Should be aligned with the original dataset
-    # mask_transform = transforms.Compose([
-    #     transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.NEAREST),
-    #     transforms.PILToTensor(),
-    #     transforms.Lambda(lambda x: x.squeeze().to(torch.long))
-    # ])
-    
     all_pseudo_masks = []
     all_images = []
     image_paths = []
