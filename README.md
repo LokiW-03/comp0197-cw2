@@ -43,10 +43,7 @@ pip install scikit-image torchmetrics
    ```sh
    python -m model.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet50_gradcampp_pseudo.pt
    ```
-#### Ablation Experiments 
-
-1. Download classifier from: https://liveuclac-my.sharepoint.com/:u:/g/personal/ucabc46_ucl_ac_uk/EU3B9wuc8LpBsEfLVpKVvUYBBo43vqkc528X-25_iiH09A?e=cdB93n
-2. Save classifer to ```cam/saved_models```
+#### Ablation Experiments
 
 ```sh
 python -m ablation.grid_search

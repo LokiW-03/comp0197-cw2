@@ -3,14 +3,15 @@ import os
 import argparse
 import torch
 import torch.optim as optim
+import torchmetrics # Added for metric calculation
+import time
+import traceback
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
 from model.segnet_wrapper import SegNetWrapper
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
-from open_ended.losses import CombinedLoss, PartialCrossEntropyLoss
-import torchmetrics # Added for metric calculation
-import time
-import traceback
+from open_ended.losses import CombinedLoss
+
 
 
 # --- Configuration ---
@@ -155,7 +156,6 @@ def train_one_epoch(model, loader, optimizer, loss_fn, device, mode, num_classes
     epoch_train_avg_iou = 0.0
     try:
         epoch_train_acc = train_accuracy.compute().item()
-        iou_per_class = train_iou.compute()
         # Handle potential issues with IoU calculation (e.g., division by zero if no true positives/union)
 
         # Inside train_one_epoch after computing iou_per_class
@@ -320,8 +320,7 @@ def main():
         model_mode = 'single' # Assumed equivalent to 'segmentation' for SegNeXtWrapper
     num_output_classes = args.num_classes
     print(f"Initializing model in '{model_mode}' mode with {num_output_classes} output classes for segmentation head.")
-    # model = EffUnetWrapper(backbone=args.backbone, num_classes=num_output_classes, mode=model_mode)
-    # model.to(device)
+
     model = SegNetWrapper(num_classes=num_output_classes, mode=model_mode) # Pass num_classes here
     model.to(device)
 
