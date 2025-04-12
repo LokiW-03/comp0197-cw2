@@ -32,7 +32,7 @@ Fully supervised models are trained to provide comparison with weakly supervised
 segmentation model:
 
 ```sh
-   python -m model.train --model=segnet
+   python -m supervised.train --model=segnet
 ```
 
 Available segmentation model options are: segnet, segnext, effunet, unet.
@@ -58,7 +58,7 @@ Available segmentation model options are: segnet, segnext, effunet, unet.
 
 3. Train the SegNet segmentation model with pseudo masks
    ```sh
-   python -m model.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet50_gradcampp_pseudo.pt
+   python -m supervised.train --model=segnet --pseudo --pseudo_path=cam/saved_models/resnet50_gradcampp_pseudo.pt
    ```
    
 ### Ablation Experiments
@@ -84,7 +84,7 @@ python open_ended/download_data.py
 This script generates the sparse weak annotations (points, scribbles, boxes) from the ground-truth segmentation masks provided by the original dataset.
 
 ```bash
-python open_ended/weak_label_generator.py --data_dir ./data --output_file ./open_ended/weak_labels/weak_labels_train.pkl
+python open_ended/weak_label_generator.py --data_dir ./data/oxford-iiit-pet --output_file ./open_ended/weak_labels/weak_labels_train.pkl
 ```
 
 *   `--data_dir ./data/oxford-iiit-pet`: Specifies the directory where the Oxford-IIIT Pet dataset was downloaded (input).
