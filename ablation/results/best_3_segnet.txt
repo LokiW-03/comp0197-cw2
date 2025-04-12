@@ -1,0 +1,31 @@
+Top 3 models by best IoU:
+Model 1 (Trial 20):
+  Best epoch: 5
+  Best IoU: 0.417961448431015
+  Accuracy: 0.6879932284355164
+  Parameters:
+    thresholds: [0.21, 0.33]
+    loss_fn: dice_loss
+    optimizer: adamw_1e-3_1e-4
+    batch_size: 16
+----------------------------------------
+Model 2 (Trial 16):
+  Best epoch: 10
+  Best IoU: 0.41724562644958496
+  Accuracy: 0.7130351066589355
+  Parameters:
+    thresholds: [0.21, 0.33]
+    loss_fn: ce_mean
+    optimizer: adamw_1e-3_1e-4
+    batch_size: 16
+----------------------------------------
+Model 3 (Trial 21):
+  Best epoch: 10
+  Best IoU: 0.41365084052085876
+  Accuracy: 0.6805597543716431
+  Parameters:
+    thresholds: [0.21, 0.33]
+    loss_fn: dice_loss
+    optimizer: adamw_1e-3_1e-4
+    batch_size: 64
+----------------------------------------
