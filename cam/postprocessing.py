@@ -4,10 +4,10 @@ import argparse
 from typing import Callable
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from common import *
-from preprocessing import unnormalize
+from cam.common import *
+from cam.preprocessing import unnormalize
+from cam.visualize import visualize_cam
 from data_utils.data import get_cam_pet_dataset
-from visualize import visualize_cam
 from model.resnet_drs import ResNet50_CAM_DRS
 from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from crm.constants import CRM_MODEL_SAVE_PATH
