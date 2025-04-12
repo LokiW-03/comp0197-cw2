@@ -6,8 +6,11 @@ import torch
 import pickle
 from PIL import Image
 from torch.utils.data import Dataset
-from data_utils.data import ImageTransform
+from torchvision import transforms as T
 
+# ImageNet normalization stats
+MEAN = torch.tensor([0.485, 0.456, 0.406])
+STD = torch.tensor([0.229, 0.224, 0.225])
 
 # Define the ignore index for CrossEntropyLoss
 IGNORE_INDEX = 255 # Common value, can be changed if needed
@@ -98,11 +101,21 @@ class PetsDataset(Dataset):
                                         "Run weak_label_generator.py first.")
 
         # Define transformations
-        self.base_transform = ImageTransform.oeq_image_transform
-        self.mask_transform = ImageTransform.oeq_mask_transform
+        self.base_transform = T.Compose([
+            T.Resize(img_size),
+            T.ToTensor(),
+            T.Normalize(mean=MEAN, std=STD)
+        ])
+
+        self.mask_transform = T.Compose([
+            T.Resize(img_size, interpolation=T.InterpolationMode.NEAREST),  # Use NEAREST for masks
+        ])
 
         # Augmentations (optional)
-        self.augmentation_transform = ImageTransform.oeq_augmentation_image_transform
+        self.augmentation_transform = T.Compose([
+            T.RandomHorizontalFlip(p=0.5),
+            T.RandomRotation(degrees=15),
+        ])
 
         # Map supervision mode to required weak label keys
         self.mode_to_key = {

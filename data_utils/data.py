@@ -56,20 +56,6 @@ class ImageTransform:
         transforms.Normalize(mean=normalize_mean, std=normalize_std)
     ])
 
-    oeq_image_transform = transforms.Compose([
-        transforms.Resize((256, 256)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=normalize_mean, std=normalize_std)
-    ])
-
-    oeq_mask_transform = transforms.Compose([
-        transforms.Resize(256, interpolation=transforms.InterpolationMode.NEAREST)
-    ])
-
-    oeq_augmentation_image_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(degrees=15),
-    ])
 
 
 class OxfordIIITPetWithPaths(datasets.OxfordIIITPet):
