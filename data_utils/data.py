@@ -73,7 +73,20 @@ class ImageTransform:
 
 
 class OxfordIIITPetWithPaths(datasets.OxfordIIITPet):
-    """Extends dataset class to return image paths"""
+    """
+    Extends the OxfordIIITPet dataset class to include image file paths.
+
+    In addition to the usual image and target pair returned by the parent class,
+    this class also returns the path to the image file in the dataset.
+
+    Args:
+        root (str): Root directory where the dataset is stored. Default is "./data".
+        split (str): The dataset split to use, can be "trainval", "train", or "test". Default is "trainval".
+        target_types (str): Type of targets to return, such as "category" or "segmentation". Default is "category".
+        download (bool): Whether to download the dataset if not found. Default is False.
+        transform (callable, optional): A function/transform that takes in an image and returns a transformed version. Default is None.
+        target_transform (callable, optional): A function/transform that takes in a target and returns a transformed version. Default is None.
+    """
 
     def __init__(self, root="./data", split="trainval", target_types="category",
                  download=False, transform=None, target_transform=None):
@@ -93,6 +106,16 @@ class OxfordIIITPetWithPaths(datasets.OxfordIIITPet):
         ]
 
     def __getitem__(self, index):
+        """
+        Override the original `__getitem__` to return the image, target, and image path.
+
+        Args:
+            index (int): The index of the image and target to retrieve.
+
+        Returns:
+            A tuple containing the image, target, and the image path.
+        """
+
         # Original data
         image, target = super().__getitem__(index)
         return image, target, self.image_paths[index]
@@ -100,26 +123,54 @@ class OxfordIIITPetWithPaths(datasets.OxfordIIITPet):
 
 
 class OxfordPetWithPseudo(Dataset):
+    """
+    Custom dataset class for OxfordPet dataset that uses pseudo-labels for training.
+
+    Args:
+        pseudo_data (dict): A dictionary containing the pseudo-label data, with keys like 'pairs'.
+    """
+
     def __init__(self, pseudo_data):
-        """
-        Args:
-            pseudo_data (dict): Data dictionary loaded via load_pseudo()
-        """
         self.pairs = pseudo_data['pairs']
 
     def __len__(self):
+        """
+        Returns the number of samples in the dataset.
+
+        Returns:
+            The number of data pairs (image, mask) in the dataset.
+        """
+
         return len(self.pairs)
 
     def __getitem__(self, idx):
         """
-        Returns format consistent with original dataset: (image, target)
-        Note: Here the target is actually a pseudo mask
+        Retrieves an item from the dataset, consisting of an image and its corresponding pseudo mask.
+
+        Args:
+            idx (int): The index of the data pair to retrieve.
+
+        Returns:
+            A tuple containing the image and the pseudo mask (image, mask).
         """
+
         item = self.pairs[idx]
         return item['image'], item['mask']
 
 
 class OxfordPetSuperpixels(torch.utils.data.Dataset):
+    """
+    Custom dataset class for OxfordPet dataset with superpixel annotations.
+
+    This class takes in a base dataset and augment the data by adding superpixel information
+    associated with the images.
+
+    Args:
+        base_dataset (torch.utils.data.Dataset): The base dataset (such as OxfordIIITPetWithPaths) to use.
+        superpixel_dir (str): Directory where the superpixel data (as .pt files) is stored.
+        transform (callable, optional): A function/transform that takes in an image and returns a transformed version. Default is None.
+    """
+
     def __init__(self, base_dataset, superpixel_dir, transform=None):
         self.base_dataset = base_dataset
         self.image_paths = base_dataset.image_paths
@@ -128,9 +179,25 @@ class OxfordPetSuperpixels(torch.utils.data.Dataset):
         self.transform = transform
 
     def __len__(self):
+        """
+        Returns the number of samples in the dataset.
+
+        Returns:
+            The number of samples in the dataset.
+        """
         return len(self.base_dataset)
 
     def __getitem__(self, idx):
+        """
+        Retrieves an image, label, and superpixel mask from the dataset.
+
+        Args:
+            idx (int): The index of the sample to retrieve.
+
+        Returns:
+            A tuple containing the image, label, and superpixel mask (image, label, superpixel_mask).
+        """
+
         image, label, path = self.base_dataset[idx]
         filename = os.path.basename(path).replace(".jpg", ".pt")
         sp_path = os.path.join(self.superpixel_dir, filename)
@@ -146,6 +213,22 @@ class OxfordPetSuperpixels(torch.utils.data.Dataset):
 
 
 def collate_fn_impl(batch, with_paths=False):
+    """
+    Custom collate function for batching samples from a dataset.
+
+    Depending on the `with_paths` flag, the function returns either the standard
+    (image, label) pairs or (image, label, path) pairs.
+
+    Args:
+        batch (list): A list of samples (either (image, label) or (image, label, path)).
+        with_paths (bool): Flag to indicate whether to include image paths in the output.
+
+    Returns:
+        tuple: A tuple containing a batch of images and labels, and optionally paths.
+                - If `with_paths=True`: (images, labels, paths)
+                - If `with_paths=False`: (images, labels)
+    """
+
     if with_paths:  # (image, label, path)
         images = torch.stack([item[0] for item in batch])
         labels = torch.tensor([item[1] for item in batch])
