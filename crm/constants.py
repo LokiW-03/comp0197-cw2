@@ -1,3 +1,6 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 NUM_CLASSES = 37
 IMG_SIZE = 224
 BATCH_SIZE = 32

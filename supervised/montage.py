@@ -1,3 +1,6 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 import torch
 from PIL import Image, ImageDraw
 import random

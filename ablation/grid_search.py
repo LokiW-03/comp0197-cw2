@@ -1,3 +1,6 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 import torch
 import argparse
 import itertools
@@ -15,8 +18,6 @@ from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from supervised.train import train_model, compute_test_metrics_fn
 from supervised.loss import DiceLoss
 from ablation.search_tools import save_results_to_csv
-
-
 
 def search(seg_model_name, # Segmentation model
            model_path, # Path to the classification model

@@ -1,3 +1,6 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
 #segnet_wrapper.py
 import torch.nn as nn
 from model.baseline_segnet import SegNet

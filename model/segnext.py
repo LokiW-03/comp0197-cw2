@@ -1,3 +1,5 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
 
 """
 Architecture Explanation: We define the MSCAN_Backbone with four stages. The first stage (stem) uses two 3x3 strided conv layers to reduce the input size to 1/4 with an embedding dimension (e.g., 64 channels).

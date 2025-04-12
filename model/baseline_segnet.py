@@ -1,9 +1,11 @@
+# I acknowledge the use of ChatGPT (version GPT-4o, OpenAI, https://chatgpt.com/) for assistance in debugging and
+# writing docstrings.
+
+import copy
 import logging
 import torch.nn as nn
 import numpy as np
 from torchvision import models
-
-import copy
 
 class BaseModel(nn.Module):
     """
