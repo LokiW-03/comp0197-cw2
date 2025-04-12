@@ -34,18 +34,22 @@ class ResNet50_CAM(nn.Module):
         self.target_layer.register_forward_hook(self.save_activations)
         self.target_layer.register_full_backward_hook(self.save_gradients)
     
-    def save_activations(self, output):
+    def save_activations(self, module, input, output):
         """
         Hook function to save intermediate activations
         Args:
+            module: The layer being hooked
+            input: Input to the layer
             output: Output from the layer, shape: (B, 2048, H', W')
         """
         self.activations = output  # Keep gradient information for backprop
     
-    def save_gradients(self, grad_output):
+    def save_gradients(self, module, grad_input, grad_output):
         """
         Hook function to save gradients
         Args:
+            module: The layer being hooked
+            grad_input: Gradient of the input
             grad_output: Gradient of the output
         """
         self.gradients = grad_output[0]

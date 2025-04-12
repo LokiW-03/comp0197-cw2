@@ -93,6 +93,7 @@ def train(model_name: str = 'resnet',
     recon_net.train()
 
     for epoch in range(num_epochs):
+        print(f"Training epoch: {epoch}")
         total_cls_loss, total_rec_loss, total_align_loss = 0.0, 0.0, 0.0
         correct_preds, total_preds = 0, 0
 
@@ -109,7 +110,6 @@ def train(model_name: str = 'resnet',
                 labels_onehot = F.one_hot(labels, num_classes=NUM_CLASSES).float()
                 align_loss_val = alignment_loss(cams, sp, labels_onehot, align_loss_fn)
                 loss = cls_loss + rec_loss + align_weight * align_loss_val
-                # loss = cls_loss + rec_loss
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
