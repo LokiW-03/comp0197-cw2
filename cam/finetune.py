@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from model.resnet_gradcampp import ResNet50_CAM
-from data_utils.data import download_pet_dataset
+from data_utils.data import get_cam_pet_dataset
 from common import *
 
 
@@ -15,7 +15,7 @@ def fine_tune_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     
     # Load data
-    train_loader, test_loader = download_pet_dataset()
+    train_loader, test_loader = get_cam_pet_dataset()
     
     # Initialize model (fix pretrained parameter spelling)
     model = ResNet50_CAM(NUM_CLASSES)

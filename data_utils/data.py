@@ -1,8 +1,11 @@
 import os
 import torch
+import logging
 from functools import partial
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset, DataLoader
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Set random seed for reproducibility
 torch.manual_seed(42)
@@ -152,7 +155,7 @@ def collate_fn_impl(batch, with_paths=False):
         return images, labels
 
 
-def download_pet_dataset(with_paths=False):
+def get_cam_pet_dataset(with_paths=False):
     """
     download and prepare pet dataset
 
@@ -204,6 +207,40 @@ def download_pet_dataset(with_paths=False):
     )
 
     return cam_train_loader, cam_test_loader
+
+
+def download_oxford_pet_oeq(download_root):
+    """
+    Downloads the Oxford-IIIT Pet dataset using torchvision.
+    Uses download_root as the target for the initial download.
+
+    Args:
+        download_root (str): The path where torchvision will initially place files.
+
+    Returns:
+        bool: True if download/verification was successful or data already exists,
+              False otherwise.
+    """
+    logging.info(f"Checking for Oxford-IIIT Pet dataset in '{os.path.abspath(download_root)}'...")
+
+    try:
+        # We instantiate the dataset class primarily to trigger the download=True logic.
+        # The actual dataset object isn't used further in this download script.
+        # We use download_root here, which will contain the 'oxford-iiit-pet' subdir.
+        logging.info("Attempting to download/verify Oxford-IIIT Pet dataset (images and annotations)...")
+        logging.info(f"Download target directory: {os.path.abspath(download_root)}")
+        logging.info("This may take a while depending on your internet connection.")
+
+        _ = datasets.OxfordIIITPet(root=download_root, split="trainval", target_types="segmentation", download=True)
+
+        logging.info("Dataset download/verification step complete.")
+        # Further verification happens implicitly during the restructuring phase
+        return True
+
+    except Exception as e:
+        logging.error(f"An error occurred during dataset download: {e}", exc_info=True)
+        logging.error("Please check your internet connection, disk space, and permissions.")
+        return False
 
 
 trainset = datasets.OxfordIIITPet(

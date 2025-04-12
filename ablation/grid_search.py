@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 from cam.load_pseudo import load_pseudo
 from cam.postprocessing import generate_pseudo_masks
-from data_utils.data import testset, download_pet_dataset
+from data_utils.data import testset, get_cam_pet_dataset
 from model.baseline_segnet import SegNet
 from model.efficient_unet import EfficientUNet
 from model.segnext import SegNeXt
@@ -35,7 +35,7 @@ def search(seg_model_name, # Segmentation model
     model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     cam_generator = lambda model: GradCAMpp(model)
 
-    train_loader, _ = download_pet_dataset(with_paths=True)
+    train_loader, _ = get_cam_pet_dataset(with_paths=True)
     generate_pseudo_masks(train_loader, model, cam_generator, 
                           save_path=save_path,
                           threshold_low=thres_low,

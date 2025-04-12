@@ -6,7 +6,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from common import *
 from preprocessing import unnormalize
-from data_utils.data import download_pet_dataset
+from data_utils.data import get_cam_pet_dataset
 from visualize import visualize_cam
 from model.resnet_drs import ResNet50_CAM_DRS
 from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(model_save_path, map_location=device, weights_only=True))
     
     # 2. Data initialization
-    train_loader, test_loader = download_pet_dataset(with_paths=True)
+    train_loader, test_loader = get_cam_pet_dataset(with_paths=True)
     
     generate_pseudo_masks(train_loader, model, cam_generator, pseudo_save_path, device=device,
                           threshold_low=cam_threshold[0], threshold_high=cam_threshold[1])
