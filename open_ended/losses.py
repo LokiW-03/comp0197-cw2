@@ -1,4 +1,5 @@
 #lossess.py
+import torch
 import torch.nn as nn
 
 
@@ -42,17 +43,15 @@ class PartialCrossEntropyLoss(nn.Module):
 
 class CombinedLoss(nn.Module):
     """
-    Combines Classification Loss (BCE) and Partial Segmentation Loss (Partial CE).
+    Combines segmentation losses with uncertainty-based adaptive weighting.
+    Supports boxes (full CE), scribbles/points (partial CE).
     """
-    def __init__(self, mode, lambda_seg=1.0, ignore_index=255):
+    def __init__(self, mode, ignore_index=255):
         super().__init__()
-        # For binary classification (pet present/absent) or multi-label
-        self.classification_loss_fn = nn.BCEWithLogitsLoss()
-        # For sparse segmentation labels (points)
         self.segmentation_loss_fn = PartialCrossEntropyLoss(ignore_index=ignore_index)
         self.cross_entropy_loss_fn = nn.CrossEntropyLoss(ignore_index=ignore_index)
-        self.lambda_seg = lambda_seg # Weight for the segmentation loss
-        self.mode = mode
+
+        # Define valid supervision types per mode
         self.mode_to_key = {
             'points': ['points'],
             'scribbles': ['scribbles'],
@@ -62,32 +61,33 @@ class CombinedLoss(nn.Module):
             'hybrid_scribbles_boxes': ['scribbles', 'boxes'],
             'hybrid_points_scribbles_boxes': ['points', 'scribbles', 'boxes']
         }
+        self.required_keys = self.mode_to_key[mode]
         self.ignore_index = ignore_index
 
+        # Initialize learnable log-variance parameters
+        for key in self.required_keys:
+            self.register_parameter(f'log_var_{key}', nn.Parameter(torch.zeros(1)))
+
     def forward(self, model_output, targets):
-        """
-        Args:
-            model_output (dict): {'segmentation': logits_seg, 'classification': logits_cls}
-            targets (dict): {'tags': target_tags, 'points': target_points_sparse}
-        """
+        loss_dict = {}
+        total_loss = 0.0
 
-        required_keys = self.mode_to_key.get(self.mode, [])
-        loss_list = []
-
-        for key in required_keys:
+        # Compute individual losses
+        for key in self.required_keys:
             if key in ['points', 'scribbles']:
-                # Segmentation Loss (Points)
-                seg_logits = model_output # Shape (B, C, H, W)
-                key_targets = targets[key] # Shape (B, H, W), long with ignore_index
-                loss_list.append(self.segmentation_loss_fn(seg_logits, key_targets))
-            elif key == "boxes":
-                seg_logits = model_output
-                key_targets = targets[key]
-                loss_list.append(self.cross_entropy_loss_fn(seg_logits, key_targets))
-            else:
-                raise ValueError("Invalid key.")
+                loss = self.segmentation_loss_fn(model_output, targets[key])
+            elif key == 'boxes':
+                loss = self.cross_entropy_loss_fn(model_output, targets[key])
+            loss_dict[key] = loss
 
-        # Combine losses
-        total_loss = sum([loss * self.lambda_seg for loss in loss_list])
+        # Apply uncertainty-based weighting (Kendall et al.)
+        for key in self.required_keys:
+            log_var = getattr(self, f'log_var_{key}')
+            loss = loss_dict[key]
+
+            # L = 1/(2σ²)*loss + log(σ) = 1/(2exp(log_var)) * loss + 0.5*log_var
+            precision = torch.exp(-log_var)
+            weighted_loss = 0.5 * precision * loss + 0.5 * log_var
+            total_loss += weighted_loss
 
         return total_loss

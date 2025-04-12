@@ -3,15 +3,14 @@ import os
 import argparse
 import torch
 import torch.optim as optim
-import torchmetrics
-import time
-import traceback
-
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
 from model.segnet_wrapper import SegNetWrapper
 from open_ended.data_utils import PetsDataset, IGNORE_INDEX
-from open_ended.losses import CombinedLoss
+from open_ended.losses import CombinedLoss, PartialCrossEntropyLoss
+import torchmetrics # Added for metric calculation
+import time
+import traceback
 
 
 # --- Configuration ---
@@ -44,7 +43,6 @@ def setup_arg_parser():
     parser.add_argument('--checkpoint_dir', type=str, default=DEFAULT_CHECKPOINT_DIR, help='Directory to save checkpoints')
     parser.add_argument('--run_name', type=str, required=True, help='Unique name for this training run (used for saving checkpoints)')
     parser.add_argument('--num_workers', type=int, default=2, help='Number of dataloader workers')
-    parser.add_argument('--lambda_seg', type=float, default=1.0, help='Weight for segmentation loss in hybrid mode')
     parser.add_argument('--augment', action='store_true', help='Enable basic data augmentation')
     parser.add_argument('--num_classes', type=int, default=DEFAULT_NUM_CLASSES, help='Number of output classes (e.g., 2 for BG+Pet)')
 
@@ -441,8 +439,7 @@ def main():
             traceback.print_exc()
             break
 
-    
-    # ***** ADDED: Final time printout *****
+
     training_end_time = time.time()
     total_training_time = training_end_time - training_start_time
     print("\n------------------------------------")
@@ -452,9 +449,7 @@ def main():
     print(f"Best Validation IOU achieved: {best_val_iou:.4f}") # Changed metric name
     print(f"Best model saved to: {checkpoint_path_base}_best_acc.pth (if accuracy improved)") # Changed filename
     print(f"Latest model saved to: {checkpoint_path_base}_latest.pth")
-    print("\nRECOMMENDATION: Load the '_best_acc.pth' checkpoint and evaluate it on the separate TEST set for final performance.")
 
 
 if __name__ == '__main__':
-    # Make sure to install torchmetrics: pip install torchmetrics
     main()

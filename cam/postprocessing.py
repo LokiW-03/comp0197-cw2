@@ -44,7 +44,6 @@ def generate_pseudo_masks(
     if not hasattr(gradcam, 'generate_cam'):
         raise ValueError("CAM class must implement generate_cam() method")
 
-    
     all_pseudo_masks = []
     all_images = []
     image_paths = []
