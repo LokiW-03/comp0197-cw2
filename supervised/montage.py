@@ -50,7 +50,7 @@ def tensor_to_pil(image):
     image = (image * 255.0).byte()
     return Image.fromarray(image.numpy())
 
-def visualise_fs_segmentation(model, testset, device):
+def visualise_fs_segmentation(model, testset, device, model_name):
     """
     Runs 8 examples through the model and draws them on a single 8x3 grid:
     - 3 images per example: original (left), ground truth (middle), prediction (right)
@@ -135,5 +135,5 @@ def visualise_fs_segmentation(model, testset, device):
     montage_with_header.paste(combined, (0, header_height))
 
     # Save the final montage
-    montage_with_header.save("montage_fully_supervised.png")
-    print("Saved grid of 8 examples as 'montage_fully_supervised.png'")
+    montage_with_header.save(f"montage_fully_supervised_{model_name}.png")
+    print(f"Saved grid of 8 examples as 'montage_fully_supervised_{model_name}.png'")

@@ -267,7 +267,7 @@ def main():
     test_metrics = compute_test_metrics_fn(model, test_loader, loss_fn, device, num_classes = 3, num_eval_batches=None)
     print(f"Final test metrics:   -> {test_metrics}")
 
-    visualise_fs_segmentation(model, testset, device)
+    visualise_fs_segmentation(model, testset, device, args.model)
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@ from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from model.resnet_drs import ResNet50_CAM_DRS
 from model.reconstruct_net import ReconstructNet
 from crm.visualize import visualize_recon_grid
-from crm import CRM_MODEL_SAVE_PATH, NUM_CLASSES
+from crm.constants import CRM_MODEL_SAVE_PATH, NUM_CLASSES
 from data_utils.data import crm_testset
 
 

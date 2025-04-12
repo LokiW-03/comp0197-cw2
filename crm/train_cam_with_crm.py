@@ -11,7 +11,7 @@ from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from model.resnet_drs import ResNet50_CAM_DRS
 from model.reconstruct_net import ReconstructNet
 
-from crm import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR
+from crm.constants import CRM_MODEL_SAVE_PATH, BATCH_SIZE, NUM_CLASSES, NUM_EPOCHS, CLS_LR, REC_LR
 from crm.crm_loss import VGGLoss, alignment_loss
 from crm.gen_superpixel import generate_superpixels
 
