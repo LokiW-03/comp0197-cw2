@@ -21,7 +21,7 @@ conda create -n comp0197-cw2-pt python=3.12 pip && conda activate comp0197-cw2-p
 ### Extra Dependencies
 In addition to above base packages, this codebase also requires below packages to be installed.
 ```bash
-pip install scikit-image torchmetrics matplotlib
+pip install scikit-image torchmetrics 
 ```
 
 ## Script Execution Instructions
@@ -38,11 +38,11 @@ segmentation model:
 Available segmentation model options are: segnet, segnext, effunet, unet.\
 
 All available command argument for `train`:
-*   `--model`: Segmentation model name, allowed value ['segnet', 'segnext', 'effunet', 'unet']
-*   `--pseudo`: boolean, whether to use pseudo mask
-*   `--pseudo_path`: path where pseudo mask is saved
-*   `--verbose`: boolean, whether to print verbose message
-*   `--collate_contour`: boolean, whether to collapse contour class into foreground
+   *   `--model`: Segmentation model name, allowed value ['segnet', 'segnext', 'effunet', 'unet']
+   *   `--pseudo`: boolean, whether to use pseudo mask
+   *   `--pseudo_path`: path where pseudo mask is saved
+   *   `--verbose`: boolean, whether to print verbose message
+   *   `--collate_contour`: boolean, whether to collapse contour class into foreground
 
 ### Weakly Supervised Model
 
