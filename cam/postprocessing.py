@@ -1,5 +1,6 @@
 #postprocessing.py
 import torch
+import argparse
 from typing import Callable
 from torchvision import transforms
 from torch.utils.data import DataLoader
@@ -8,6 +9,7 @@ from preprocessing import unnormalize
 from data_utils.data import download_pet_dataset
 from visualize import visualize_cam
 from model.resnet_drs import ResNet50_CAM_DRS
+from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
 from crm import CRM_MODEL_SAVE_PATH
 
 
@@ -123,12 +125,11 @@ def generate_pseudo_masks(
 # Usage example
 if __name__ == "__main__":
     # ---------- User-defined section ----------
-    from model.resnet_gradcampp import ResNet50_CAM, GradCAMpp
-    import argparse
+
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='efficientnet', 
-                        choices=['resnet', 'efficientnet', 'resnet_crm', 'efficientnet_crm', 'resnet_drs', 'resnet_scorecam', 'resnet_scorecam_crm'],)
+    parser.add_argument('--model', type=str, default='resnet',
+                        choices=['resnet', 'resnet_crm', 'resnet_drs'],)
     args = parser.parse_args()
 
     num_classes=37
