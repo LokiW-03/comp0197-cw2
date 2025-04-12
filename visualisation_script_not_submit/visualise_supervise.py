@@ -1,4 +1,4 @@
-# # visualise.py
+# # visualise_supervise.py
 # # python -m model.visualise --model_path .\saved_models\segnet_epoch_10.pth --model_type segnet --num_images 10
 
 # # import matplotlib.pyplot as plt
