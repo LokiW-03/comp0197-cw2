@@ -41,7 +41,7 @@ If you're using a MacBook with an M1, M2, or M3 chip, we suggest enabling CPU fa
 PYTORCH_ENABLE_MPS_FALLBACK=1 python -m supervised.train --model=segnet
 ```
 
-Available segmentation model options are: segnet, segnext, effunet, unet.\
+Available segmentation model options are: segnet, segnext, effunet, unet.
 
 ### Weakly Supervised Model
 
@@ -57,6 +57,20 @@ saved model weights not found.
    python -m crm.train_cam_with_crm
    python -m crm.evaluate_with_crm
    ```
+
+- If Mac users ran into segmentation fault, please download saved models on OneDrive
+    - Resnet: https://1drv.ms/u/c/2ef0e412637ecc3c/EawGxav3g3BPke8uXA7C5W0Bdf2oIHQSoV6smZgRWXR1NA
+    - Reconstruction network: https://1drv.ms/u/c/2ef0e412637ecc3c/EdhrCbIkW6dEpXfImbAcRsoBBb_3ceJHz16NxfTiqLPmhg?e=llvOmN
+
+    - Resnet DRS: https://1drv.ms/u/c/2ef0e412637ecc3c/EQU-6ec3hklKhi9hTXwXxDEBWx5czmOywqLiH3gsT0qhAQ?e=nkVYuQ. 
+    - Reconstruction network Drs: https://1drv.ms/u/c/2ef0e412637ecc3c/EesRuHMqxgZAvj6Qc710poYBfyskimMUQtJAFrfC9wmOCw?e=YEFLuq 
+   - Please place them under `./crm_models/`
+
+
+    **Note**: `crm.train_cam_with_crm` will generate superpixels under directory `./superpixels`. To skip the generation, simply download from OneDrive and unzip it under project root.
+    - Superpixels: https://1drv.ms/u/c/2ef0e412637ecc3c/EQy9SXX7x4tGnqJWRpIJa7EBYK9I7c2ipQB07oCzcjAfKQ?e=OvIgq5
+
+    - If training was killed early, rerunning could lead to into `superpixels/xxx not found error`, please try to remove the `./superpixels` folder and rerun, or download and zip from OneDrive.
 
     All available command argument for `train_cam_with_crm`:
     *   `--model`: Classification model name, allowed value ['resnet', 'resnet_drs']
