@@ -79,7 +79,7 @@ def search(seg_model_name, # Segmentation model
 
     if seg_model_name == "segnet":
         seg_model = SegNet()
-    elif seg_model_name == "efficientunet":
+    elif seg_model_name == "effunet":
         seg_model = EfficientUNet()
     elif seg_model_name == "segnext":
         seg_model = SegNeXt(num_classes=3)
@@ -188,4 +188,4 @@ if __name__ == "__main__":
     print(f"Max IoU: {max_iou:.4f}")
     print("Best metrics:", best_metrics)
 
-    save_results_to_csv(results, filename="grid_search_results.csv")
+    save_results_to_csv(results, filename=args.result_path)
