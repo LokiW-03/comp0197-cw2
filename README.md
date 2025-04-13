@@ -186,7 +186,7 @@ This is the core step where the segmentation model is trained using different we
 **Training Examples:**
 
 **(a) Training with Single Weak Supervision Types:**
-These commands train separate models, each using only one type of weak annotation. Checkpoints are saved in `./checkpoints_single`.
+These commands train separate models, each using only one type of weak annotation. Checkpoints are saved in `././open_ended/models/segnet_single`.
 
 *   **Using Points:**
     ```bash
@@ -234,7 +234,7 @@ These commands train separate models, each using only one type of weak annotatio
     ```
 
 **(b) Training with Hybrid Weak Supervision Types:**
-These commands train models using combinations of weak annotation types. Checkpoints are saved in `./checkpoints_hybrid`.
+These commands train models using combinations of weak annotation types. Checkpoints are saved in `./open_ended/models/segnet_hybrid`.
 
 *   **Using Points + Scribbles:**
     ```bash
