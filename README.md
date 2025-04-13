@@ -48,7 +48,7 @@ All available command argument for `train`:
    *   `--pseudo`: boolean, whether to use pseudo mask
    *   `--pseudo_path`: path where pseudo mask is saved
    *   `--verbose`: boolean, whether to print verbose message
-   *   `--collate_contour`: boolean, whether to collapse contour class into foreground
+   *   `--collapse_contour`: boolean, whether to collapse contour class into foreground
 
 ### Weakly Supervised Model
 
