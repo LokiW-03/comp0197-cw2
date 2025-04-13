@@ -52,6 +52,9 @@ saved model weights not found.
    ```sh
    python -m cam.finetune
    ```
+   - If skipping training is desired, please download saved models from below link and place it under `./cam/saved_models/`:
+     https://1drv.ms/u/c/7bd94d1f2778098e/EYy41L_MpgtHk5yGgg5UAVgBghw7hVDBbTW_vgte65L4aQ?e=96MxZx
+   
    or with regularisation
    ```sh
    python -m crm.train_cam_with_crm
@@ -88,6 +91,9 @@ saved model weights not found.
    ```sh
    python -m cam.postprocessing --model=resnet
    ```
+    - If generation is taking too long, please download the saved pseudo mask from belwo link and place it under 
+   `./cam/saved_models/`: https://1drv.ms/u/c/7bd94d1f2778098e/Ecv4SrLgBJ5NnG62tF_gTYcBMvc_ZoR7VNAl54fQFToP5w?e=zjCXOB
+
    or with regularisation
    ```sh
    python -m cam.postprocessing --model=resnet_crm
