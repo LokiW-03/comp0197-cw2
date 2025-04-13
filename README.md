@@ -43,13 +43,6 @@ PYTORCH_ENABLE_MPS_FALLBACK=1 python -m supervised.train --model=segnet
 
 Available segmentation model options are: segnet, segnext, effunet, unet.\
 
-All available command argument for `train`:
-   *   `--model`: Segmentation model name, allowed value ['segnet', 'segnext', 'effunet', 'unet']
-   *   `--pseudo`: boolean, whether to use pseudo mask
-   *   `--pseudo_path`: path where pseudo mask is saved
-   *   `--verbose`: boolean, whether to print verbose message
-   *   `--collapse_contour`: boolean, whether to collapse contour class into foreground
-
 ### Weakly Supervised Model
 
 NOTE: Below command are designed to be executed in sequence. Breaking the sequence may result in receiving errors due to
@@ -108,7 +101,6 @@ saved model weights not found.
     *   `--pseudo`: boolean, whether to use pseudo mask
     *   `--pseudo_path`: path where pseudo mask is saved
     *   `--verbose`: boolean, whether to print verbose message
-    *   `--collate_contour`: boolean, whether to collapse contour class into foreground
 
    
 ### Ablation Experiments
