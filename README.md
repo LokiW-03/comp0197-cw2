@@ -91,13 +91,16 @@ saved model weights not found.
    ```sh
    python -m cam.postprocessing --model=resnet
    ```
-    - If generation is taking too long, please download the saved pseudo mask from belwo link and place it under 
+    - If generation is taking too long, please download the saved pseudo mask from below link and place it under 
    `./cam/saved_models/`: https://1drv.ms/u/c/7bd94d1f2778098e/Ecv4SrLgBJ5NnG62tF_gTYcBMvc_ZoR7VNAl54fQFToP5w?e=zjCXOB
 
    or with regularisation
    ```sh
    python -m cam.postprocessing --model=resnet_crm
    ```
+    - If generation is taking too long, please download the saved pseudo mask from below link and place it under 
+   `./crm_models/`:
+        - resnet crm: https://1drv.ms/u/c/2ef0e412637ecc3c/EeYzVPQ2c1VGoKBhqKS5814BtHOXu7KX2_i8hHkNg9G1aQ?e=uyDa0h
    
     All available command argument for `postprocessing`:
     *   `--model`: Classification model name, allowed value ['resnet', 'resnet_crm', 'resnet_drs'] 
