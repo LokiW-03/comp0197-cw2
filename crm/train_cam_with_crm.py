@@ -50,6 +50,7 @@ def train(model_name: str = 'resnet',
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {device}")
     os.makedirs(CRM_MODEL_SAVE_PATH, exist_ok=True)
 
 
