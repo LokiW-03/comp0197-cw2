@@ -167,6 +167,9 @@ python -m open_ended.weak_label_generator --data_dir ./data/oxford-iiit-pet --ou
 
 This is the core step where the segmentation model is trained using different weak supervision configurations. The script `open_ended/train.py` is used repeatedly with different arguments.
 
+
+> Model weights are available at https://liveuclac-my.sharepoint.com/:f:/g/personal/ucabz68_ucl_ac_uk/Euk2rbgGvglEoERYxqLS-m4BK1fxKh6cGZWMT7HarEnY_w?e=qRIYGe, please download it in `open_ended/models/segnet_single` and `open_ended/models/segnet_hybrid`.
+
 **Common Training Arguments:**
 
 *   `--supervision_mode [mode]`: **Crucial argument.** Specifies the type of weak supervision to use. Examples below use `points`, `scribbles`, `boxes`, and various `hybrid_...` combinations.
@@ -197,7 +200,7 @@ These commands train separate models, each using only one type of weak annotatio
         --epochs 25 \
         --num_workers 8 \
         --img_size 256 \
-        --checkpoint_dir ./checkpoints_single
+        --checkpoint_dir ./open_ended/models/segnet_single
     ```
 
 *   **Using Scribbles:**
@@ -212,7 +215,7 @@ These commands train separate models, each using only one type of weak annotatio
         --epochs 25 \
         --num_workers 8 \
         --img_size 256 \
-        --checkpoint_dir ./checkpoints_single
+        --checkpoint_dir ./open_ended/models/segnet_single
     ```
 
 *   **Using Bounding Boxes:**
@@ -227,7 +230,7 @@ These commands train separate models, each using only one type of weak annotatio
         --epochs 25 \
         --num_workers 8 \
         --img_size 256 \
-        --checkpoint_dir ./checkpoints_single
+        --checkpoint_dir ./open_ended/models/segnet_single
     ```
 
 **(b) Training with Hybrid Weak Supervision Types:**
@@ -245,7 +248,7 @@ These commands train models using combinations of weak annotation types. Checkpo
         --epochs 25 \
         --num_workers 8 \
         --img_size 256 \
-        --checkpoint_dir ./checkpoints_hybrid
+        --checkpoint_dir ./open_ended/models/segnet_hybrid
     ```
 
 *   **Using Points + Boxes:**
@@ -260,7 +263,7 @@ These commands train models using combinations of weak annotation types. Checkpo
         --epochs 25 \
         --num_workers 8 \
         --img_size 256 \
-        --checkpoint_dir ./checkpoints_hybrid
+        --checkpoint_dir ./open_ended/models/segnet_hybrid
     ```
 
 *   **Using Scribbles + Boxes:**
@@ -275,7 +278,7 @@ These commands train models using combinations of weak annotation types. Checkpo
         --epochs 25 \
         --num_workers 8 \
         --img_size 256 \
-        --checkpoint_dir ./checkpoints_hybrid
+        --checkpoint_dir ./open_ended/models/segnet_hybrid
     ```
 
 *   **Using Points + Scribbles + Boxes:**
@@ -290,7 +293,7 @@ These commands train models using combinations of weak annotation types. Checkpo
         --epochs 25 \
         --num_workers 8 \
         --img_size 256 \
-        --checkpoint_dir ./checkpoints_hybrid
+        --checkpoint_dir ./open_ended/models/segnet_hybrid
     ```
 
 #### Step 4: Evaluate Trained Models
@@ -300,13 +303,13 @@ After training, use the `open_ended/evaluate.py` script to evaluate the performa
 ```bash
 python -m open_ended.evaluate \
     --data_dir ./data/oxford-iiit-pet \
-    --model_paths checkpoints_single/segnet_boxes_run1_best_acc.pth \
-                  checkpoints_single/segnet_points_run1_best_acc.pth \
-                  checkpoints_single/segnet_scribbles_run1_best_acc.pth \
-                  checkpoints_hybrid/segnet_hybrid_points_boxes_run1_best_acc.pth \
-                  checkpoints_hybrid/segnet_hybrid_points_scribbles_boxes_run1_best_acc.pth \
-                  checkpoints_hybrid/segnet_hybrid_points_scribbles_run1_best_acc.pth \
-                  checkpoints_hybrid/segnet_hybrid_scribbles_boxes_run1_best_acc.pth \
+    --model_paths ./open_ended/models/segnet_single/segnet_boxes_run1_best_acc.pth \
+                  ./open_ended/models/segnet_single/segnet_points_run1_best_acc.pth \
+                  ./open_ended/models/segnet_single/segnet_scribbles_run1_best_acc.pth \
+                  ./open_ended/models/segnet_hybrid/segnet_hybrid_points_boxes_run1_best_acc.pth \
+                  ./open_ended/models/segnet_hybrid/segnet_hybrid_points_scribbles_boxes_run1_best_acc.pth \
+                  ./open_ended/models/segnet_hybrid/segnet_hybrid_points_scribbles_run1_best_acc.pth \
+                  ./open_ended/models/segnet_hybrid/segnet_hybrid_scribbles_boxes_run1_best_acc.pth \
     --batch_size 8 \
     --device cuda
 ```
