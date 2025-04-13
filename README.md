@@ -35,6 +35,12 @@ segmentation model:
    python -m supervised.train --model=segnet
 ```
 
+If you're using a MacBook with an M1, M2, or M3 chip, we suggest enabling CPU fallback for better compatibility:
+
+```sh
+PYTORCH_ENABLE_MPS_FALLBACK=1 python -m supervised.train --model=segnet
+```
+
 Available segmentation model options are: segnet, segnext, effunet, unet.\
 
 All available command argument for `train`:
