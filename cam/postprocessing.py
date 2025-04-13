@@ -54,7 +54,8 @@ def generate_pseudo_masks(
     image_paths = []
     sample_mask_images = []
     
-    for batch in dataloader:
+    for id, batch in enumerate(dataloader):
+        print(f"Batch {id}")
         # Parse batch data (assumes dataloader returns (img, _, paths))
         inputs = batch[0].to(device)
         all_images.append(inputs)
@@ -162,7 +163,8 @@ if __name__ == "__main__":
         else "mps" if torch.backends.mps.is_available()
         else "cpu"
     )
-    
+    print(f"Using device: {device}")
+
     model.load_state_dict(torch.load(model_save_path, map_location=device, weights_only=True))
     
     # 2. Data initialization
